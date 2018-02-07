@@ -1,0 +1,1 @@
+options(blogdown.author = "Dan Ovando", blogdown.ext = ".Rmd")
