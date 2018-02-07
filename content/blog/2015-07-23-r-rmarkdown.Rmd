@@ -17,6 +17,9 @@ This is an R Markdown document. Markdown is a simple formatting syntax for autho
 
 You can embed an R code chunk like this:
 
+$$2 + \alpha$$
+
+
 ```{r cars}
 summary(cars)
 fit <- lm(dist ~ speed, data = cars)
