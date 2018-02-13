@@ -22,7 +22,7 @@ https://magesblog.com/post/2015-08-04-generalised-linear-models-in-r/
 
 log transforming says that 
 
-$$log(x) \sim N(\mu, \sigma) $$
+$$log(x) \sim N(\mu, \sigma)$$
 
 in other words, this is estimating the mean of log(x)
 
