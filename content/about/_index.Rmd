@@ -1,0 +1,30 @@
+---
+title: "About Me"
+date: "2014-04-09"
+bibliography: my-pubs.bib
+nocite: |
+  @Costello2012a
+  @Dowling2016
+  @Rahimi2016
+  @Szuwalski2016b
+  @Fogarty2016
+  @Ovando2016a
+  @Costello2016
+  @Hilborn2014b
+  @Rosenberg2014
+  @Ovando2016
+  @Ovando2013
+
+---
+
+# Research
+
+
+# Background
+
+
+# Publications
+
+
+
+

@@ -1,5 +1,5 @@
 blogdown::html_page:
-  toc: true
+  toc: false
   fig_width: 10
   dev: "svg"
 type: post

@@ -4,7 +4,7 @@ title = "Weird Fishes - A Blog of Oceans, Data, and Music"
 theme = "hugo-future-imperfect"
 preserveTaxonomyNames = true
 paginate = 3
-disqusShortname = "shortname"
+disqusShortname = "weirdfishes"
 googleAnalytics = ""
 pluralizeListTitles = false
 enableEmoji = true
@@ -83,7 +83,7 @@ ignoreFiles = ["\\.Rmd$", "\\.Rmarkdown$", "_files$", "_cache$"]
 [params.intro]
   header    = "Dan Ovando"
 
-  paragraph = "A place for musings about oceans, fisheries, models, data, and music"
+  paragraph = "Thoughts on fisheries, oceans, data science, and music"
 
   about     = "Dan Ovando is a PhD candidate at UC Santa Barbara"
 
@@ -111,7 +111,7 @@ ignoreFiles = ["\\.Rmd$", "\\.Rmarkdown$", "_files$", "_cache$"]
   weight = 1
 
 [[menu.main]]
-  name = "About"
+  name = "Research"
   url = "/about/"
   identifier = "fa fa-id-card-o"
   weight = 2

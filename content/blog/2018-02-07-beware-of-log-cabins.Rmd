@@ -1,0 +1,40 @@
+---
+title: Beware of Log Cabins
+author: Dan Ovando
+date: '2018-02-07'
+slug: beware-of-log-cabins
+categories:
+  - R
+  - statistics
+tags: []
+draft: true
+type: post
+---
+
+
+# To `glm` or not to `glm`?
+
+http://andrewgelman.com/2006/04/10/log_transformat/
+
+http://www.uphs.upenn.edu/dgimhsr/presenta/ispora06/ISPOR_logcosts_2006.pdf
+
+https://magesblog.com/post/2015-08-04-generalised-linear-models-in-r/
+
+log transforming says that 
+
+$$log(x) \sim N(\mu, \sigma) $$
+
+in other words, this is estimating the mean of log(x)
+
+A GLM is saying that x ~ 
+
+in the glm case, you are estimating the log of the expected value of y
+
+so you're saying that y itself is normally distributed, and $\mu$ log(mu) = a + b etc. 
+
+Meaning, mu is linear through the log link. 
+
+What about gamma?
+
+Height might be a good one for the glm method? Has to be positive, but you would certainly imagine that factors related to height would be multiplicative in nature, e.g. genetics + nutrition 
+
