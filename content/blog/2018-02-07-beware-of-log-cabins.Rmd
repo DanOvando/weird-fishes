@@ -3,10 +3,8 @@ title: Beware of Log Cabins
 author: Dan Ovando
 date: '2018-02-07'
 slug: beware-of-log-cabins
-categories:
-  - R
-  - statistics
-tags: []
+categories: [Frogs, Toads]
+tags: [R, Amphibians]
 draft: true
 type: post
 ---

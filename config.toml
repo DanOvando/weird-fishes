@@ -27,8 +27,8 @@ ignoreFiles = ["\\.Rmd$", "\\.Rmarkdown$", "_files$", "_cache$"]
   # Sets navbarTitle to match the section of the website
   dynamicTitles        = true
   # Sets RSS icons to appear on the sidebar with the social media buttons
-  rssAppearAtTop       = true
-  rssAppearAtBottom    = true
+  rssAppearAtTop       = false
+  rssAppearAtBottom    = false
   # Sets Social Media icons to appear on the sidebar
   socialAppearAtTop    = true
   socialAppearAtBottom = true
@@ -45,7 +45,7 @@ ignoreFiles = ["\\.Rmd$", "\\.Rmarkdown$", "_files$", "_cache$"]
   loadFavicon          = false
   faviconVersion       = ""
   # Sets Social Share links to appear on posts
-  socialShare          = true
+  socialShare          = false
   # Load custom CSS or JavaScript files. The variable is an array so that you
   # can load multiple files if necessary. You can also load the standard theme
   # files by adding the value, "default".
@@ -122,14 +122,14 @@ ignoreFiles = ["\\.Rmd$", "\\.Rmarkdown$", "_files$", "_cache$"]
   identifier = "fa fa-newspaper-o"
   weight = 3
 
-[[menu.main]]
-  name = "Itemized"
-  url = "/itemized/"
-  identifier = "fa fa-list"
-  weight = 4
+#[[menu.main]]
+ # name = "Itemized"
+  #url = "/itemized/"
+  #identifier = "fa fa-list"
+  #weight = 4
 
 [[menu.main]]
-  name = "Categories"
+  name = "Topics"
   url = "/categories/"
   identifier = "fa fa-sitemap"
   weight = 5
@@ -147,10 +147,10 @@ ignoreFiles = ["\\.Rmd$", "\\.Rmarkdown$", "_files$", "_cache$"]
   # Coding Communities
   github           = "danovando"
   stackoverflow    = "" # User Number
-  linkedin         = "example"
+  #linkedin         = "example"
   twitter          = "@DanOvand0"
-  googlescholar    = ""
-  orcid            = ""
-  researchgate     = "example"
+  #googlescholar    = "dovando07@gmail.com"
+  #orcid            = ""
+  researchgate     = "Daniel_Ovando"
   # Email
-  email            = "example"
+  email            = "dovando@ucsb.edu"

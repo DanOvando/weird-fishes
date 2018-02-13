@@ -8,8 +8,6 @@ featuredalt = "Pic 2"
 featuredpath = "date"
 linktitle = ""
 title = "(Hu)go Template Primer"
-type = "post"
-
 +++
 
 Hugo uses the excellent [go][] [html/template][gohtmltemplate] library for
