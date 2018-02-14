@@ -32,8 +32,7 @@ type: post
 <p>For some problems (e.g. population models, or really any dynamic process where the current state depends on past states), loops are really the simplest option.</p>
 <p>For other problems, things might work a little faster if you used something like <code>purrr</code>, but the amount of time required to set it up might not be worth it.</p>
 <p>The reason to move away from loops is when doing so really helps you solve a problem, not when it makes your code look fancier.</p>
-<p>To work backwords then, <code>apply</code>, and <code>map</code> basically take on the tasks of a <code>for</code> loop</p>
-<p><span class="math display">\[2 + \beta\]</span></p>
+<p>To work backwards then, <code>apply</code>, and <code>map</code> basically take on the tasks of a <code>for</code> loop</p>
 <pre class="r"><code>shades &lt;- colors()[1:10]
 
 for (i in seq_along(shades)){
@@ -90,7 +89,7 @@ for (i in seq_along(shades)){
 <li><p>The basic syntax:</p></li>
 <li><p><code>map(&quot;Lists to apply function to&quot;,&quot;Function to apply across lists&quot;,&quot;Additional parameters&quot;)</code></p></li>
 </ul>
-<p>Since a dataframe is basically a special case of a list in which all entries have the same number of rows, we can <code>map</code> through each element (column in thise case) of say <code>mtcars</code></p>
+<p>Since a dataframe is basically a special case of a list in which all entries have the same number of rows, we can <code>map</code> through each element (column in this case) of say <code>mtcars</code></p>
 <pre class="r"><code>map(mtcars, mean, na.rm = T)</code></pre>
 <pre><code>## $mpg
 ## [1] 20.09062
@@ -147,7 +146,7 @@ for (i in seq_along(shades)){
 <pre class="r"><code>map2_chr(c(&#39;one&#39;,&#39;two&#39;,&#39;red&#39;,&#39;blue&#39;), c(&#39;fish&#39;), ~paste(.x,.y))</code></pre>
 <pre><code>## [1] &quot;one fish&quot;  &quot;two fish&quot;  &quot;red fish&quot;  &quot;blue fish&quot;</code></pre>
 <p>Note here I’ve used <code>~</code> to define one-sided formula on the fly, which is handy for simple things like this. We’ll see later how to write and use longer functions here.</p>
-<p>Anything above two lists is handled by <code>pmap</code>. <code>pmap</code> allows you to pass an arbitraty number of objects to map, where each object is a named element in a list, and the function takes matching elements of those lists as entries</p>
+<p>Anything above two lists is handled by <code>pmap</code>. <code>pmap</code> allows you to pass an arbitrary number of objects to map, where each object is a named element in a list, and the function takes matching elements of those lists as entries</p>
 <pre><code>pmap(list(list1,list2,list3), function(list1, list2, list3),...)
 </code></pre>
 <p>Getting used to using <code>map</code> is the foundation to working with <code>purrr</code>.</p>
@@ -314,7 +313,7 @@ map(mtcars, cvfoo)</code></pre>
 <h2>Wrangling lists</h2>
 <p>Now that we have an idea of how we can use <code>purrr</code>, let’s get back to actually using <code>purrr</code> in practice.</p>
 <p>Lists are powerful objects that allow you to store all kinds of information in one place.</p>
-<p>They can also be a pain to deal with, since we are no longer in the nice 2-D structure of a traditional dataframe, which is much closer to how most of us probably leared to deal with data.</p>
+<p>They can also be a pain to deal with, since we are no longer in the nice 2-D structure of a traditional dataframe, which is much closer to how most of us probably learned to deal with data.</p>
 <p><code>purrr</code> has all kinds of useful tools for helping you quickly and efficiently poke around inside lists. Let’s start with the Game of Thrones database in the <code>repurrrsive</code> package. This is a list containing a bunch of information on GoT characters with a “point of view” chapter in the first few books.</p>
 <p>The <code>str</code> function is a great way to get a first glimpse at a list’s structure</p>
 <pre class="r"><code>str(got_chars, list.len =  3)</code></pre>
@@ -819,7 +818,7 @@ labs(x = &#39;Root Mean Squared Error&#39;, title = &#39;Cross-validated distrib
 <p>That’s a broad tour of the key features of <code>purrr</code>. Here’s a few more examples of miscellaneous things you can do with <code>purrr</code></p>
 <div id="safely" class="section level3">
 <h3><code>safely</code></h3>
-<p>One annoying thing about using <code>map</code> (or <code>apply</code>) in place of loops is that it can make debugging much harder to deal with. With a loop, it can be a lot easier to see where exactly an error occured and your loop failed (e.g. look at the index of the loop when the error occured). With <code>map</code>, it can be much harder to figure out where the problem is, especially if you have a very large object.</p>
+<p>One annoying thing about using <code>map</code> (or <code>apply</code>) in place of loops is that it can make debugging much harder to deal with. With a loop, it can be a lot easier to see where exactly an error occurred and your loop failed (e.g. look at the index of the loop when the error occurred). With <code>map</code>, it can be much harder to figure out where the problem is, especially if you have a very large object.</p>
 <p>The <code>safely</code> function let’s us solve this problem.</p>
 <p>Suppose that you’ve got a bunch of csv’s of fish lengths from a field site. The field techs are supposed to enter the length in one column, and the units in a second column. As tends to happen though, someone put the units next to the length in one entry (e.g. 26cm). How do we deal with that?</p>
 <pre class="r"><code>fish_foo &lt;- function(){
