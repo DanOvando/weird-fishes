@@ -14,7 +14,6 @@ nocite: |
   @Rosenberg2014
   @Ovando2016
   @Ovando2013
-
 ---
 
 # Research

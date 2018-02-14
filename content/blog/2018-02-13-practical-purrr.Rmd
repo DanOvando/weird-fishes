@@ -3,12 +3,8 @@ title: "Practical purrr"
 author: "Dan Ovando"
 date: '2018-02-13'
 slug: practical-purrr
-draft: true
-tags:
-- purrr
-- R
-- tidyverse
-categories: R
+categories: [R, tidyverse]
+tags: [R, purrr]]
 type: post
 ---
 
