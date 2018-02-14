@@ -4,7 +4,7 @@ author: "Dan Ovando"
 date: '2018-02-13'
 slug: practical-purrr
 categories: [R, tidyverse]
-tags: [R, purrr]]
+tags: [R, purrr]
 type: post
 ---
 
