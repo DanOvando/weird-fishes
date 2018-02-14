@@ -2,7 +2,7 @@
 title: "Practical `purrr`"
 author: "Dan Ovando"
 date: '2018-02-13'
-draft: no
+draft: false
 slug: practical-purrr
 tags:
 - purrr
