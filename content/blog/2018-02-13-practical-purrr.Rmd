@@ -55,9 +55,8 @@ For other problems, things might work a little faster if you used something like
 
 The reason to move away from loops is when doing so really helps you solve a problem, not when it makes your code look fancier. 
 
-To work backwords then, `apply`, and `map` basically take on the tasks of a `for` loop
+To work backwards then, `apply`, and `map` basically take on the tasks of a `for` loop
 
-$$2 + \beta$$
 
 ```{r}
 
@@ -107,7 +106,7 @@ The (main) advantages of using things like `apply` or `map` in my experience are
 
   - `map("Lists to apply function to","Function to apply across lists","Additional parameters")`
 
-Since a dataframe is basically a special case of a list in which all entries have the same number of rows, we can `map` through each element (column in thise case) of say `mtcars`
+Since a dataframe is basically a special case of a list in which all entries have the same number of rows, we can `map` through each element (column in this case) of say `mtcars`
 
 ```{r}
 
@@ -150,7 +149,7 @@ map2_chr(c('one','two','red','blue'), c('fish'), ~paste(.x,.y))
 
 Note here I've used `~` to define one-sided formula on the fly, which is handy for simple things like this. We'll see later how to write and use longer functions here. 
 
-Anything above two lists is handled by `pmap`. `pmap` allows you to pass an arbitraty number of objects to map, where each object is a named element in a list, and the function takes matching elements of those lists as entries
+Anything above two lists is handled by `pmap`. `pmap` allows you to pass an arbitrary number of objects to map, where each object is a named element in a list, and the function takes matching elements of those lists as entries
 
 ```
 pmap(list(list1,list2,list3), function(list1, list2, list3),...)
@@ -285,7 +284,7 @@ Now that we have an idea of how we can use `purrr`, let's get back to actually u
 
 Lists are powerful objects that allow you to store all kinds of information in one place.
 
-They can also be a pain to deal with, since we are no longer in the nice 2-D structure of a traditional dataframe, which is much closer to how most of us probably leared to deal with data. 
+They can also be a pain to deal with, since we are no longer in the nice 2-D structure of a traditional dataframe, which is much closer to how most of us probably learned to deal with data. 
 
 `purrr` has all kinds of useful tools for helping you quickly and efficiently poke around inside lists. Let's start with the Game of Thrones database in the `repurrrsive` package. This is a list containing a bunch of information on GoT characters with a "point of view" chapter in the first few books. 
 
@@ -688,7 +687,7 @@ That's a broad tour of the key features of `purrr`. Here's a few more examples o
 
 ### `safely`
 
-One annoying thing about using `map` (or `apply`) in place of loops is that it can make debugging much harder to deal with. With a loop, it can be a lot easier to see where exactly an error occured and your loop failed (e.g. look at the index of the loop when the error occured). With `map`, it can be much harder to figure out where the problem is, especially if you have a very large object. 
+One annoying thing about using `map` (or `apply`) in place of loops is that it can make debugging much harder to deal with. With a loop, it can be a lot easier to see where exactly an error occurred and your loop failed (e.g. look at the index of the loop when the error occurred). With `map`, it can be much harder to figure out where the problem is, especially if you have a very large object. 
 
 The `safely` function let's us solve this problem. 
 
