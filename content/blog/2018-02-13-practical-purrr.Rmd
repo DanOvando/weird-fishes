@@ -31,17 +31,19 @@ theme_set(pres_theme)
 
 The goal of this workshop and document is to get you familiar with the workings of the `purrr` package. There's of course a lot more than can be covered here, but hopefully this should get you familiar with
 
-1. Using `purrr` as a replacement for `apply`
+1. Using `purrr` as a replacement for loops/ `apply`
 
 2. Using `purrr` to wrangle lists
 
 3. Using `purrr` for data analysis
 
+.Rmd can be found [here](https://github.com/DanOvando/weird-fishes/blob/master/content/blog/2018-02-13-practical-purrr.Rmd)
+
 Full credit to Jenny Bryan's [excellent `purrr` tutorial](https://jennybc.github.io/purrr-tutorial/) for many of the ideas here, along with Hadley Wickham & Garret Grolemund's [R for Data Science](http://r4ds.had.co.nz). My goal is to walk you through some of the concepts outlined in these (much better) resources, and expand on some particular applications that have been useful to me.
 
 ## What is `purrr`?
 
-`purrr` is a part of the tidyverse, taking on the tasks accomplished by the `apply` suite of functions in base R (and a whole lot more). It's great at applying operations across many dimensions of your data, improving your ability to keep even complex analyses "tidy". At it's simplest, it's just another way to use `apply`. At its most complex, it allows you to easily move around in and manipulate multi-dimensional (and multi-type) data.
+`purrr` is a part of the tidyverse, taking on the tasks accomplished by the `apply` suite of functions in base R (and a whole lot more). It's great at applying operations across many dimensions of your data, improving your ability to keep even complex analyses "tidy". At it's simplest, it's just another way to use `apply`. At its most complex, it allows you to easily move around in and manipulate multi-dimensional (and multi-type) data, making for example running factorial combinations of models and data a tidy and easy task.  
 
 There are a whole suite of functions involved with `purrr`, but the goal of this tutorial is to get the fundamentals down so that you can start incorporating `purrr` into your own code and explore higher-level abilities on your own.
 
@@ -51,9 +53,9 @@ Let's start with this PSA: **loops aren't always bad!**
 
 For some problems (e.g. population models, or really any dynamic process where the current state depends on past states), loops are really the simplest option. 
 
-For other problems, things might work a little faster if you used something like `purrr`, but the amount of time required to set it up might not be worth it. 
+For other problems, things might be a little cleaner if you used something like `purrr`, but the amount of time required to set it up might not be worth it, so maybe a loop is the way to go. 
 
-The reason to move away from loops is when doing so really helps you solve a problem, not when it makes your code look fancier. 
+In my opinion, the reason to move away from loops is when doing so really helps you solve a problem, not when it just makes your code look fancier. 
 
 To work backwards then, `apply`, and `map` basically take on the tasks of a `for` loop
 
@@ -239,9 +241,9 @@ foo(x = 2, y = 3)
 
 ```
 
-I strongly recommend you avoid relying on global variables inside functions: it can very easily cause unintended and sneaky behavior.
+I **strongly** recommend you avoid relying on global variables inside functions: it can very easily cause unintended and sneaky behavior (I've been burned before). 
 
-Functions can be as complicated as you want them to be, but a good rule is to try and make sure each function is good at doing *one* thing. That doesn't mean that that "one thing" can't be a complex series of operation, but the objective of the function should be to do that one thing well. 
+Functions can be as complicated as you want them to be, but a good rule is to try and make sure each function is good at doing *one* thing. That doesn't mean that that "one thing" can't be a complex thing (e.g. a population model), but the objective of the function should be to do that one thing well (produce trajectories of biomass, not biomass, diagnostics, and a knitted report all in one function).  
 
 You can also use "anonymous" functions in R/`purrr`. This is basically a shortcut for when you don't want to take up the space of writing and saving a whole function somewhere. You make anonymous functions with `~`
 
@@ -286,7 +288,7 @@ Lists are powerful objects that allow you to store all kinds of information in o
 
 They can also be a pain to deal with, since we are no longer in the nice 2-D structure of a traditional dataframe, which is much closer to how most of us probably learned to deal with data. 
 
-`purrr` has all kinds of useful tools for helping you quickly and efficiently poke around inside lists. Let's start with the Game of Thrones database in the `repurrrsive` package. This is a list containing a bunch of information on GoT characters with a "point of view" chapter in the first few books. 
+`purrr` has all kinds of useful tools for helping you quickly and efficiently poke around inside lists. Let's start with the Game of Thrones database in the `repurrrsive` package (thanks again to [Jenny Bryan](https://github.com/jennybc/repurrrsive)). `got_chars` is a list containing a bunch of information on GoT characters with a "point of view" chapter in the first few books. 
 
 The `str` function is a great way to get a first glimpse at a list's structure
 
@@ -301,7 +303,6 @@ str(got_chars, list.len =  3)
 For those of you who prefer a more interactive approach, you can also use the `jsonedit` function in the `listviewer` package
 
 
-
 ```{r}
 
 listviewer::jsonedit(got_chars)
@@ -312,7 +313,6 @@ listviewer::jsonedit(got_chars)
 So, how do we start poking around in this database?
 
 Suppose we wanted only the first 5 characters in the list
-
 
 ```{r}
 

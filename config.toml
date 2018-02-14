@@ -1,6 +1,6 @@
 baseurl = "http://weirdfishes.blog/"
 languageCode = "en-us"
-title = "Weird Fishes - A Blog of Oceans, Data, and Music"
+title = "Weird Fishes - Fisheries, Oceans, and Data Science"
 theme = "hugo-future-imperfect"
 preserveTaxonomyNames = true
 paginate = 3
