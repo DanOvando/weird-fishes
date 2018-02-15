@@ -1,5 +1,5 @@
 ---
-title: "Practical purrr"
+title: "Data Wrangling and Model Fitting using purrr"
 author: "Dan Ovando"
 date: '2018-02-13'
 slug: practical-purrr
@@ -685,7 +685,7 @@ labs(x = 'Root Mean Squared Error', title = 'Cross-validated distribution of RMS
 That's a broad tour of the key features of `purrr`. Here's a few more examples of miscellaneous things you can do with `purrr`
 
 
-### `safely`
+### De bugging using `safely`
 
 One annoying thing about using `map` (or `apply`) in place of loops is that it can make debugging much harder to deal with. With a loop, it can be a lot easier to see where exactly an error occurred and your loop failed (e.g. look at the index of the loop when the error occurred). With `map`, it can be much harder to figure out where the problem is, especially if you have a very large object. 
 
@@ -773,7 +773,7 @@ listviewer::jsonedit(diagnose_length)
 
 ```
 
-### Check on factors
+### Find and Convert Factors
 
 Factors can creep into your data, which can cause problem sometimes.  There's lot's of ways to solve this, but you can use `purrr` to efficiently check for factors, and convert them to characters in your data frame.
 
