@@ -493,7 +493,7 @@ Our goal then is going to be to try and estimate steepness and $\alpha$ for some
 
 ```{r}
 
-sr_data <- read_csv(here::here("data","rlsadb_v4.25_ssb_recruits.csv")) %>% 
+sr_data <- read_csv("rlsadb_v4.25_ssb_recruits.csv") %>% 
   set_names(tolower)
 
 sr_plots <- sr_data %>%
