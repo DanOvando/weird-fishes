@@ -818,7 +818,7 @@ purrrlyr::dmap_if(is.factor, as.character) %>%
  
  Much better, those pesky factors are now characters and we still have a dataframe. 
 
-### Save all plots
+### Print All Plots to PDF
 
 Suppose you've got a large project and want to save (or print) all the plots. This often leads to a lot of copy and pasting of save commands.
 
