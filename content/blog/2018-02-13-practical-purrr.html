@@ -15,6 +15,7 @@ type: post
 
 
 <p>The goal of this workshop and document is to get you familiar with the workings of the <code>purrr</code> package. There’s of course a lot more than can be covered here, but hopefully this should get you familiar with</p>
+<p><span class="math display">\[2 + \beta\]</span></p>
 <ol style="list-style-type: decimal">
 <li><p>Using <code>purrr</code> as a replacement for loops/ <code>apply</code></p></li>
 <li><p>Using <code>purrr</code> to wrangle lists</p></li>
@@ -436,7 +437,7 @@ names</code></pre>
 
 map_chr(thing, c(&#39;z&#39;,&#39;w&#39;))</code></pre>
 <pre><code>## [1] &quot;hello&quot; &quot;world&quot;</code></pre>
-<p>If you’re like me, the numeric indexing of each of the entries is currently driving you nuts: I’d rather have each element in the list be named by the character it refers to. I can use `set_names</p>
+<p>If you’re like me, the numeric indexing of each of the entries is currently driving you nuts: I’d rather have each element in the list be named by the character it refers to. You can use <code>set_names</code> to accomplish this</p>
 <pre class="r"><code>got_chars[1:5] %&gt;%
   rlang::set_names(map_chr(.,&#39;name&#39;)) %&gt;%
   listviewer::jsonedit()</code></pre>
@@ -1013,9 +1014,6 @@ gapminder %&gt;%
 ##   mean_gdp lower_gdp upper_gdp mean_life lower_life upper_life
 ##      &lt;dbl&gt;     &lt;dbl&gt;     &lt;dbl&gt;     &lt;dbl&gt;      &lt;dbl&gt;      &lt;dbl&gt;
 ## 1     7215      1202      9325      59.5       48.2       70.8</code></pre>
-<p>Thanks!</p>
-<p>Go get your code <code>purrr</code>ing</p>
-<!-- ![](../Exploding-Kittens.png) -->
-<!-- [The Oatmeal](theoatmeal.com) -->
+<p>And that’s about it, hopefully this helps you get started incorporated <code>purrr</code> into your programming.</p>
 </div>
 </div>
