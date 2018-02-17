@@ -31,8 +31,6 @@ theme_set(pres_theme)
 
 The goal of this workshop and document is to get you familiar with the workings of the `purrr` package. There's of course a lot more than can be covered here, but hopefully this should get you familiar with
 
-$$2 + \beta$$
-
 1. Using `purrr` as a replacement for loops/ `apply`
 
 2. Using `purrr` to wrangle lists

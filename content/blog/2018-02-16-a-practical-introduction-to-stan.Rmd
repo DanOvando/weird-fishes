@@ -8,7 +8,6 @@ categories:
 tags:
   - stan
 type: post
-draft: true
 ---
 
 
