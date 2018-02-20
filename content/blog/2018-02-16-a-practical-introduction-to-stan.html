@@ -8,6 +8,7 @@ categories:
 tags:
   - stan
 type: post
+draft: true
 ---
 
 
@@ -464,8 +465,8 @@ bh_fit &lt;- rstan::sampling(bhmodel,
 <pre><code>## 
 ## SAMPLING FOR MODEL &#39;b1a9f6adbebcd3177b418a8a3ea13127&#39; NOW (CHAIN 1).
 ## 
-## Gradient evaluation took 3.2e-05 seconds
-## 1000 transitions using 10 leapfrog steps per transition would take 0.32 seconds.
+## Gradient evaluation took 9.3e-05 seconds
+## 1000 transitions using 10 leapfrog steps per transition would take 0.93 seconds.
 ## Adjust your expectations accordingly!
 ## 
 ## 
@@ -480,15 +481,15 @@ bh_fit &lt;- rstan::sampling(bhmodel,
 ## Iteration: 1750 / 2000 [ 87%]  (Sampling)
 ## Iteration: 2000 / 2000 [100%]  (Sampling)
 ## 
-##  Elapsed Time: 0.076321 seconds (Warm-up)
-##                0.072054 seconds (Sampling)
-##                0.148375 seconds (Total)
+##  Elapsed Time: 0.150877 seconds (Warm-up)
+##                0.138458 seconds (Sampling)
+##                0.289335 seconds (Total)
 ## 
 ## 
 ## SAMPLING FOR MODEL &#39;b1a9f6adbebcd3177b418a8a3ea13127&#39; NOW (CHAIN 2).
 ## 
-## Gradient evaluation took 1.1e-05 seconds
-## 1000 transitions using 10 leapfrog steps per transition would take 0.11 seconds.
+## Gradient evaluation took 2.3e-05 seconds
+## 1000 transitions using 10 leapfrog steps per transition would take 0.23 seconds.
 ## Adjust your expectations accordingly!
 ## 
 ## 
@@ -503,15 +504,15 @@ bh_fit &lt;- rstan::sampling(bhmodel,
 ## Iteration: 1750 / 2000 [ 87%]  (Sampling)
 ## Iteration: 2000 / 2000 [100%]  (Sampling)
 ## 
-##  Elapsed Time: 0.08022 seconds (Warm-up)
-##                0.073843 seconds (Sampling)
-##                0.154063 seconds (Total)
+##  Elapsed Time: 0.160934 seconds (Warm-up)
+##                0.137048 seconds (Sampling)
+##                0.297982 seconds (Total)
 ## 
 ## 
 ## SAMPLING FOR MODEL &#39;b1a9f6adbebcd3177b418a8a3ea13127&#39; NOW (CHAIN 3).
 ## 
-## Gradient evaluation took 1e-05 seconds
-## 1000 transitions using 10 leapfrog steps per transition would take 0.1 seconds.
+## Gradient evaluation took 2.4e-05 seconds
+## 1000 transitions using 10 leapfrog steps per transition would take 0.24 seconds.
 ## Adjust your expectations accordingly!
 ## 
 ## 
@@ -526,15 +527,15 @@ bh_fit &lt;- rstan::sampling(bhmodel,
 ## Iteration: 1750 / 2000 [ 87%]  (Sampling)
 ## Iteration: 2000 / 2000 [100%]  (Sampling)
 ## 
-##  Elapsed Time: 0.080573 seconds (Warm-up)
-##                0.071899 seconds (Sampling)
-##                0.152472 seconds (Total)
+##  Elapsed Time: 0.164426 seconds (Warm-up)
+##                0.190746 seconds (Sampling)
+##                0.355172 seconds (Total)
 ## 
 ## 
 ## SAMPLING FOR MODEL &#39;b1a9f6adbebcd3177b418a8a3ea13127&#39; NOW (CHAIN 4).
 ## 
-## Gradient evaluation took 1.6e-05 seconds
-## 1000 transitions using 10 leapfrog steps per transition would take 0.16 seconds.
+## Gradient evaluation took 3.1e-05 seconds
+## 1000 transitions using 10 leapfrog steps per transition would take 0.31 seconds.
 ## Adjust your expectations accordingly!
 ## 
 ## 
@@ -549,9 +550,9 @@ bh_fit &lt;- rstan::sampling(bhmodel,
 ## Iteration: 1750 / 2000 [ 87%]  (Sampling)
 ## Iteration: 2000 / 2000 [100%]  (Sampling)
 ## 
-##  Elapsed Time: 0.079461 seconds (Warm-up)
-##                0.071861 seconds (Sampling)
-##                0.151322 seconds (Total)</code></pre>
+##  Elapsed Time: 0.164366 seconds (Warm-up)
+##                0.155752 seconds (Sampling)
+##                0.320118 seconds (Total)</code></pre>
 <p>And there we go, we have a model fit! Note, when you’re running <code>stan</code> from a saved <code>.stan</code> file, the format is a little different. Suppose that you have your model saved in <code>scripts/bhmodel.stan</code>. In this case, it’s a bit easier to fir the model use the <code>stan</code> call instead of the <code>sampling</code> call. This would look like</p>
 <pre class="r"><code>warmups &lt;- 1000
 
@@ -599,11 +600,11 @@ bh_fit &lt;- rstan::stan(file = &quot;scripts/bhmodel.stan&quot;,
 <pre class="r"><code>summary(bh_fit,maxsum = 5) %&gt;% 
   str()</code></pre>
 <pre><code>## List of 2
-##  $ summary  : num [1:109, 1:10] 6.16e-01 1.35e+07 1.25 3.89e+06 2.47e+06 ...
+##  $ summary  : num [1:109, 1:10] 6.15e-01 1.34e+07 1.24 3.88e+06 2.46e+06 ...
 ##   ..- attr(*, &quot;dimnames&quot;)=List of 2
 ##   .. ..$ : chr [1:109] &quot;h&quot; &quot;alpha&quot; &quot;sigma&quot; &quot;rhat[1]&quot; ...
 ##   .. ..$ : chr [1:10] &quot;mean&quot; &quot;se_mean&quot; &quot;sd&quot; &quot;2.5%&quot; ...
-##  $ c_summary: num [1:109, 1:7, 1:4] 6.15e-01 1.35e+07 1.25 3.87e+06 2.45e+06 ...
+##  $ c_summary: num [1:109, 1:7, 1:4] 6.21e-01 1.34e+07 1.25 3.95e+06 2.51e+06 ...
 ##   ..- attr(*, &quot;dimnames&quot;)=List of 3
 ##   .. ..$ parameter: chr [1:109] &quot;h&quot; &quot;alpha&quot; &quot;sigma&quot; &quot;rhat[1]&quot; ...
 ##   .. ..$ stats    : chr [1:7] &quot;mean&quot; &quot;sd&quot; &quot;2.5%&quot; &quot;25%&quot; ...
@@ -661,16 +662,16 @@ bh_summary</code></pre>
 <pre><code>## # A tibble: 109 x 11
 ##    variable      mean se_mean       sd   `2.5%`    `25%`    `50%`    `75%`
 ##    &lt;chr&gt;        &lt;dbl&gt;   &lt;dbl&gt;    &lt;dbl&gt;    &lt;dbl&gt;    &lt;dbl&gt;    &lt;dbl&gt;    &lt;dbl&gt;
-##  1 h          6.16e⁻¹ 2.10e⁻³  8.25e⁻²  4.71e⁻¹  5.56e⁻¹  6.10e⁻¹  6.70e⁻¹
-##  2 alpha      1.35e⁺⁷ 2.58e⁺⁴  1.38e⁺⁶  1.09e⁺⁷  1.26e⁺⁷  1.35e⁺⁷  1.44e⁺⁷
-##  3 sigma      1.25e⁺⁰ 3.74e⁻³  1.54e⁻¹  9.81e⁻¹  1.14e⁺⁰  1.23e⁺⁰  1.34e⁺⁰
-##  4 rhat[1]    3.89e⁺⁶ 2.77e⁺⁴  1.04e⁺⁶  2.40e⁺⁶  3.15e⁺⁶  3.71e⁺⁶  4.43e⁺⁶
-##  5 rhat[2]    2.47e⁺⁶ 2.16e⁺⁴  7.99e⁺⁵  1.42e⁺⁶  1.92e⁺⁶  2.31e⁺⁶  2.84e⁺⁶
-##  6 rhat[3]    2.93e⁺⁶ 2.40e⁺⁴  8.92e⁺⁵  1.73e⁺⁶  2.31e⁺⁶  2.77e⁺⁶  3.37e⁺⁶
-##  7 rhat[4]    1.53e⁺⁶ 1.53e⁺⁴  5.64e⁺⁵  8.36e⁺⁵  1.15e⁺⁶  1.40e⁺⁶  1.76e⁺⁶
-##  8 rhat[5]    6.16e⁺⁵ 7.18e⁺³  2.64e⁺⁵  3.22e⁺⁵  4.49e⁺⁵  5.55e⁺⁵  7.12e⁺⁵
-##  9 rhat[6]    7.80e⁺⁵ 8.82e⁺³  3.24e⁺⁵  4.11e⁺⁵  5.71e⁺⁵  7.05e⁺⁵  9.01e⁺⁵
-## 10 rhat[7]    1.79e⁺⁶ 1.73e⁺⁴  6.37e⁺⁵  9.92e⁺⁵  1.36e⁺⁶  1.66e⁺⁶  2.07e⁺⁶
+##  1 h          6.15e⁻¹ 2.10e⁻³  8.13e⁻²  4.73e⁻¹  5.57e⁻¹  6.08e⁻¹  6.66e⁻¹
+##  2 alpha      1.34e⁺⁷ 2.79e⁺⁴  1.36e⁺⁶  1.07e⁺⁷  1.25e⁺⁷  1.35e⁺⁷  1.44e⁺⁷
+##  3 sigma      1.24e⁺⁰ 3.90e⁻³  1.51e⁻¹  9.90e⁻¹  1.14e⁺⁰  1.23e⁺⁰  1.33e⁺⁰
+##  4 rhat[1]    3.88e⁺⁶ 2.98e⁺⁴  1.06e⁺⁶  2.41e⁺⁶  3.15e⁺⁶  3.67e⁺⁶  4.39e⁺⁶
+##  5 rhat[2]    2.46e⁺⁶ 2.39e⁺⁴  8.15e⁺⁵  1.43e⁺⁶  1.92e⁺⁶  2.28e⁺⁶  2.81e⁺⁶
+##  6 rhat[3]    2.92e⁺⁶ 2.63e⁺⁴  9.08e⁺⁵  1.74e⁺⁶  2.31e⁺⁶  2.74e⁺⁶  3.33e⁺⁶
+##  7 rhat[4]    1.52e⁺⁶ 1.75e⁺⁴  5.79e⁺⁵  8.42e⁺⁵  1.15e⁺⁶  1.39e⁺⁶  1.74e⁺⁶
+##  8 rhat[5]    6.14e⁺⁵ 8.44e⁺³  2.72e⁺⁵  3.24e⁺⁵  4.51e⁺⁵  5.51e⁺⁵  7.01e⁺⁵
+##  9 rhat[6]    7.77e⁺⁵ 1.03e⁺⁴  3.34e⁺⁵  4.13e⁺⁵  5.74e⁺⁵  7.00e⁺⁵  8.87e⁺⁵
+## 10 rhat[7]    1.78e⁺⁶ 1.95e⁺⁴  6.53e⁺⁵  1.00e⁺⁶  1.36e⁺⁶  1.64e⁺⁶  2.04e⁺⁶
 ## # ... with 99 more rows, and 3 more variables: `97.5%` &lt;dbl&gt;, n_eff &lt;dbl&gt;,
 ## #   Rhat &lt;dbl&gt;</code></pre>
 <p>There are two really important diagnostic statistics hidden in this summary:</p>
@@ -969,8 +970,8 @@ ricker_fit &lt;- rstan::sampling(generic_sr,
 <pre><code>## 
 ## SAMPLING FOR MODEL &#39;b4edfe9f5d46903d9d3477ef6169bc74&#39; NOW (CHAIN 1).
 ## 
-## Gradient evaluation took 3.9e-05 seconds
-## 1000 transitions using 10 leapfrog steps per transition would take 0.39 seconds.
+## Gradient evaluation took 4.1e-05 seconds
+## 1000 transitions using 10 leapfrog steps per transition would take 0.41 seconds.
 ## Adjust your expectations accordingly!
 ## 
 ## 
@@ -993,9 +994,9 @@ ricker_fit &lt;- rstan::sampling(generic_sr,
 ## Iteration: 3750 / 4000 [ 93%]  (Sampling)
 ## Iteration: 4000 / 4000 [100%]  (Sampling)
 ## 
-##  Elapsed Time: 0.254485 seconds (Warm-up)
-##                0.315409 seconds (Sampling)
-##                0.569894 seconds (Total)
+##  Elapsed Time: 0.334863 seconds (Warm-up)
+##                0.306814 seconds (Sampling)
+##                0.641677 seconds (Total)
 ## 
 ## 
 ## SAMPLING FOR MODEL &#39;b4edfe9f5d46903d9d3477ef6169bc74&#39; NOW (CHAIN 2).
@@ -1024,15 +1025,15 @@ ricker_fit &lt;- rstan::sampling(generic_sr,
 ## Iteration: 3750 / 4000 [ 93%]  (Sampling)
 ## Iteration: 4000 / 4000 [100%]  (Sampling)
 ## 
-##  Elapsed Time: 0.256917 seconds (Warm-up)
-##                0.236701 seconds (Sampling)
-##                0.493618 seconds (Total)
+##  Elapsed Time: 0.374994 seconds (Warm-up)
+##                0.643005 seconds (Sampling)
+##                1.018 seconds (Total)
 ## 
 ## 
 ## SAMPLING FOR MODEL &#39;b4edfe9f5d46903d9d3477ef6169bc74&#39; NOW (CHAIN 3).
 ## 
-## Gradient evaluation took 1.9e-05 seconds
-## 1000 transitions using 10 leapfrog steps per transition would take 0.19 seconds.
+## Gradient evaluation took 2.7e-05 seconds
+## 1000 transitions using 10 leapfrog steps per transition would take 0.27 seconds.
 ## Adjust your expectations accordingly!
 ## 
 ## 
@@ -1055,15 +1056,15 @@ ricker_fit &lt;- rstan::sampling(generic_sr,
 ## Iteration: 3750 / 4000 [ 93%]  (Sampling)
 ## Iteration: 4000 / 4000 [100%]  (Sampling)
 ## 
-##  Elapsed Time: 0.238872 seconds (Warm-up)
-##                0.221906 seconds (Sampling)
-##                0.460778 seconds (Total)
+##  Elapsed Time: 0.574742 seconds (Warm-up)
+##                0.49405 seconds (Sampling)
+##                1.06879 seconds (Total)
 ## 
 ## 
 ## SAMPLING FOR MODEL &#39;b4edfe9f5d46903d9d3477ef6169bc74&#39; NOW (CHAIN 4).
 ## 
-## Gradient evaluation took 1.6e-05 seconds
-## 1000 transitions using 10 leapfrog steps per transition would take 0.16 seconds.
+## Gradient evaluation took 6.3e-05 seconds
+## 1000 transitions using 10 leapfrog steps per transition would take 0.63 seconds.
 ## Adjust your expectations accordingly!
 ## 
 ## 
@@ -1086,9 +1087,9 @@ ricker_fit &lt;- rstan::sampling(generic_sr,
 ## Iteration: 3750 / 4000 [ 93%]  (Sampling)
 ## Iteration: 4000 / 4000 [100%]  (Sampling)
 ## 
-##  Elapsed Time: 0.244053 seconds (Warm-up)
-##                0.23369 seconds (Sampling)
-##                0.477743 seconds (Total)</code></pre>
+##  Elapsed Time: 0.607993 seconds (Warm-up)
+##                0.423092 seconds (Sampling)
+##                1.03109 seconds (Total)</code></pre>
 <p>You’ll notice below that I’m doing some slightly odd things with arrays in my data call. This is because <code>Stan</code> is much more finicky (or exact if you want to think of it that way) about data types. Part of the appeal of <code>R</code> from a data wrangling perspective is that it is <strong>REALLY</strong> forgiving about data types. R is perfectly happy to construct a vector of length 1, or a 1 by 1 matrix, and these things will more or less behave in the same way (don’t hold me to that). <code>Stan</code> though is a bit pickier. If <code>Stan</code> sees a piece of data that is supposed to be a vector, and sees that it is only length 1, it says “nope, that’s a scalar”, and bad things happen. In this case, I have specified <code>rec_par_mean</code> and <code>rec_par_cv</code> to be real vectors in my <code>DATA</code> block, of length <code>n_sr_params</code>. But, when <code>n_sr_params</code> is 1, and <code>Stan</code> sees that <code>rec_par_mean</code> is just one number, it says OK, this is a scalar, and a scalar can’t have a length, so what’s this dimensions thing doing here? We get arround that by specifying that <code>rec_par_mean</code> is an array with 1 dimension (see <a href="http://mc-stan.org/rstan/reference/stan.html">here</a>, down above the references).</p>
 <pre class="r"><code>warmups &lt;- 2000
 
@@ -1124,8 +1125,8 @@ bh_fit &lt;- rstan::sampling(generic_sr,
 <pre><code>## 
 ## SAMPLING FOR MODEL &#39;b4edfe9f5d46903d9d3477ef6169bc74&#39; NOW (CHAIN 1).
 ## 
-## Gradient evaluation took 2.1e-05 seconds
-## 1000 transitions using 10 leapfrog steps per transition would take 0.21 seconds.
+## Gradient evaluation took 2e-05 seconds
+## 1000 transitions using 10 leapfrog steps per transition would take 0.2 seconds.
 ## Adjust your expectations accordingly!
 ## 
 ## 
@@ -1148,15 +1149,15 @@ bh_fit &lt;- rstan::sampling(generic_sr,
 ## Iteration: 3750 / 4000 [ 93%]  (Sampling)
 ## Iteration: 4000 / 4000 [100%]  (Sampling)
 ## 
-##  Elapsed Time: 0.184506 seconds (Warm-up)
-##                0.224168 seconds (Sampling)
-##                0.408674 seconds (Total)
+##  Elapsed Time: 0.228568 seconds (Warm-up)
+##                0.403223 seconds (Sampling)
+##                0.631791 seconds (Total)
 ## 
 ## 
 ## SAMPLING FOR MODEL &#39;b4edfe9f5d46903d9d3477ef6169bc74&#39; NOW (CHAIN 2).
 ## 
-## Gradient evaluation took 1.1e-05 seconds
-## 1000 transitions using 10 leapfrog steps per transition would take 0.11 seconds.
+## Gradient evaluation took 2.8e-05 seconds
+## 1000 transitions using 10 leapfrog steps per transition would take 0.28 seconds.
 ## Adjust your expectations accordingly!
 ## 
 ## 
@@ -1179,15 +1180,15 @@ bh_fit &lt;- rstan::sampling(generic_sr,
 ## Iteration: 3750 / 4000 [ 93%]  (Sampling)
 ## Iteration: 4000 / 4000 [100%]  (Sampling)
 ## 
-##  Elapsed Time: 0.190551 seconds (Warm-up)
-##                0.214334 seconds (Sampling)
-##                0.404885 seconds (Total)
+##  Elapsed Time: 0.421361 seconds (Warm-up)
+##                0.498191 seconds (Sampling)
+##                0.919552 seconds (Total)
 ## 
 ## 
 ## SAMPLING FOR MODEL &#39;b4edfe9f5d46903d9d3477ef6169bc74&#39; NOW (CHAIN 3).
 ## 
-## Gradient evaluation took 1.5e-05 seconds
-## 1000 transitions using 10 leapfrog steps per transition would take 0.15 seconds.
+## Gradient evaluation took 2.8e-05 seconds
+## 1000 transitions using 10 leapfrog steps per transition would take 0.28 seconds.
 ## Adjust your expectations accordingly!
 ## 
 ## 
@@ -1210,15 +1211,15 @@ bh_fit &lt;- rstan::sampling(generic_sr,
 ## Iteration: 3750 / 4000 [ 93%]  (Sampling)
 ## Iteration: 4000 / 4000 [100%]  (Sampling)
 ## 
-##  Elapsed Time: 0.185044 seconds (Warm-up)
-##                0.163035 seconds (Sampling)
-##                0.348079 seconds (Total)
+##  Elapsed Time: 0.43574 seconds (Warm-up)
+##                0.435287 seconds (Sampling)
+##                0.871027 seconds (Total)
 ## 
 ## 
 ## SAMPLING FOR MODEL &#39;b4edfe9f5d46903d9d3477ef6169bc74&#39; NOW (CHAIN 4).
 ## 
-## Gradient evaluation took 1.8e-05 seconds
-## 1000 transitions using 10 leapfrog steps per transition would take 0.18 seconds.
+## Gradient evaluation took 3.1e-05 seconds
+## 1000 transitions using 10 leapfrog steps per transition would take 0.31 seconds.
 ## Adjust your expectations accordingly!
 ## 
 ## 
@@ -1241,9 +1242,9 @@ bh_fit &lt;- rstan::sampling(generic_sr,
 ## Iteration: 3750 / 4000 [ 93%]  (Sampling)
 ## Iteration: 4000 / 4000 [100%]  (Sampling)
 ## 
-##  Elapsed Time: 0.176493 seconds (Warm-up)
-##                0.22399 seconds (Sampling)
-##                0.400483 seconds (Total)</code></pre>
+##  Elapsed Time: 0.25591 seconds (Warm-up)
+##                0.221522 seconds (Sampling)
+##                0.477432 seconds (Total)</code></pre>
 <pre class="r"><code> bh_summary &lt;- summary(bh_fit)$summary %&gt;% 
   as.data.frame() %&gt;% 
   mutate(variable = rownames(.)) %&gt;% 
@@ -1303,9 +1304,9 @@ bh_loo &lt;- loo::loo(log_lik_bh)</code></pre>
 <p>If you want to compare more than two models, you just pass more <code>loo</code> objects to compare!</p>
 <pre class="r"><code>compare(bh_loo, ricker_loo, ricker_loo)</code></pre>
 <pre><code>##            looic se_looic elpd_loo se_elpd_loo p_loo se_p_loo
-## bh_loo     115.9   9.8    -58.0      4.9         2.3   0.9   
-## ricker_loo 117.1   9.9    -58.6      4.9         2.4   0.9   
-## ricker_loo 117.1   9.9    -58.6      4.9         2.4   0.9</code></pre>
+## bh_loo     115.6   9.7    -57.8      4.9         2.2   0.8   
+## ricker_loo 117.2   9.9    -58.6      4.9         2.4   0.9   
+## ricker_loo 117.2   9.9    -58.6      4.9         2.4   0.9</code></pre>
 <p>Compare conveniently orders the matrix in descending order of model performance.</p>
 <p>And just like that, we have a solid sketch of going from raw data, to model fits, to model comparison, using Stan and R. There is clearly a lot more work that would have to go into doing this analysis properly (e.g. we haven’t done any testing of the effects of our choices for our prior distributions), but the tools we’ve gone over here should serve as a useful template to build off of for more complete analysis.</p>
 </div>
