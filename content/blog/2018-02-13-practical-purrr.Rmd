@@ -6,6 +6,8 @@ slug: practical-purrr
 categories: [R, tidyverse]
 tags: [R, purrr]
 type: post
+# featured: "shrimp.jpg"
+#featuredpath: "date"
 ---
 
 ```{r setup, include=FALSE}
