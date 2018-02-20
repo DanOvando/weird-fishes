@@ -111,7 +111,7 @@ ignoreFiles = ["\\.Rmd$", "\\.Rmarkdown$", "_files$", "_cache$"]
   weight = 1
 
 [[menu.main]]
-  name = "Research"
+  name = "About Me"
   url = "/about/"
   identifier = "fa fa-id-card-o"
   weight = 2
