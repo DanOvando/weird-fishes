@@ -29,35 +29,28 @@ theme_set(pres_theme)
 
 ```
 
-The goal of this workshop and document is to get you familiar with the workings of the `purrr` package. There's of course a lot more than can be covered here, but hopefully this should get you familiar with
+These are materials from a workshop I taught for UC Santa Barbara's [eco-data-science](https://eco-data-science.github.io/) group to people familiar with using `purrr` for their data-wrangling and modeling needs.  This post covers
 
-1. Using `purrr` as a replacement for loops/ `apply`
+1. A general introduction to the workings of `purrr`
 
 2. Using `purrr` to wrangle lists
 
-3. Using `purrr` for data analysis
+3. Using `purrr` and `modelr` for data analysis and modeling
 
-.Rmd can be found [here](https://github.com/DanOvando/weird-fishes/blob/master/content/blog/2018-02-13-practical-purrr.Rmd)
+The `.Rmd` for this document can be found [here](https://github.com/DanOvando/weird-fishes/blob/master/content/blog/2018-02-13-practical-purrr.Rmd)
 
-Full credit to Jenny Bryan's [excellent `purrr` tutorial](https://jennybc.github.io/purrr-tutorial/) for many of the ideas here, along with Hadley Wickham & Garret Grolemund's [R for Data Science](http://r4ds.had.co.nz). My goal is to walk you through some of the concepts outlined in these (much better) resources, and expand on some particular applications that have been useful to me.
+Full credit to Jenny Bryan's [excellent `purrr` tutorial](https://jennybc.github.io/purrr-tutorial/) for helping me learn `purrr` and providing the basis for the list-wrangling examples here , along with Hadley Wickham & Garret Grolemund's [R for Data Science](http://r4ds.had.co.nz). My goal is to walk you through some of the concepts outlined in these (much better) resources, and expand on some particular applications that have been useful to me.
 
 ## What is `purrr`?
 
-`purrr` is a part of the tidyverse, taking on the tasks accomplished by the `apply` suite of functions in base R (and a whole lot more). It's great at applying operations across many dimensions of your data, improving your ability to keep even complex analyses "tidy". At it's simplest, it's just another way to use `apply`. At its most complex, it allows you to easily move around in and manipulate multi-dimensional (and multi-type) data, making for example running factorial combinations of models and data a tidy and easy task.  
+`purrr` is a part of the `tidyverse`, taking on the tasks accomplished by the `apply` suite of functions in base R (and a whole lot more). Its mail ability is applying operations across many dimensions of your data, improving your ability to keep even complex analyses "tidy". At its simplest, it's basically an alternative to using the `apply` suite of packages. At its most complex, it allows you to easily move around in and manipulate multi-dimensional (and multi-type) data, making for example running factorial combinations of models and data a tidy and easy task.  
 
 There are a whole suite of functions involved with `purrr`, but the goal of this tutorial is to get the fundamentals down so that you can start incorporating `purrr` into your own code and explore higher-level abilities on your own.
 
-## Why not loops?
+## The Basics of `purrr`
 
-Let's start with this PSA: **loops aren't always bad!**
 
-For some problems (e.g. population models, or really any dynamic process where the current state depends on past states), loops are really the simplest option. 
-
-For other problems, things might be a little cleaner if you used something like `purrr`, but the amount of time required to set it up might not be worth it, so maybe a loop is the way to go. 
-
-In my opinion, the reason to move away from loops is when doing so really helps you solve a problem, not when it just makes your code look fancier. 
-
-To work backwards then, `apply`, and `map` basically take on the tasks of a `for` loop
+To get started, `map` is the workhorse function of the `purrr` package. `map` and `apply` basically take on the tasks of a `for` loop. Suppose we wanted to accomplish the following task 
 
 
 ```{r}
@@ -72,14 +65,17 @@ for (i in seq_along(shades)){
 
 ```
 
-using apply
+At it's core, what we are doing here is applying the function `print` over each of the elements in `shades`
+
+Rather than use a loop, we could accomplish the same task using `lapply`
+
 ```{r}
 
 a <-  lapply(shades, print)
 
 ```
 
-using `map`
+And lastly using `map` from `purrr `
 
 ```{r}
 
@@ -89,22 +85,23 @@ a <-  map(shades, print)
 
 This is obviously a trivial example, but you get the idea: these are three ways applying a function to a vector/list of things.
 
+<!-- The (main) advantages of using things like `apply` or `map` over a loop in my experience are that they -->
 
-The (main) advantages of using things like `apply` or `map` in my experience are that they
+<!-- 1. Allow you to easily escape writing nested for loops (it's much easier to ) -->
 
-1. Allow you to easily escape writing nested for loops
+<!-- 2. Don't require you to pre-allocate space  -->
 
-2. Don't require you to pre-allocate space 
+<!-- 3. Can be easily plugged into other more complex operations (e.g. in a pipe) -->
 
-3. Can be easily plugged into other more complex operations (e.g. in a pipe)
+<!-- 4. Can be easier to read -->
 
-4. Can be easier to read
+### Key `purrr` verbs
 
-### Key verbs
+Now that you have an idea of what `map` does, let's dig into it a bit more. 
 
 `map` is the workhorse of the `purrr` family. It is basically `apply`
 
-  - The basic syntax:
+  - The basic syntax works in the manner 
 
   - `map("Lists to apply function to","Function to apply across lists","Additional parameters")`
 
@@ -116,15 +113,32 @@ map(mtcars, mean, na.rm = T)
 
 ```
 
-  - `map` by default returns a list
+So you see here we're taking the mean of each element in the dataframe (list) `mtcars`, and passing the additional option `na.rm = T` to the function. 
+
+If we save the output of the above run to an object, we see that it is now a list, instead of a dataframe. 
+
+```{r}
+
+mtcars_means <- map(mtcars, mean, na.rm = T)
+
+class(mtcars_means)
+
+```
+
+`map` by default returns a list. One nice feature of `map` and `purrr` is that we can specify the kind of output we want. 
 
   - `map_TYPE` returns an object of class TYPE, e.g.
 
     - `map_lgl` returns logical objects
 
     - `map_df` returns data frames, etc.
+    
 
-Specifying type makes it easier to wrangle different types of outputs
+Specifying type makes it easier to wrangle different types of outputs suppose that we want a dataframe of the mean of each column in `mtcars`
+
+```{r}
+map_df(mtcars, mean, na.rm = T)
+```
 
 `map` can also be extended to deal with multiple input lists
 
@@ -140,70 +154,18 @@ map2_chr(c('one','two','red','blue'), c('fish'), paste)
 
 ```
 
-`purrr` is smart enough to help you with some basic stuff, like guessing that I'm trying to do with paste here. A lot of times that won't work and you have to be more specific though. In this example, we can do the exact same thing with
+In this case, we are mapping `paste` over each combination of these two lists. 
 
 
-```{r}
+#### Programming with Functions
 
-map2_chr(c('one','two','red','blue'), c('fish'), ~paste(.x,.y))
-
-```
-
-Note here I've used `~` to define one-sided formula on the fly, which is handy for simple things like this. We'll see later how to write and use longer functions here. 
-
-Anything above two lists is handled by `pmap`. `pmap` allows you to pass an arbitrary number of objects to map, where each object is a named element in a list, and the function takes matching elements of those lists as entries
-
-```
-pmap(list(list1,list2,list3), function(list1, list2, list3),...)
-
-```
- 
-Getting used to using `map` is the foundation to working with `purrr`.
-
-We'll now go into more detail on ways to use this in a practical way.
-
-To bring this part together, here are three ways of doing the exact same thing; checking to see if both of the columns in a row are NA
-
-```{r}
-
-x <- c(1,1,NA,NA)
-
-y <-  c(1, NA, 1, NA)
-
-z <-  data_frame(x = x, y = y)
-
-nafoo <- function(x,y){
-  
-out <- (is.na(x) & is.na(y))
-
-}
-
-```
-
-```{r}
-z %>%
-mutate(both_na = map2_lgl(x,y,nafoo))
-```
-
-```{r}
-z %>%
-mutate(both_na = map2_lgl(x,y, ~ is.na(.x) & is.na(.y)))
-```
-
-```{r}
-z %>%
-mutate(both_na = pmap_lgl(list(x = x,y = y), nafoo))
-```
-
-
-## Functional programming
-
+Notice here that `purrr` guessed what I was trying to do here (paste the two elements together). That works for very simply functions, but a lot of the time that won't work and you have to be more specific in specifying the function we are going to use and how the data we are passing to it are used. In those cases, we'll want to specify our own functions for use in `purrr`. 
 
 `purrr` is designed to help with "functional programming", which you can take broadly as trying to use functions (preferably "pure" ones) to accomplish most of your complex and repetitive tasks (don't copy and paste more then 3 times - H. Wickham)
 
 As a very quick reintroduction to functions:
 
-  Functions in R take any number of named inputs, do operations on them, and returns the last thing produced inside the function (or whatever you specify using `return`)
+Functions in R take any number of named inputs, do operations on them, and returns the last thing produced inside the function (or whatever you specify using `return`)
 
 ```{r}
 
@@ -241,13 +203,23 @@ foo(x = 2, y = 3)
 
 ```
 
-I **strongly** recommend you avoid relying on global variables inside functions: it can very easily cause unintended and sneaky behavior (I've been burned before). 
+I **strongly** recommend you avoid using global variables inside functions: it can very easily cause unintended and sneaky behavior (I've been burned before). 
 
 Functions can be as complicated as you want them to be, but a good rule is to try and make sure each function is good at doing *one* thing. That doesn't mean that that "one thing" can't be a complex thing (e.g. a population model), but the objective of the function should be to do that one thing well (produce trajectories of biomass, not biomass, diagnostics, and a knitted report all in one function).  
 
-You can also use "anonymous" functions in R/`purrr`. This is basically a shortcut for when you don't want to take up the space of writing and saving a whole function somewhere. You make anonymous functions with `~`
+You can also use "anonymous" functions in `purrr`. This is basically a shortcut for when you don't want to take up the space of writing and saving a whole function somewhere. You make anonymous functions with `~`
 
-Say you want the coefficient of variation of each of the variables in `mtcars`
+Say we want to be more specific about our call to `paste` from the above example. We could use `~` to write
+
+```{r}
+
+map2_chr(c('one','two','red','blue'), c('fish'), ~paste(.x,.y))
+
+```
+
+I've used `~` to define one-sided formula on the fly, which is handy for simple things like this. We'll see later how to write and use longer functions here. Note that by default the first argument passed to `map` is identified by `.x`, and the second `.y`. 
+
+We can also write custom functions for use. Say you want the coefficient of variation (standard deviation divided by the mean) of each of the variables in `mtcars`
 
 
 ```{r}
@@ -266,19 +238,71 @@ Can be accomplished using
 
 ```{r}
 
-map(mtcars, ~ sd(.) / mean(.))
+map(mtcars, cvfoo)
+
+```
+### Multiple lists using `pmap`
+
+Anything above two lists is handled by `pmap`. `pmap` allows you to pass an arbitrary number of objects to `map`, where each object is a named element in a list, and the function takes matching elements of those lists as entries
+
+```
+pmap(list(list1,list2,list3), function(list1, list2, list3),...)
+
+```
+ 
+```{r}
+
+dmonds <- diamonds %>% 
+  slice(1:4)
+
+pmap_foo <- function(list1, list2 , list3){
+  
+  paste0("Diamond #", list1, " sold for $", list2," and was ", list3, " carats")
+  
+}
+
+pmap(list(list1 = 1:nrow(dmonds), list2 = dmonds$price, list3 = dmonds$carat), pmap_foo)
 
 ```
 
-Notice the rather confusing `.` in there. `.` basically is a marker for whatever data is passed to a function/thing in R.
+To bring all this together together, here are three ways of doing the exact same thing; checking to see if both of the columns in a row are NA (note this is not the most efficient way to do this task, this is just to show how to use `map2` and `pmap`, anonymous functions, and custom functions)
 
 ```{r}
-mtcars %>%  {
-  .$mpg
-}
+
+x <- c(1,1,NA,NA)
+
+y <-  c(1, NA, 1, NA)
+
+z <-  data_frame(x = x, y = y)
+
+
+
 ```
 
-The `{` after the pipe tells R that the things inside the brackets don't take the data passed to it as its first argument
+
+```{r}
+z %>%
+mutate(both_na = map2_lgl(x,y, ~ is.na(.x) & is.na(.y)))
+```
+
+
+```{r}
+
+nafoo <- function(x,y){
+  
+out <- (is.na(x) & is.na(y))
+
+}
+
+z %>%
+mutate(both_na = map2_lgl(x,y,nafoo))
+```
+
+
+```{r}
+z %>%
+mutate(both_na = pmap_lgl(list(x = x,y = y), nafoo))
+```
 
 ## Wrangling lists
 
@@ -288,7 +312,7 @@ Lists are powerful objects that allow you to store all kinds of information in o
 
 They can also be a pain to deal with, since we are no longer in the nice 2-D structure of a traditional dataframe, which is much closer to how most of us probably learned to deal with data. 
 
-`purrr` has all kinds of useful tools for helping you quickly and efficiently poke around inside lists. Let's start with the Game of Thrones database in the `repurrrsive` package (thanks again to [Jenny Bryan](https://github.com/jennybc/repurrrsive)). `got_chars` is a list containing a bunch of information on GoT characters with a "point of view" chapter in the first few books. 
+`purrr` has lots of useful tools for helping you quickly and efficiently poke around inside lists. Let's start with the Game of Thrones database in the `repurrrsive` package (thanks again to [Jenny Bryan](https://github.com/jennybc/repurrrsive)). `got_chars` is a list containing a bunch of information on GoT characters with a "point of view" chapter in the first few books. 
 
 The `str` function is a great way to get a first glimpse at a list's structure
 
@@ -300,7 +324,7 @@ str(got_chars, list.len =  3)
 ```
 
 
-For those of you who prefer a more interactive approach, you can also use the `jsonedit` function in the `listviewer` package
+For those of you who prefer a more interactive approach, you can also use the `jsonedit` function in the `listviewer` package if you're working in a notebook or an html document
 
 
 ```{r}
@@ -378,7 +402,7 @@ got_chars[1:5] %>%
 
 In this case, `[` is saying use `[]` as a function.
 
-One more example, let's say you've got a list that goes a little deeper. Suppose that we want to extract element `w` from the list `thing` as characters. We can spell out the path that we want `purrr` to go through using `c("z","w")`, which tells `purrr` to first to to `z`, then `w`, and return `w`.
+One more example, let's say you've got a list that goes a little deeper. Suppose that we want to extract element `w` from the list `thing` as characters. We can spell out the path that we want `purrr` to go through using `c("z","w")`, which tells `purrr` to first to to `z`, then element `w` (which is inside `z`), and return `w`.
 
 ```{r}
 
@@ -401,9 +425,9 @@ got_chars[1:5] %>%
 ```
 
 
-Much better! 
+Much better (remember that `.` refers to the objected passed to function through the pipe)! 
 
-Now, let's say that I want to get all the Lanisters, so I can see which people to hate.
+Now, let's say that I want to get all the Lanisters, so I can see which people to root against (or for if that's your jam). 
 
 This is where a lot of the power of `purrr` starts to come in, allowing you to easily apply functions across nested layers of a list
 
@@ -519,14 +543,13 @@ got_chars %>%
 
 ## Analysis with `purrr` and `modelr`
 
-So far, `purrr` has basically helped us use tidy operations on lists. That's nice, but its real power comes in helping with analysis. Let's look at the gapminder data set
+So far, `purrr` has basically helped us apply functions across and poke around in lists. That's nice, but its real power comes in helping with analysis. Let's look at the `gapminder` data set
 
 ```{r}
-
 head(gapminder)
 ```
 
-
+`gapminder` provides data on life expectancy, economics, and population for countries across the world. 
 
 ```{r, echo = F}
 
@@ -636,14 +659,14 @@ model_frame
 So, AIC tells us that our über complicated model is still the most parsimonious. Let's dig into this a bit further, by explicitly testing the out of sample predictive ability of each of the models. "Overfit" models are commonly really good at describing the data that they are fit to, but perform poorly out of sample.
 
 
-We'll start by using the `modelr` package to create a bunch of training-test combination data sets
+We'll start by using the `modelr` package to create a bunch of training-test combination data sets using 10-fold cross validation. 
 
 
 ```{r}
 
 
 validate <- gapminder %>%
-crossv_mc(20, test = 0.25)
+modelr::crossv_kfold(10)
 
 test_data <- list(test_training = list(validate), model = model_frame$model)
 
@@ -656,7 +679,6 @@ left_join(data_frame(model_number = c(1:4), model_name = c('simple','medium', 'm
 test_data
 ```
 
-
 In a few lines of code, we now have "tidy" cross validation routine across multiple models, not bad.
 
 
@@ -665,8 +687,6 @@ In a few lines of code, we now have "tidy" cross validation routine across multi
 test_data <- test_data %>%
 mutate(fit = map2(model, train, ~lm(.x, data = .y))) %>%
 mutate(root_mean_sq_error = map2_dbl(fit, test, rmse))
-
-test_data
 ```
 
 
@@ -680,6 +700,33 @@ labs(x = 'Root Mean Squared Error', title = 'Cross-validated distribution of RMS
 
 ```
 
+Judging by out of sample RMSE, the most complicated model (`woah`) is still out best choice. And just like that in a few lines of code we've used `modelr` and `purrr` to easily compare a number of different model structures. 
+
+Examining our "best" model more carefully though, we see we have some problems
+
+```{r}
+
+test_data %>% 
+  filter(model_name == "woah") 
+
+
+qq_plot <- test_data %>% 
+  filter(model_name == "woah") %>%
+  slice(1) %>% {
+    .$fit[[1]]
+  } %>% 
+  broom::augment(.) %>% 
+  ggplot(aes(sample = .resid)) +
+    stat_qq() +
+  geom_abline(aes(slope = 1, intercept = 0), color = 'red', linetype = 2) +
+  labs(y = 'Deviance Residuals', title = 'Normal QQ plot')
+
+
+qq_plot
+```
+
+Hmmm that doesn't look good (we want the black points to fall more of less on the red dashed 1:1 line), we clearly need to spend more time with model specification. But now, we see how we can use `purrr` and `modelr` to easily construct and compare numerous model hypotheses. 
+
 ## Miscellaneos `purrr`
 
 That's a broad tour of the key features of `purrr`. Here's a few more examples of miscellaneous things you can do with `purrr`
@@ -687,11 +734,13 @@ That's a broad tour of the key features of `purrr`. Here's a few more examples o
 
 ### De bugging using `safely`
 
-One annoying thing about using `map` (or `apply`) in place of loops is that it can make debugging much harder to deal with. With a loop, it can be a lot easier to see where exactly an error occurred and your loop failed (e.g. look at the index of the loop when the error occurred). With `map`, it can be much harder to figure out where the problem is, especially if you have a very large object. 
+One annoying thing about using `map` (or `apply`) in place of loops is that it can make debugging much harder to deal with. With a loop, it's easy to see where exactly an error occurred and your loop failed (e.g. look at the index of the loop when the error occurred). With `map`, it can be much harder to figure out where the problem is, especially if you have a very large list that you're mapping over. 
 
 The `safely` function let's us solve this problem. 
 
-Suppose that you've got a bunch of csv's of fish lengths from a field site. The field techs are supposed to enter the length in one column, and the units in a second column. As tends to happen though, someone put the units next to the length in one entry (e.g. 26cm). How do we deal with that?
+Suppose that you've got a bunch of csv's of fish lengths from a field site. The field techs are supposed to enter the length in one column, and the units in a second column. As tends to happen though, some techs put the units next to the length (e.g. 26cm), instead of in separate `lengths` and `units` columns. Suppose then that we want to pull in our lengths and log transform them, since we suspect that the lengths are log-normally distributed and we'd like to run an OLS regression on them. 
+
+To simulate our data...
 
 ```{r}
 
@@ -722,16 +771,16 @@ listviewer::jsonedit(length_data)
 
 ```
 
-Our goal is to put all of these observations together, log transform the lengths, and plot. 
+Our goal is to put all of these observations together, log transform the lengths, and plot. Using `map`, we know that we can use 
 
 ```{r, eval = F}
 
 length_data %>% 
-  map(log,.$lengths)
+  map(~log(.x$lengths))
 
 ```
 
-Yep, that doesn't work, since `map` hit an error somewhere in there. Now, we could go through all 100 entries and see which ones are bad, or concatenate them earlier and look for NAs after conversion to type numeric, but let's see how we can use `purrr` to deal with this. 
+Yep, that doesn't work, since `map` hit an error somewhere in there (it doesn't know how to take the log of (`25cm`). Now, we could go through all 100 entries and see which ones are bad, or concatenate them earlier and look for NAs after conversion to type numeric, but let's see how we can use `purrr` to deal with this. 
 
 ```{r}
 
@@ -744,8 +793,7 @@ head(diagnose_length,2)
 
 ```
 
-
-Great, now we at least have something to work with. `safely` gives us two objects per entry: the data if it worked, and a log of the error messages. 
+Great, now we at least have something to work with. `safely` gives us two objects per entry: the data if it worked, and a log of the error messages if it didn't. 
 
 How do we figure out which tech's are the problem? We can use `map_lgl` to help us out here
 
