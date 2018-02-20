@@ -15,6 +15,23 @@ type: post
 <script src="/rmarkdown-libs/jsoneditor/jsoneditor.min.js"></script>
 <script src="/rmarkdown-libs/jsonedit-binding/jsonedit.js"></script>
 
+<div id="TOC">
+<ul>
+<li><a href="#what-is-purrr">What is <code>purrr</code>?</a></li>
+<li><a href="#the-basics-of-purrr">The Basics of <code>purrr</code></a><ul>
+<li><a href="#key-purrr-verbs">Key <code>purrr</code> verbs</a></li>
+<li><a href="#multiple-lists-using-pmap">Multiple lists using <code>pmap</code></a></li>
+</ul></li>
+<li><a href="#wrangling-lists">Wrangling lists</a></li>
+<li><a href="#analysis-with-purrr-and-modelr">Analysis with <code>purrr</code> and <code>modelr</code></a></li>
+<li><a href="#miscellaneos-purrr">Miscellaneos <code>purrr</code></a><ul>
+<li><a href="#de-bugging-using-safely">De bugging using <code>safely</code></a></li>
+<li><a href="#find-and-convert-factors">Find and Convert Factors</a></li>
+<li><a href="#print-all-plots-to-pdf">Print All Plots to PDF</a></li>
+<li><a href="#partial">Partial</a></li>
+</ul></li>
+</ul>
+</div>
 
 <p>These are materials from a workshop I taught for UC Santa Barbara’s <a href="https://eco-data-science.github.io/">eco-data-science</a> group to people familiar with using <code>purrr</code> for their data-wrangling and modeling needs. This post covers</p>
 <ol style="list-style-type: decimal">
@@ -413,7 +430,7 @@ names</code></pre>
 ## 
 ## [[5]]
 ## NULL</code></pre>
-<p>Huh, why didn’t that work? <code>purrr</code> has some built in helpers for simple operations, but as things get more complicated you need to specify functions</p>
+<p>Huh, why didn’t that work? Passing a string to map actually tells <code>purrr</code> to dive down into recursive layers of a list (we’ll see this next) In this case, if I want to extract the “name” and “allegiances” variables, I can use <code>[</code></p>
 <pre class="r"><code>got_chars[1:5] %&gt;%
   map(`[`, c(&#39;name&#39;, &#39;allegiances&#39;))</code></pre>
 <pre><code>## [[1]]
@@ -455,7 +472,7 @@ names</code></pre>
 ## [[5]]$allegiances
 ## [1] &quot;House Nymeros Martell of Sunspear&quot;</code></pre>
 <p>In this case, <code>[</code> is saying use <code>[]</code> as a function.</p>
-<p>One more example, let’s say you’ve got a list that goes a little deeper. Suppose that we want to extract element <code>w</code> from the list <code>thing</code> as characters. We can spell out the path that we want <code>purrr</code> to go through using <code>c(&quot;z&quot;,&quot;w&quot;)</code>, which tells <code>purrr</code> to first to to <code>z</code>, then element <code>w</code> (which is inside <code>z</code>), and return <code>w</code>.</p>
+<p>Let’s say you’ve got a list that goes a little deeper. Suppose that we want to extract element <code>w</code> from the list <code>thing</code> as characters. We can spell out the path that we want <code>purrr</code> to go through using <code>c(&quot;z&quot;,&quot;w&quot;)</code>, which tells <code>purrr</code> to first to to <code>z</code>, then element <code>w</code> (which is inside <code>z</code>), and return <code>w</code>.</p>
 <pre class="r"><code>thing &lt;- list(list(y = 2, z = list(w = &#39;hello&#39;)),
               list(y = 2, z = list(w = &#39;world&#39;)))
 
@@ -583,7 +600,7 @@ got_list %&gt;%
 <p><img src="/blog/2018-02-13-practical-purrr_files/figure-html/unnamed-chunk-36-1.svg" width="960" /></p>
 <p>Now, suppose we want to build up a model trying to predict life expectancy as a function of covariates, starting with a simple one: life expectancy as a function of population and per capita GDP</p>
 <pre class="r"><code>gapminder &lt;- gapminder %&gt;%
-  set_names( colnames(.) %&gt;% tolower())
+  set_names(colnames(.) %&gt;% tolower())
 
 life_mod &lt;- lm(lifeexp ~ pop + gdppercap, data = gapminder)</code></pre>
 <table style="text-align:center">
@@ -735,7 +752,7 @@ F Statistic
 </td>
 </tr>
 </table>
-<p>Not bad for a simple model, but how do we know if this is the model we want to use? Let’s use AIC to compare a few different model structures (note, this is not an endorsement for AIC mining!)</p>
+<p>So now we have a <em>very</em> simple model, but how do we know if this is the model we want to use? Let’s use AIC to compare a few different model structures (note, this is not an endorsement for AIC mining!)</p>
 <pre class="r"><code>m1 &lt;- &#39;lifeexp ~ pop + gdppercap&#39;
 
 m2 &lt;- &#39;lifeexp ~ pop + gdppercap + continent + year&#39;
@@ -748,7 +765,7 @@ m4 &lt;- &#39;lifeexp ~ pop + gdppercap + year*country&#39;</code></pre>
 <pre class="r"><code>model_frame &lt;- data_frame(model = c(m1, m2, m3,m4)) %&gt;%
 mutate(model = map(model, as.formula))</code></pre>
 <p>First, let’s use purrr to convert each of these character strings into a model</p>
-<pre class="r"><code>model_frame &lt;- data_frame(model_name = c(&#39;simple&#39;,&#39;medium&#39;,&#39;more&#39;, &#39;woah&#39;),model = list(&quot;simple&quot; = m1, &#39;medium&#39; = m2, &#39;more&#39; = m3, &#39;woah&#39; = m4)) %&gt;%
+<pre class="r"><code>model_frame &lt;- data_frame(model_name = c(&quot;simple&quot;, &quot;medium&quot;, &quot;more&quot;, &quot;woah&quot;), model = list(&quot;simple&quot; = m1, &quot;medium&quot; = m2, &quot;more&quot; = m3, &quot;woah&quot; = m4)) %&gt;%
   mutate(model = map(model, as.formula))
 
 model_frame</code></pre>
@@ -776,30 +793,31 @@ model_frame</code></pre>
 <p>We’re now going to start integrating some methods from the <code>modelr</code> package to diagnose our regression</p>
 <pre class="r"><code>model_frame &lt;- model_frame %&gt;%
 mutate(r2 = map_dbl(fit, ~rsquare(., data = gapminder)),
-aic = map_dbl(fit, ~AIC(.)))
+aic = map_dbl(fit, ~AIC(.))) %&gt;% 
+  arrange(aic)
 
 model_frame</code></pre>
 <pre><code>## # A tibble: 4 x 5
 ##   model_name model         fit         r2   aic
 ##   &lt;chr&gt;      &lt;list&gt;        &lt;list&gt;   &lt;dbl&gt; &lt;dbl&gt;
-## 1 simple     &lt;S3: formula&gt; &lt;S3: lm&gt; 0.347 12836
-## 2 medium     &lt;S3: formula&gt; &lt;S3: lm&gt; 0.717 11420
-## 3 more       &lt;S3: formula&gt; &lt;S3: lm&gt; 0.932  9268
-## 4 woah       &lt;S3: formula&gt; &lt;S3: lm&gt; 0.976  7752</code></pre>
-<p>So, AIC tells us that our über complicated model is still the most parsimonious. Let’s dig into this a bit further, by explicitly testing the out of sample predictive ability of each of the models. “Overfit” models are commonly really good at describing the data that they are fit to, but perform poorly out of sample.</p>
+## 1 woah       &lt;S3: formula&gt; &lt;S3: lm&gt; 0.976  7752
+## 2 more       &lt;S3: formula&gt; &lt;S3: lm&gt; 0.932  9268
+## 3 medium     &lt;S3: formula&gt; &lt;S3: lm&gt; 0.717 11420
+## 4 simple     &lt;S3: formula&gt; &lt;S3: lm&gt; 0.347 12836</code></pre>
+<p>So, AIC tells us that our most complext model is still the most parsimonious (of the ones we’ve explored here). Let’s dig into this a bit further, by explicitly testing the out of sample predictive ability of each of the models. “Overfit” models are commonly really good at describing the data that they are fit to, but perform poorly out of sample.</p>
 <p>We’ll start by using the <code>modelr</code> package to create a bunch of training-test combination data sets using 10-fold cross validation.</p>
 <pre class="r"><code>validate &lt;- gapminder %&gt;%
-modelr::crossv_kfold(10)
+  modelr::crossv_kfold(10)
 
 test_data &lt;- list(test_training = list(validate), model = model_frame$model)
 
 
-test_data &lt;- cross_d(test_data) %&gt;%
-unnest(test_training, .drop = F, .id = &#39;model_number&#39;) %&gt;%
-mutate(model_number = as.numeric(model_number)) %&gt;%
-left_join(data_frame(model_number = c(1:4), model_name = c(&#39;simple&#39;,&#39;medium&#39;, &#39;more&#39;,&#39;woah&#39;)), by = &#39;model_number&#39;)</code></pre>
-<pre><code>## Warning: `cross_d()` is deprecated; please use `cross_df()` instead.</code></pre>
-<pre class="r"><code>test_data</code></pre>
+test_data &lt;- cross_df(test_data) %&gt;%
+  unnest(test_training, .drop = F, .id = &quot;model_number&quot;) %&gt;%
+  mutate(model_number = as.numeric(model_number)) %&gt;%
+  left_join(data_frame(model_number = c(1:4), model_name = c(&quot;simple&quot;, &quot;medium&quot;, &quot;more&quot;, &quot;woah&quot;)), by = &quot;model_number&quot;)
+
+test_data</code></pre>
 <pre><code>## # A tibble: 40 x 6
 ##    model         model_number train          test         .id   model_name
 ##    &lt;list&gt;               &lt;dbl&gt; &lt;list&gt;         &lt;list&gt;       &lt;chr&gt; &lt;chr&gt;     
@@ -819,42 +837,28 @@ left_join(data_frame(model_number = c(1:4), model_name = c(&#39;simple&#39;,&#39
 mutate(fit = map2(model, train, ~lm(.x, data = .y))) %&gt;%
 mutate(root_mean_sq_error = map2_dbl(fit, test, rmse))</code></pre>
 <pre class="r"><code>test_data %&gt;%
-ggplot(aes(root_mean_sq_error, fill = model_name)) +
-geom_density(alpha = 0.75) +
-labs(x = &#39;Root Mean Squared Error&#39;, title = &#39;Cross-validated distribution of RMSE&#39;)</code></pre>
+  ggplot(aes(root_mean_sq_error, fill = model_name)) +
+  geom_density(alpha = 0.75) +
+  labs(x = &quot;Root Mean Squared Error&quot;, title = &quot;Cross-validated distribution of RMSE&quot;)</code></pre>
 <p><img src="/blog/2018-02-13-practical-purrr_files/figure-html/unnamed-chunk-47-1.svg" width="960" /></p>
-<p>Judging by out of sample RMSE, the most complicated model (<code>woah</code>) is still out best choice. And just like that in a few lines of code we’ve used <code>modelr</code> and <code>purrr</code> to easily compare a number of different model structures.</p>
+<p>Judging by out of sample RMSE, the most complicated model (<code>woah</code>) is still our best choice. And just like that in a few lines of code we’ve used <code>modelr</code> and <code>purrr</code> to easily compare a number of different model structures.</p>
 <p>Examining our “best” model more carefully though, we see we have some problems</p>
-<pre class="r"><code>test_data %&gt;% 
-  filter(model_name == &quot;woah&quot;) </code></pre>
-<pre><code>## # A tibble: 10 x 8
-##    model  model_number train test  .id   model_name fit   root_mean_sq_er…
-##    &lt;list&gt;        &lt;dbl&gt; &lt;lis&gt; &lt;lis&gt; &lt;chr&gt; &lt;chr&gt;      &lt;lis&gt;            &lt;dbl&gt;
-##  1 &lt;S3: …         4.00 &lt;S3:… &lt;S3:… 01    woah       &lt;S3:…             2.23
-##  2 &lt;S3: …         4.00 &lt;S3:… &lt;S3:… 02    woah       &lt;S3:…             2.41
-##  3 &lt;S3: …         4.00 &lt;S3:… &lt;S3:… 03    woah       &lt;S3:…             2.05
-##  4 &lt;S3: …         4.00 &lt;S3:… &lt;S3:… 04    woah       &lt;S3:…             2.61
-##  5 &lt;S3: …         4.00 &lt;S3:… &lt;S3:… 05    woah       &lt;S3:…             2.40
-##  6 &lt;S3: …         4.00 &lt;S3:… &lt;S3:… 06    woah       &lt;S3:…             3.37
-##  7 &lt;S3: …         4.00 &lt;S3:… &lt;S3:… 07    woah       &lt;S3:…             2.36
-##  8 &lt;S3: …         4.00 &lt;S3:… &lt;S3:… 08    woah       &lt;S3:…             2.85
-##  9 &lt;S3: …         4.00 &lt;S3:… &lt;S3:… 09    woah       &lt;S3:…             2.28
-## 10 &lt;S3: …         4.00 &lt;S3:… &lt;S3:… 10    woah       &lt;S3:…             2.50</code></pre>
-<pre class="r"><code>qq_plot &lt;- test_data %&gt;% 
+<pre class="r"><code>qq_plot &lt;- test_data %&gt;%
   filter(model_name == &quot;woah&quot;) %&gt;%
-  slice(1) %&gt;% {
+  slice(1) %&gt;%
+  {
     .$fit[[1]]
-  } %&gt;% 
-  broom::augment(.) %&gt;% 
+  } %&gt;%
+  broom::augment(.) %&gt;%
   ggplot(aes(sample = .resid)) +
-    stat_qq() +
-  geom_abline(aes(slope = 1, intercept = 0), color = &#39;red&#39;, linetype = 2) +
-  labs(y = &#39;Deviance Residuals&#39;, title = &#39;Normal QQ plot&#39;)
+  stat_qq() +
+  stat_qq_line(color = &quot;red&quot;, linetype =  2) +
+  labs(y = &quot;Deviance Residuals&quot;, title = &quot;Normal QQ plot&quot;)
 
 
 qq_plot</code></pre>
 <p><img src="/blog/2018-02-13-practical-purrr_files/figure-html/unnamed-chunk-48-1.svg" width="960" /></p>
-<p>Hmmm that doesn’t look good (we want the black points to fall more of less on the red dashed 1:1 line), we clearly need to spend more time with model specification. But now, we see how we can use <code>purrr</code> and <code>modelr</code> to easily construct and compare numerous model hypotheses.</p>
+<p>Hmmm that doesn’t look good (we want the black points to fall more of less on the red dashed 1:1 line), we clearly need to spend more time with model specification (AKA this very simple model is, surprise surprise, not a good way to model life expectancy). But now, we see how we can use <code>purrr</code> and <code>modelr</code> to easily construct and compare numerous new model hypotheses in our hunt for the best one.</p>
 </div>
 <div id="miscellaneos-purrr" class="section level2">
 <h2>Miscellaneos <code>purrr</code></h2>
@@ -865,27 +869,25 @@ qq_plot</code></pre>
 <p>The <code>safely</code> function let’s us solve this problem.</p>
 <p>Suppose that you’ve got a bunch of csv’s of fish lengths from a field site. The field techs are supposed to enter the length in one column, and the units in a second column. As tends to happen though, some techs put the units next to the length (e.g. 26cm), instead of in separate <code>lengths</code> and <code>units</code> columns. Suppose then that we want to pull in our lengths and log transform them, since we suspect that the lengths are log-normally distributed and we’d like to run an OLS regression on them.</p>
 <p>To simulate our data…</p>
-<pre class="r"><code>fish_foo &lt;- function(){
-  
-  bad_tech &lt;- ifelse(runif(1,0,10) &gt; 2, FALSE, TRUE)
-                     
-  if (bad_tech == F)
-  {
-   lengths &lt;- rnorm(10,25,5) %&gt;% signif(3)
-   
-   units = &#39;cm&#39;
+<pre class="r"><code>fish_foo &lt;- function() {
+  bad_tech &lt;- ifelse(runif(1, 0, 10) &gt; 2, FALSE, TRUE)
+
+  if (bad_tech == F) {
+    lengths &lt;- rnorm(10, 25, 5) %&gt;% signif(3)
+
+    units &lt;- &quot;cm&quot;
   } else {
-   lengths &lt;-  paste0(rnorm(10,25,5) %&gt;% signif(3),&#39;cm&#39;)
-   
-   units &lt;- &quot;what&#39;s this column for?&quot;
+    lengths &lt;- paste0(rnorm(10, 25, 5) %&gt;% signif(3), &quot;cm&quot;)
+
+    units &lt;- &quot;what&#39;s this column for?&quot;
   }
 
   out &lt;- data_frame(lengths = lengths, units = units)
   return(out)
 }
 
-length_data &lt;-  rerun(100, fish_foo()) %&gt;% 
-  set_names(paste0(&#39;tech&#39;,1:100))
+length_data &lt;- rerun(100, fish_foo()) %&gt;%
+  set_names(paste0(&quot;tech&quot;, 1:100))
 
 listviewer::jsonedit(length_data)</code></pre>
 <div id="htmlwidget-7" style="width:960px;height:480px;" class="jsonedit html-widget"></div>

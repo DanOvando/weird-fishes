@@ -24,8 +24,10 @@ library(tidyverse)
 extrafont::loadfonts(quiet = T)
 
 
-pres_theme <- theme_fivethirtyeight(base_size = 16, 
-                                    base_family = 'Arial Narrow') + 
+pres_theme <- theme_fivethirtyeight(
+  base_size = 16,
+  base_family = "Arial Narrow"
+) +
   theme(axis.title = element_text())
 theme_set(pres_theme)
 
@@ -393,8 +395,7 @@ got_chars[1:5] %>%
 ```
 
 
-Huh, why didn't that work? `purrr` has some built in helpers for simple operations, but as things get more complicated you need to specify functions
-
+Huh, why didn't that work? Passing a string to map actually tells `purrr` to dive down into recursive layers of a list (we'll see this next) In this case, if I want to extract the "name" and "allegiances" variables, I can use `[`
 
 ```{r}
 got_chars[1:5] %>%
@@ -404,7 +405,7 @@ got_chars[1:5] %>%
 
 In this case, `[` is saying use `[]` as a function.
 
-One more example, let's say you've got a list that goes a little deeper. Suppose that we want to extract element `w` from the list `thing` as characters. We can spell out the path that we want `purrr` to go through using `c("z","w")`, which tells `purrr` to first to to `z`, then element `w` (which is inside `z`), and return `w`.
+Let's say you've got a list that goes a little deeper. Suppose that we want to extract element `w` from the list `thing` as characters. We can spell out the path that we want `purrr` to go through using `c("z","w")`, which tells `purrr` to first to to `z`, then element `w` (which is inside `z`), and return `w`.
 
 ```{r}
 
@@ -543,7 +544,9 @@ got_chars %>%
 ```
 
 
+
 ## Analysis with `purrr` and `modelr`
+
 
 So far, `purrr` has basically helped us apply functions across and poke around in lists. That's nice, but its real power comes in helping with analysis. Let's look at the `gapminder` data set
 
@@ -556,10 +559,10 @@ head(gapminder)
 ```{r, echo = F}
 
 gapminder::gapminder %>%
-  ggplot(aes(year,lifeExp, color = country)) +
+  ggplot(aes(year, lifeExp, color = country)) +
   geom_line(show.legend = F) +
   facet_wrap(~continent) +
-  labs(title = 'Life expectancy across continents')
+  labs(title = "Life expectancy across continents")
 
 ```
 
@@ -570,7 +573,7 @@ Now, suppose we want to build up a model trying to predict life expectancy as a 
 ```{r}
 
 gapminder <- gapminder %>%
-  set_names( colnames(.) %>% tolower())
+  set_names(colnames(.) %>% tolower())
 
 life_mod <- lm(lifeexp ~ pop + gdppercap, data = gapminder)
 
@@ -585,7 +588,7 @@ stargazer::stargazer(life_mod, type = 'html')
 ```
 
 
-Not bad for a simple model, but how do we know if this is the model we want to use? Let's use AIC to compare a few different model structures (note, this is not an endorsement for AIC mining!)
+So now we have a *very* simple model, but how do we know if this is the model we want to use? Let's use AIC to compare a few different model structures (note, this is not an endorsement for AIC mining!)
 
 
 ```{r}
@@ -619,7 +622,7 @@ First, let's use purrr to convert each of these character strings into a model
 
 ```{r}
 
-model_frame <- data_frame(model_name = c('simple','medium','more', 'woah'),model = list("simple" = m1, 'medium' = m2, 'more' = m3, 'woah' = m4)) %>%
+model_frame <- data_frame(model_name = c("simple", "medium", "more", "woah"), model = list("simple" = m1, "medium" = m2, "more" = m3, "woah" = m4)) %>%
   mutate(model = map(model, as.formula))
 
 model_frame
@@ -651,14 +654,15 @@ We're now going to start integrating some methods from the `modelr` package to d
 ```{r}
 model_frame <- model_frame %>%
 mutate(r2 = map_dbl(fit, ~rsquare(., data = gapminder)),
-aic = map_dbl(fit, ~AIC(.)))
+aic = map_dbl(fit, ~AIC(.))) %>% 
+  arrange(aic)
 
 model_frame
 
 ```
 
 
-So, AIC tells us that our über complicated model is still the most parsimonious. Let's dig into this a bit further, by explicitly testing the out of sample predictive ability of each of the models. "Overfit" models are commonly really good at describing the data that they are fit to, but perform poorly out of sample.
+So, AIC tells us that our most complext model is still the most parsimonious (of the ones we've explored here). Let's dig into this a bit further, by explicitly testing the out of sample predictive ability of each of the models. "Overfit" models are commonly really good at describing the data that they are fit to, but perform poorly out of sample.
 
 
 We'll start by using the `modelr` package to create a bunch of training-test combination data sets using 10-fold cross validation. 
@@ -668,15 +672,15 @@ We'll start by using the `modelr` package to create a bunch of training-test com
 
 
 validate <- gapminder %>%
-modelr::crossv_kfold(10)
+  modelr::crossv_kfold(10)
 
 test_data <- list(test_training = list(validate), model = model_frame$model)
 
 
-test_data <- cross_d(test_data) %>%
-unnest(test_training, .drop = F, .id = 'model_number') %>%
-mutate(model_number = as.numeric(model_number)) %>%
-left_join(data_frame(model_number = c(1:4), model_name = c('simple','medium', 'more','woah')), by = 'model_number')
+test_data <- cross_df(test_data) %>%
+  unnest(test_training, .drop = F, .id = "model_number") %>%
+  mutate(model_number = as.numeric(model_number)) %>%
+  left_join(data_frame(model_number = c(1:4), model_name = c("simple", "medium", "more", "woah")), by = "model_number")
 
 test_data
 ```
@@ -695,39 +699,36 @@ mutate(root_mean_sq_error = map2_dbl(fit, test, rmse))
 ```{r}
 
 test_data %>%
-ggplot(aes(root_mean_sq_error, fill = model_name)) +
-geom_density(alpha = 0.75) +
-labs(x = 'Root Mean Squared Error', title = 'Cross-validated distribution of RMSE')
+  ggplot(aes(root_mean_sq_error, fill = model_name)) +
+  geom_density(alpha = 0.75) +
+  labs(x = "Root Mean Squared Error", title = "Cross-validated distribution of RMSE")
 
 
 ```
 
-Judging by out of sample RMSE, the most complicated model (`woah`) is still out best choice. And just like that in a few lines of code we've used `modelr` and `purrr` to easily compare a number of different model structures. 
+Judging by out of sample RMSE, the most complicated model (`woah`) is still our best choice. And just like that in a few lines of code we've used `modelr` and `purrr` to easily compare a number of different model structures. 
 
 Examining our "best" model more carefully though, we see we have some problems
 
 ```{r}
 
-test_data %>% 
-  filter(model_name == "woah") 
-
-
-qq_plot <- test_data %>% 
+qq_plot <- test_data %>%
   filter(model_name == "woah") %>%
-  slice(1) %>% {
+  slice(1) %>%
+  {
     .$fit[[1]]
-  } %>% 
-  broom::augment(.) %>% 
+  } %>%
+  broom::augment(.) %>%
   ggplot(aes(sample = .resid)) +
-    stat_qq() +
-  geom_abline(aes(slope = 1, intercept = 0), color = 'red', linetype = 2) +
-  labs(y = 'Deviance Residuals', title = 'Normal QQ plot')
+  stat_qq() +
+  stat_qq_line(color = "red", linetype =  2) +
+  labs(y = "Deviance Residuals", title = "Normal QQ plot")
 
 
 qq_plot
 ```
 
-Hmmm that doesn't look good (we want the black points to fall more of less on the red dashed 1:1 line), we clearly need to spend more time with model specification. But now, we see how we can use `purrr` and `modelr` to easily construct and compare numerous model hypotheses. 
+Hmmm that doesn't look good (we want the black points to fall more of less on the red dashed 1:1 line), we clearly need to spend more time with model specification (AKA this very simple model is, surprise surprise, not a good way to model life expectancy). But now, we see how we can use `purrr` and `modelr` to easily construct and compare numerous new model hypotheses in our hunt for the best one.
 
 ## Miscellaneos `purrr`
 
@@ -747,27 +748,25 @@ To simulate our data...
 ```{r}
 
 
-fish_foo <- function(){
-  
-  bad_tech <- ifelse(runif(1,0,10) > 2, FALSE, TRUE)
-                     
-  if (bad_tech == F)
-  {
-   lengths <- rnorm(10,25,5) %>% signif(3)
-   
-   units = 'cm'
+fish_foo <- function() {
+  bad_tech <- ifelse(runif(1, 0, 10) > 2, FALSE, TRUE)
+
+  if (bad_tech == F) {
+    lengths <- rnorm(10, 25, 5) %>% signif(3)
+
+    units <- "cm"
   } else {
-   lengths <-  paste0(rnorm(10,25,5) %>% signif(3),'cm')
-   
-   units <- "what's this column for?"
+    lengths <- paste0(rnorm(10, 25, 5) %>% signif(3), "cm")
+
+    units <- "what's this column for?"
   }
 
   out <- data_frame(lengths = lengths, units = units)
   return(out)
 }
 
-length_data <-  rerun(100, fish_foo()) %>% 
-  set_names(paste0('tech',1:100))
+length_data <- rerun(100, fish_foo()) %>%
+  set_names(paste0("tech", 1:100))
 
 listviewer::jsonedit(length_data)
 
