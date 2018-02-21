@@ -69,7 +69,7 @@ for (i in seq_along(shades)){
 
 ```
 
-At it's core, what we are doing here is applying the function `print` over each of the elements in `shades`
+At its core, what we are doing here is applying the function `print` over each of the elements in `shades`
 
 Rather than use a loop, we could accomplish the same task using `lapply`
 
@@ -735,11 +735,11 @@ Hmmm that doesn't look good (we want the black points to fall more of less on th
 That's a broad tour of the key features of `purrr`. Here's a few more examples of miscellaneous things you can do with `purrr`
 
 
-### De bugging using `safely`
+### Debugging using `safely`
 
 One annoying thing about using `map` (or `apply`) in place of loops is that it can make debugging much harder to deal with. With a loop, it's easy to see where exactly an error occurred and your loop failed (e.g. look at the index of the loop when the error occurred). With `map`, it can be much harder to figure out where the problem is, especially if you have a very large list that you're mapping over. 
 
-The `safely` function let's us solve this problem. 
+The `safely` function lets us solve this problem. 
 
 Suppose that you've got a bunch of csv's of fish lengths from a field site. The field techs are supposed to enter the length in one column, and the units in a second column. As tends to happen though, some techs put the units next to the length (e.g. 26cm), instead of in separate `lengths` and `units` columns. Suppose then that we want to pull in our lengths and log transform them, since we suspect that the lengths are log-normally distributed and we'd like to run an OLS regression on them. 
 
@@ -808,7 +808,7 @@ bad_techs <- diagnose_length %>%
 names(bad_techs)
 ```
 
-I leave it to your imagination to think of how to resolve this problem, but at least we now know where the problem is. One strategy is to use the handy `possibly` function from `purrr`. This basically says try a function and return it's value if it works, otherwise return something else. 
+I leave it to your imagination to think of how to resolve this problem, but at least we now know where the problem is. One strategy is to use the handy `possibly` function from `purrr`. This basically says try a function and return its value if it works, otherwise return something else. 
 
 ```{r}
 
