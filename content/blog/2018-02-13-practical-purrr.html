@@ -25,7 +25,7 @@ type: post
 <li><a href="#wrangling-lists">Wrangling lists</a></li>
 <li><a href="#analysis-with-purrr-and-modelr">Analysis with <code>purrr</code> and <code>modelr</code></a></li>
 <li><a href="#miscellaneos-purrr">Miscellaneos <code>purrr</code></a><ul>
-<li><a href="#de-bugging-using-safely">De bugging using <code>safely</code></a></li>
+<li><a href="#debugging-using-safely">Debugging using <code>safely</code></a></li>
 <li><a href="#find-and-convert-factors">Find and Convert Factors</a></li>
 <li><a href="#print-all-plots-to-pdf">Print All Plots to PDF</a></li>
 <li><a href="#partial">Partial</a></li>
@@ -66,7 +66,7 @@ for (i in seq_along(shades)){
 ## [1] &quot;aquamarine&quot;
 ## [1] &quot;aquamarine1&quot;
 ## [1] &quot;aquamarine2&quot;</code></pre>
-<p>At it’s core, what we are doing here is applying the function <code>print</code> over each of the elements in <code>shades</code></p>
+<p>At its core, what we are doing here is applying the function <code>print</code> over each of the elements in <code>shades</code></p>
 <p>Rather than use a loop, we could accomplish the same task using <code>lapply</code></p>
 <pre class="r"><code>a &lt;-  lapply(shades, print)</code></pre>
 <pre><code>## [1] &quot;white&quot;
@@ -863,10 +863,10 @@ qq_plot</code></pre>
 <div id="miscellaneos-purrr" class="section level2">
 <h2>Miscellaneos <code>purrr</code></h2>
 <p>That’s a broad tour of the key features of <code>purrr</code>. Here’s a few more examples of miscellaneous things you can do with <code>purrr</code></p>
-<div id="de-bugging-using-safely" class="section level3">
-<h3>De bugging using <code>safely</code></h3>
+<div id="debugging-using-safely" class="section level3">
+<h3>Debugging using <code>safely</code></h3>
 <p>One annoying thing about using <code>map</code> (or <code>apply</code>) in place of loops is that it can make debugging much harder to deal with. With a loop, it’s easy to see where exactly an error occurred and your loop failed (e.g. look at the index of the loop when the error occurred). With <code>map</code>, it can be much harder to figure out where the problem is, especially if you have a very large list that you’re mapping over.</p>
-<p>The <code>safely</code> function let’s us solve this problem.</p>
+<p>The <code>safely</code> function lets us solve this problem.</p>
 <p>Suppose that you’ve got a bunch of csv’s of fish lengths from a field site. The field techs are supposed to enter the length in one column, and the units in a second column. As tends to happen though, some techs put the units next to the length (e.g. 26cm), instead of in separate <code>lengths</code> and <code>units</code> columns. Suppose then that we want to pull in our lengths and log transform them, since we suspect that the lengths are log-normally distributed and we’d like to run an OLS regression on them.</p>
 <p>To simulate our data…</p>
 <pre class="r"><code>fish_foo &lt;- function() {
@@ -930,7 +930,7 @@ names(bad_techs)</code></pre>
 ##  [8] &quot;tech37&quot;  &quot;tech40&quot;  &quot;tech44&quot;  &quot;tech46&quot;  &quot;tech47&quot;  &quot;tech60&quot;  &quot;tech68&quot; 
 ## [15] &quot;tech77&quot;  &quot;tech81&quot;  &quot;tech85&quot;  &quot;tech92&quot;  &quot;tech95&quot;  &quot;tech96&quot;  &quot;tech98&quot; 
 ## [22] &quot;tech99&quot;  &quot;tech100&quot;</code></pre>
-<p>I leave it to your imagination to think of how to resolve this problem, but at least we now know where the problem is. One strategy is to use the handy <code>possibly</code> function from <code>purrr</code>. This basically says try a function and return it’s value if it works, otherwise return something else.</p>
+<p>I leave it to your imagination to think of how to resolve this problem, but at least we now know where the problem is. One strategy is to use the handy <code>possibly</code> function from <code>purrr</code>. This basically says try a function and return its value if it works, otherwise return something else.</p>
 <pre class="r"><code>possibly_log &lt;-  possibly(log, otherwise = NA)
 
 
