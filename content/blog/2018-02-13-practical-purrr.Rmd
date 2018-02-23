@@ -33,7 +33,7 @@ theme_set(pres_theme)
 
 ```
 
-These are materials from a workshop I taught for UC Santa Barbara's [eco-data-science](https://eco-data-science.github.io/) group to people familiar with using `purrr` for their data-wrangling and modeling needs.  This post covers
+These are materials from a workshop I taught for UC Santa Barbara's [eco-data-science](https://eco-data-science.github.io/) group to get people familiar with using `purrr` for their data-wrangling and modeling needs.  This post covers
 
 1. A general introduction to the workings of `purrr`
 
