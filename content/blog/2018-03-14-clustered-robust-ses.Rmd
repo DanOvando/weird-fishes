@@ -1,0 +1,15 @@
+---
+title: clustered-robust-ses
+author: Dan Ovando
+date: '2018-03-14'
+slug: clustered-robust-ses
+categories:
+  - R
+  - statistics
+tags: []
+draft: true
+type: post
+---
+
+A post showing SIMPLY how to use sandwich vcovHC and vcovCL to get heteroskedastic robust and clustered standard errors in R
+

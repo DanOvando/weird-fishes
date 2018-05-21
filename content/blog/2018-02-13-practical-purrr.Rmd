@@ -3,11 +3,13 @@ title: "Data Wrangling and Model Fitting using purrr"
 author: "Dan Ovando"
 date: '2018-02-20'
 slug: practical-purrr
-categories: [R, tidyverse]
-tags: [R, purrr]
+tags:
+- R
+- purrr
+categories:
+- R
+- tidyverse
 type: post
-# featured: "shrimp.jpg"
-#featuredpath: "date"
 ---
 
 ```{r setup, include=FALSE}
@@ -593,13 +595,17 @@ So now we have a *very* simple model, but how do we know if this is the model we
 
 ```{r}
 
-m1 <- 'lifeexp ~ pop + gdppercap'
+models <- list(
+  simple = 'lifeexp ~ pop + gdppercap',
 
-m2 <- 'lifeexp ~ pop + gdppercap + continent + year'
+medium = 'lifeexp ~ pop + gdppercap + continent + year',
 
-m3 <- 'lifeexp ~ pop + gdppercap + country + year'
+more = 'lifeexp ~ pop + gdppercap + country + year',
 
-m4 <- 'lifeexp ~ pop + gdppercap + year*country'
+woah = 'lifeexp ~ pop + gdppercap + year*country'
+)
+
+
 
 ```
 
@@ -611,19 +617,19 @@ Let's start by getting our models and data into a data frame, using list-columns
 
 ```{r}
 
-model_frame <- data_frame(model = c(m1, m2, m3,m4)) %>%
-mutate(model = map(model, as.formula))
+model_frame <- data_frame(model = models) %>%
+  mutate(model_name = names(model)) 
 
 ```
 
 
-First, let's use purrr to convert each of these character strings into a model
+Now, let's use purrr to convert each of these character strings into a model
 
 
 ```{r}
 
-model_frame <- data_frame(model_name = c("simple", "medium", "more", "woah"), model = list("simple" = m1, "medium" = m2, "more" = m3, "woah" = m4)) %>%
-  mutate(model = map(model, as.formula))
+model_frame <- model_frame %>% 
+    mutate(model = map(model, as.formula))
 
 model_frame
 ```
@@ -642,7 +648,7 @@ Hmmm, why didn't that work? `mutate` by itself doesn't know how to evaluate this
 
 ```{r}
 model_frame <- model_frame %>%
-  mutate(fit = map(model, ~lm(., data = gapminder)))
+  mutate(fit = map(model, ~lm(., data = gapminder), gapminder = gapminder))
 
 model_frame
 ```
@@ -653,7 +659,7 @@ We're now going to start integrating some methods from the `modelr` package to d
 
 ```{r}
 model_frame <- model_frame %>%
-mutate(r2 = map_dbl(fit, ~rsquare(., data = gapminder)),
+mutate(r2 = map_dbl(fit, ~modelr::rsquare(., data = gapminder)),
 aic = map_dbl(fit, ~AIC(.))) %>% 
   arrange(aic)
 
@@ -672,15 +678,13 @@ We'll start by using the `modelr` package to create a bunch of training-test com
 
 
 validate <- gapminder %>%
-  modelr::crossv_kfold(10)
+ rsample::vfold_cv(10)
 
-test_data <- list(test_training = list(validate), model = model_frame$model)
-
-
+test_data <- list(test_training = list(validate), model_name = model_frame$model_name)  
+  
 test_data <- cross_df(test_data) %>%
-  unnest(test_training, .drop = F, .id = "model_number") %>%
-  mutate(model_number = as.numeric(model_number)) %>%
-  left_join(data_frame(model_number = c(1:4), model_name = c("simple", "medium", "more", "woah")), by = "model_number")
+  unnest(.id = "model_number") %>% 
+  left_join(model_frame %>% select(model_name, model, fit), by = "model_name")
 
 test_data
 ```
@@ -691,8 +695,8 @@ In a few lines of code, we now have "tidy" cross validation routine across multi
 ```{r}
 
 test_data <- test_data %>%
-mutate(fit = map2(model, train, ~lm(.x, data = .y))) %>%
-mutate(root_mean_sq_error = map2_dbl(fit, test, rmse))
+mutate(fit = map2(model, splits, ~lm(.x, data = rsample::analysis(.y)))) %>%
+mutate(root_mean_sq_error = map2_dbl(fit, splits, ~modelr::rmse(.x,rsample::assessment(.y))))
 ```
 
 
@@ -708,27 +712,107 @@ test_data %>%
 
 Judging by out of sample RMSE, the most complicated model (`woah`) is still our best choice. And just like that in a few lines of code we've used `modelr` and `purrr` to easily compare a number of different model structures. 
 
-Examining our "best" model more carefully though, we see we have some problems
+Out-of-sample RMSE is a useful metric, but there are lots of other diagnostics we might want to run. Suppose that we want to examine the fitted vs. residuals plots for each model 
+
 
 ```{r}
 
-qq_plot <- test_data %>%
-  filter(model_name == "woah") %>%
-  slice(1) %>%
-  {
-    .$fit[[1]]
-  } %>%
-  broom::augment(.) %>%
-  ggplot(aes(sample = .resid)) +
-  stat_qq() +
-  stat_qq_line(color = "red", linetype =  2) +
-  labs(y = "Deviance Residuals", title = "Normal QQ plot")
+gen_fit_v_resid <- function(model){
+  
+  aug_model <- broom::augment()
+  
+}
 
 
-qq_plot
+test_data <- test_data %>% 
+  mutate(aug_model = map(fit, broom::augment))
+
+fit_plot <- test_data %>% 
+  select(model_name,aug_model) %>% 
+  unnest() %>% 
+  ggplot(aes(.fitted, .resid)) + 
+  geom_hline(aes(yintercept = 0), linetype = 2, color = "red") +
+  geom_point(alpha = 0.5) + 
+  facet_wrap(~model_name, scales = "free_y")
+
+fit_plot
+
 ```
 
+
+
+
+<!-- Examining our "best" model more carefully though, we see we have some problems -->
+
+<!-- ```{r} -->
+
+<!-- qq_plot <- test_data %>% -->
+<!--   filter(model_name == "woah") %>% -->
+<!--   slice(1) %>% -->
+<!--   { -->
+<!--     .$fit[[1]] -->
+<!--   } %>% -->
+<!--   broom::augment(.) %>% -->
+<!--   ggplot(aes(sample = .resid)) + -->
+<!--   stat_qq() + -->
+<!--   stat_qq_line(color = "red", linetype =  2) + -->
+<!--   labs(y = "Deviance Residuals", title = "Normal QQ plot") -->
+
+
+<!-- qq_plot -->
+<!-- ``` -->
+
 Hmmm that doesn't look good (we want the black points to fall more of less on the red dashed 1:1 line), we clearly need to spend more time with model specification (AKA this very simple model is, surprise surprise, not a good way to model life expectancy). But now, we see how we can use `purrr` and `modelr` to easily construct and compare numerous new model hypotheses in our hunt for the best one.
+
+## Parallel `purrr`
+
+The nature of `purrr` really lends itself to parallel processing. At it's core, `purrr` is doing a "split-apply-combine" routine, meaning that for must use cases you have a bunch of independent operations that you need your computer to run (i.e., the results of one step in `map` call do not affect the next step). This means that if you want to speed things up, you could farm those processes out to different cores on your computer. For example, if you ran an operation in parallel on four cores, you could in theory run four tasks in about the time it takes to run one task normally (it's not quite as linear as that due to startup and maintanance costs). 
+
+**WARNING**: running things in parallel can get complicated across different platforms (especially moving from Linux/OS X to Windows). Be preparred to do some work on this. 
+
+As of now, `purrr` does not have built in parallel functionality (though it may be [in the works](https://github.com/tidyverse/purrr/issues/121)). There are a few options out there though. 
+
+One is to simply step outside of `purrr` for a moment: one of the great things about the open-source world is finding the right package for the right problem, and in this case there are other options that work great. 
+
+My preferred solution to date has been the `foreach` and  `doParallel` packages. The nice thing is that once you've formatted your data and model to be run through `purrr` (i.e. made things tidy), you're already set up to use tools
+
+```{r, eval = F}
+
+  n_cores <- floor(parallel::detectCores()/2)
+
+  doParallel::registerDoParallel(cores = n_cores)
+
+fits <-  foreach::foreach(i = 1:nrow(test_data)) %dopar% {
+  
+  lm(test_data$model[[i]], data = analysis(test_data$splits[[i]]))
+  
+}
+
+test_data$fit <- fits
+
+```
+
+
+There is also a new package called [`furrr`](https://davisvaughan.github.io/furrr/) which looks really promising. This allows you to run things in parallel by simply setting up a cluster and appending `future_` to your `map` call (leveraging the [`future`](https://github.com/HenrikBengtsson/future) package). 
+
+
+```{r}
+library(furrr)
+
+future::plan(multiprocess(workers = 2))
+
+start <- Sys.time()
+
+test_data <- test_data %>% 
+  mutate(par_fits = future_map2(model, splits, ~lm(.x, data = rsample::analysis(.y)),.progress = T)
+)
+
+
+Sys.time() - start
+
+```
+
+
 
 ## Miscellaneos `purrr`
 
