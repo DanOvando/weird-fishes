@@ -3,12 +3,8 @@ title: "Data Wrangling and Model Fitting using purrr"
 author: "Dan Ovando"
 date: '2018-02-20'
 slug: practical-purrr
-tags:
-- R
-- purrr
-categories:
-- R
-- tidyverse
+tags: [R, purrr]
+categories: [R, tidyverse]
 type: post
 ---
 
@@ -22,6 +18,8 @@ library(ggthemes)
 library(gapminder)
 library(modelr)
 library(extrafont)
+library(doParallel)
+library(furrr)
 library(tidyverse)
 extrafont::loadfonts(quiet = T)
 
