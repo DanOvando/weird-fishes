@@ -108,8 +108,6 @@ HMC uses a process called the "leapfrog integrator" to draw a sketch of the post
 
 # Filling your Stan Toolbox
 
-A few general notes on Stan syntax are important to note though. 
-
 Stan is based off of C++, but is written differently. It has a bunch of features that make it a bit easier to deal with than C++, but also means that unlike other frameworks like TMB, you can't just Google the C++ solution to any given problem. 
 
 You can write your Stan model as a code chunk in a R Markdown file, or as a string, but for anything but the most trivial model I prefer to write my model in a separate file with a `.stan` extension (e.g. in RStudio, File > New File > Save As > my_model.stan). You can find the `.stan` files in the [repo](https://github.com/DanOvando/weird-fishes/tree/master/src), but for this post I'll also present the code as a code chunk in the body of the blog. 
@@ -521,16 +519,6 @@ $$ \frac{0.8(\alpha){(h){{SSB}}}}{0.2 (\alpha)(1 - h) + (h - 0.2)SSB}$$
 ```{r}
 
 alpha <- 1000
-
-
-cross_df(list(ssb = 0:1000, h = c(0.21,0.6,0.8))) %>% 
-  mutate(recruits = (0.8 * alpha * h * ssb) / (
-            0.2 * alpha * (1 - h) +
-              (h - 0.2) * ssb
-          )) %>% 
-  ggplot(aes(ssb, recruits, color = factor(h))) + 
-  geom_line() + 
-  geom_hline(aes(yintercept = alpha), color = 'blue')
 
 cross_df(list(ssb = 0:1000, h = c(0.2,0.6,1))) %>% 
   mutate(recruits = (0.8 * alpha * h * ssb) / (
