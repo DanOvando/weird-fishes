@@ -1376,6 +1376,6 @@ And just like that, we have a solid sketch of going from raw data, to model fits
 
 Hopefully this helps you to start using Stan in your analyses, I'll post some more complicated examples as time allows. Good luck!
 
-
+# References
 
 
