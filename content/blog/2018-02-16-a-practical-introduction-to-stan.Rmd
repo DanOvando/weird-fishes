@@ -478,7 +478,7 @@ Now that you've hopefully developed a general idea of what Stan is and why you m
 
 This is just generally good practice: before you start frantically coding you should sit down and write out your model. @Hobbs2015 provides a great introduction on how to do this if you're not familiar with the process. 
 
-You can certainly do your entire analysis in Stan by itself. However, every language has it's purpose, and the purpose of Stan is not fast and easy data manipulation. The good news is that Stan easily interfaces with other programming languages like R and Python, allowing you to do a lot of the complex data manipulation in languages better suited to those tasks. You can then pass your processed data to Stan to do the model fitting, and then analyze your results back in say R. 
+You can certainly do your entire analysis in Stan by itself. However, every language has its purpose, and the purpose of Stan is not fast and easy data manipulation. The good news is that Stan easily interfaces with other programming languages like R and Python, allowing you to do a lot of the complex data manipulation in languages better suited to those tasks. You can then pass your processed data to Stan to do the model fitting, and then analyze your results back in say R. 
 
 We'll now work through the process of using R and Stan to fit a model predicting the number of young fish (recruits) produced by a given amount of adult fish (spawning biomass). This type of model is generally called a stock-recruitment model, and is a core part of fisheries management. For our purposes though, it's a handy way to see how to fit a non-linear model in R and Stan. 
 
@@ -851,7 +851,7 @@ This will produce the same estimates of the net coefficient $city_{i}$, but will
 
 ### Parameter Diagnostics
 
-Now that we've taken a look at the highest-level red flags (divergences and treedepth) and satisfied ourselves that we're in the clear, we can start to diagnose individual parameter estimates. There are a lot of ways to look at the these, the most useful starting point in my opinion is to extract summary statistics on each model parameter. You can do that by `summary(my_model)$summary`. `summary` on it's own prints out summaries of each parameter, the `$summary` part allows you to access and store the data behind the printed statistics. 
+Now that we've taken a look at the highest-level red flags (divergences and treedepth) and satisfied ourselves that we're in the clear, we can start to diagnose individual parameter estimates. There are a lot of ways to look at the these, the most useful starting point in my opinion is to extract summary statistics on each model parameter. You can do that by `summary(my_model)$summary`. `summary` on its own prints out summaries of each parameter, the `$summary` part allows you to access and store the data behind the printed statistics. 
 
 ```{r}
  bh_summary <- summary(bh_fit)$summary %>% 
