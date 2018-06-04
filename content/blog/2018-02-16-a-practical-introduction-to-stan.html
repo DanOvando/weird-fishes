@@ -1,9 +1,8 @@
 ---
-title: "A Practical Introduction to Stan"
-author: "Dan Ovando"
+title: "Fitting Bayesian Models using Stan and R"
 date: '2018-06-03'
 slug: a-practical-introduction-to-stan
-tags: [R, Stan]
+tags: [R, Stan, Bayesian]
 categories: [Statistics]
 type: post
 bibliography: blog.bib
@@ -25,11 +24,14 @@ biblio-style: apalike
 <li><a href="#examine-spawning-and-recruitment-data">Examine spawning and recruitment data</a></li>
 <li><a href="#write-our-stan-model">Write our Stan Model</a></li>
 <li><a href="#running-diagnostics">Running Diagnostics</a><ul>
+<li><a href="#assessing-and-fixing-divergences-and-treedepth-problems">Assessing and Fixing Divergences and Treedepth Problems</a></li>
+<li><a href="#feature-engineering-and-non-centering">Feature Engineering and Non-Centering</a></li>
 <li><a href="#parameter-diagnostics">Parameter Diagnostics</a></li>
 <li><a href="#posterior-predictive-analysis">Posterior Predictive Analysis</a></li>
 </ul></li>
 <li><a href="#model-comparison">Model Comparison</a></li>
 </ul></li>
+<li><a href="#rstanarm"><code>rstanarm</code></a></li>
 <li><a href="#references">References</a></li>
 </ul>
 </div>
@@ -38,7 +40,7 @@ biblio-style: apalike
 <h1>What’s Stan and Why Use It?</h1>
 <p>Stan is a programming language designed to make statistical modeling easier and faster, especially for Bayesian estimation problems. Stan can help you estimate complex models with large numbers of parameters, and can generally do it faster than alternative like JAGS/BUGS</p>
 <p>That all sounds good, but why is that useful for me? Suppose you have a hierarchical ecological modeling problem with data clustered by space, time, and species, such as estimating the effect of ocean temperatures on coral growth. You can use Stan to fit that model (and it will likely be faster than BUGS/JAGS if you’re already used to working in those platforms). Suppose just want to use informative priors to help fit a growth model. You can use Stan for that. Suppose you just prefer Bayesian analysis and want to run a simple multiple regression. Stan can do that.</p>
-<p>The purpose of this document is not to illustrate or debate Bayesian analysis, but rather assumes a general knowledge and interest in model fitting, and instead seeks to provide a path to get started using Stan for the practical quantitative researcher. This is not a deep dive into the inner workings of Stan and model fitting - explanations and examples are designed to try and help people get the hang of using Stan. There are many great resources to understand the inner workings of Stan and provide higher-level examples; this is intended as a bridge to help get people there.</p>
+<p>The purpose of this document is not to perfectly describe or debate Bayesian analysis, but to provide a path to get you started using Stan in your research. This is not a deep dive into the inner workings of Stan and model fitting - explanations and examples are designed to try and help people get the hang of using Stan. There are many great resources to understand the inner workings of Stan and provide higher-level examples, but I’ve found that they are often either too basic, or jump straight to the finished product without explaining the steps to get there. This tutorial is intended as a bridge to help get people from zero to working in Stan. Comments and suggestions are welcome!</p>
 <p>Bayesian analysis on its own has a number of appealing traits</p>
 <ul>
 <li><p>Forces you to very explicitly write out the error structure of your model and prior beliefs</p></li>
@@ -56,7 +58,7 @@ biblio-style: apalike
 <p>I assume that if you’re reading this you’re already interested in using Bayesian tools in your analysis, if you want further information on the philosophy, mathematics, and usefulness of Bayesian methods I really recommend <a href="https://press.princeton.edu/titles/10523.html">Bayesian Models: A Statistical Primer for Ecologists</a> by <span class="citation">Hobbs and Hooten (2015)</span> and <a href="http://xcelab.net/rm/statistical-rethinking/">Statiscial Rethinking: A Bayesian Course with Examples in R and Stan</a> by <span class="citation">McElreath (2016)</span>.</p>
 <div id="how-does-stan-work" class="section level2">
 <h2>How does Stan work?</h2>
-<p>Stan is a programming language that allows you to write and fit models. It is also “compiled language”, meaning that you have to write a model, then compile it to run it. This is unlike interpreted languages like R that let you more or less run code as you go. This can be a pain if you’re not used to that sort of thing, but it helps make Stan much faster than saying writing the same model in R. We’ll get into this later.</p>
+<p>Stan is a programming language that allows you to write and fit models. It is also “compiled language”, meaning that you have to write a model, then compile it to run it. This is unlike interpreted languages like R that let you more or less run code as you go. This can be a pain if you’re not used to that sort of thing, but it helps make Stan much faster than saying writing the same model in R.</p>
 <p>Stan’s key feature are a series of tools for numerical model fitting. While Stan provides a few different fitting algorithms, we’re going to focus on the Markov Chain Monte Carlo (MCMC) based methods here.</p>
 <p>MCMC’s are an incredibly useful class of algorithms that can be used to fit complex models and provide Bayesian inference to statistical problems.</p>
 <p>An MCMC works more or less like this</p>
@@ -71,23 +73,24 @@ biblio-style: apalike
 <p>That’s where Stan comes in. If you write the model, Stan has a number of built in algorithms for helping you use MCMC to fit and diagnose that model quickly and efficiently. It’s beyond the scope of this article or my ability to explain exactly how it does this, but <span class="citation">Monnahan, Thorson, and Branch (2016)</span> provides a really great summary of the mathematics behind Stan’s algorithms, that I will now butcher.</p>
 <p>Stan makes use of two main tools to efficiently solve Bayesian problems: Hamiltonian Monte Carlo (HMC) and the no-U-turn sampler (NUTS). A simple MCMC might choose a new parameter value by drawing from a multivariate normal distribution centered on the last parameter value, with some tuned or supplied covariance matrix. This means that each new parameter value is likely to be highly correlated with the last parameter value, requiring you to draw a large number of samples and then “thin” the samples to create independent draws from the posterior.</p>
 <p>HMC and NUTS works a little differently. The details are very complicated, and I recommend reading more on this if you’re interested (see <span class="citation">Monnahan, Thorson, and Branch (2016)</span>), but the good news is someone else worked out all the details so that you can use it! But it’s good to have a rough sense of what’s going on.</p>
-<p>Think of the posterior probability of your model like a small planet with peaks and valleys. The of HMC/NUTS is a an astronaut that lands on this planet, and the astronauts goal is to find the highest peaks in the landscape. But, there’s a catch. The astronaut is blindfolded, but has a sensor that tells her three things: her elevation, her distance from her starting point, and her “energy”. Her energy is the sum of her potential and kinetic energy, and you can overlay isoclines of energy over this surface. So, she could just systematically walk across the landscape, taking an elevation measurement at each and every point. This would work, but would take forever if the landscape is at all big. So instead, she does something like this. She starts traveling in a random direction, with the only rule being she has to keep track of her energy monitor and more or less stay on the same energy isocline. She can then decide to take tiny little steps, or huge gigantic leaps (remember, it’s Mars so the gravity is much lower). If she takes giant leaps, she covers the ground really quickly, but can also really easily deviate off of her energy isocline. If she takes tiny steps, it’s easy to stay on the energy isocline, but takes forever to travel very far. She picks a step size, and starts traveling, keeping track of her distance from her initial starting point, only stopping when her distance from her initial starting point starts to decrease (a U-turn, i.e. when the path she’s on doubles back on itself), or when she deviates off of her energy isocline, or when she has traveled as far as she’s willing to go along any one isocline. Once she’s stopped, she looks at her altimeter. If she’s higher than she was when she started, she marks that spot as a possible peak. If she’s lower than where she started, she marks that spot as part of a peak with probability proportional to how much lower she is than her starting point. If she decides to mark that spot, she then starts a new path from that point. If she doesn’t mark that spot, she returns to her original position, marks that original position again, and tries a new path.</p>
+<p>Think of the posterior probability of your model like a small planet with peaks and valleys. The of HMC/NUTS is a an astronaut that lands on this planet, and the astronauts goal is to find the highest peaks in the landscape. But, there’s a catch. The astronaut is blindfolded, but has a sensor that tells her four things: her elevation, her distance from her starting point, her speed, and her thrust. So, she could just systematically walk across the landscape, taking an elevation measurement at each and every point. This would work, but would take forever if the landscape is at all large (which its Mars, so it is). So instead, she does something like this. She starts traveling in a random direction, with a rule being she has to pick an initial thrust that she tries to maintain. She can then decide to take tiny little steps, or huge gigantic leaps (remember, it’s Mars so the gravity is much lower), all while trying to maintain the same thrust and speed. If she takes giant leaps, she covers the ground really quickly, but risks jumping right over mountains and missing them entirely. If she takes little tiny steps it’ll just take forever to survey the planet.</p>
+<p>She picks a step size and a thrust, and starts traveling, keeping track of her distance from her initial starting point, only stopping when her distance from her initial starting point starts to decrease (a U-turn, i.e. when the path she’s on doubles back on itself), or when, for the same thrust, her speed has plummeted (she’s crashed into the mountain) or gone through the roof (she’s accidentally reached escape velocity and is leaving the planet, this is my sad attempt to come up with another analogy for divergences), or when she has taken the most number of steps that she is willing to take on any one search path (max treedepth hit). Once she’s stopped, she looks at her altimeter. If she’s higher than she was when she started, she marks that spot as a possible peak. If she’s lower than where she started, she marks that spot as a possible peak with probability proportional to how much lower she is than her starting point (if she’s just a bit lower she’s likely to mark it, if she’s way lower she’s very unlikely to mark it). If she decides to mark that spot, she then starts a new path from that point. If she doesn’t mark that spot, she returns to her original position, marks that original position again, and tries a new path.</p>
 <p>This leaves really one key decision for the astronaut to make: how big should her stepsize be? She makes this decision by tallying the average rate at which she accepts a new position, and she knows from some smart people that an 80% acceptance rate is reflective of a good balance of of taking big enough steps to be efficient but not so large that you miss important features of the landscape. So, she keeps trying new step sizes until she hits that target acceptance rate.</p>
-<p>There’s a lot in here then, but to translate this back into practical terms, this means that for the most part, the only key decision that you, the analyst, needs to make in implementing the HMC/NUTS algorithm is what your target acceptance rate is. Stan then does the work for you of finding the right step size to achieve that target acceptance rate during it’s “warmup” period. Once it’s done with that, it enters the “sampling period”, holding that same step size constant.</p>
-<p>We’ll get into the implementation details of this later, but that gives a general idea of what’s happening when you call Stan. This has a few really nice features. It’s more efficient than say an MCMC, and the HMC process means that you don’t have to thin anymore, since the HMC itself should more or less pick values that are largely independent of the last value (though this isn’t always true, and sometimes some thinning is needed). This saves you that annoying step in other Monte-Carlo based approached of having to run a boatload of samples and then “waste” them by thinning them down (though HMC still discards a lot of steps in the process). But, it makes it much easier to set a target number of samples from the posterior. In addition, programs such as BUGs like to try and take advantage of Gibbs sampling to speed things up, which requires conjugate priors, giving you an incentive to select conjugate priors for your model. Unfortunately, nature is rarely so kind; we should pick distributions based off reasonable hypotheses about the state of the world, not computational efficiency. Stan (i.e HMC) doesn’t care at all whether you are using conjugate priors, encouraging you to find the right model, not the most mathematically convenient model.</p>
+<p>There’s a lot in here then, but to translate this back into practical terms, this means that for the most part, the only key decision that you, the analyst, needs to make in implementing the HMC/NUTS algorithm is what your target acceptance rate is. Stan then does the work for you of finding the right step size to achieve that target acceptance rate during its “warmup” period. Once it’s done with that, it enters the “sampling period”, holding that same step size constant.</p>
+<p>We’ll get into the implementation details of this later, but that gives a general idea of what’s happening when you call Stan. This has a few really nice features. It’s usually more efficient than say the MCMC algorithms underpinning JAGS, and the HMC process means that you usually don’t have to thin anymore, since the HMC itself should more or less pick values that are largely independent of the last value (though this isn’t always true, and sometimes some thinning is needed). This saves you that annoying step in other Monte-Carlo based approached of having to run a boatload of samples and then “waste” them by thinning them down (though HMC still discards a lot of steps in the process). Stan makes it much easier to set a target number of samples from the posterior. In addition, programs such as BUGs like to try and take advantage of Gibbs sampling to speed things up, which requires conjugate priors, giving you an incentive to select conjugate priors for your model. Unfortunately, nature is rarely so kind; we should pick distributions based off reasonable hypotheses about the state of the world, not computational efficiency. Stan (i.e HMC and NUTS) doesn’t care at all whether you are using conjugate priors, encouraging you to find the right model, not the most mathematically convenient model.</p>
 <p>So, this all means that you can focus on writing your model, and leave the complicated tuning and running of HMC to NUTS.</p>
 </div>
 <div id="a-note-on-divergences" class="section level2">
 <h2>A Note on Divergences</h2>
-<p>HMC uses a process called the “leapfrog integrator” to draw a sketch of the posterior probability surface, since for all but the most trivial model cases there is no analytical solution. The nice thing is, failures in this integrator are identified by “divergences”, which basically mean that the sampler has deviated from that energy isocline we talked about before. So, the model is going along at say an average energy of 10, and then all of a sudden goes to 20, 40, 100, etc. This tells NUTS that something has gone wrong, and it abandons ship. This can be a sign of two things. Either you just need to decrease the step size (which you do by increasing the target acceptance rate), or it can be a sign that there’s a problem in the design of your model. In the later case, this can sometimes be solved by just reparametrizing your model (which we’ll touch on later), but in other cases can be a sign of a fundamental problem in your model (e.g. a population model that goes negative and as a result produces Inf or NA values in your posterior probability).</p>
-<p>Understanding and dealing with divergences is a bit of an art, but it’s important to note that Stan will warn you if divergences pop up, and it’s something you have to look into. Divergences mean that the model didn’t correctly survey the posterior probability and so your results may by suspect.</p>
+<p>HMC uses a process called the “leapfrog integrator” to draw a sketch of the posterior probability surface, since for all but the most trivial model cases there is no analytical solution. The nice thing is, failures in this integrator are identified by “divergences”, which basically mean that the sampler is no longer following the surface of the model correctly. So, the model is going along at say an average energy of 10, and then all of a sudden goes to 20, 40, 100, etc. This tells NUTS that something has gone wrong, and it abandons ship. This can be a sign of two things. Either you just need to decrease the step size (which you do by increasing the target acceptance rate), or it can be a sign that there’s a problem in the design of your model. In the later case, this can sometimes be solved by just reparametrizing your model (which we’ll touch on later), but in other cases can be a sign of a fundamental problem in your model (e.g. a population model that goes negative and as a result produces Inf or NA values in your posterior probability). Understanding and dealing with divergences is a bit of an art, but it’s important to note that Stan will warn you if divergences pop up, and it’s something you have to look into. Divergences mean that the model didn’t correctly survey the posterior probability and so your results may by suspect.</p>
 </div>
 </div>
 <div id="filling-your-stan-toolbox" class="section level1">
 <h1>Filling your Stan Toolbox</h1>
 <p>A few general notes on Stan syntax are important to note though.</p>
 <p>Stan is based off of C++, but is written differently. It has a bunch of features that make it a bit easier to deal with than C++, but also means that unlike other frameworks like TMB, you can’t just Google the C++ solution to any given problem.</p>
-<p>A Stan model in a .stan file is broken into a number of “blocks”, each of which define a particular part of the model. There are several different possible blocks, but to start with we’re going to work with the three that every model has to have: <code>data</code>, <code>parameters</code>, and <code>model</code></p>
+<p>You can write your Stan model as a code chunk in a R Markdown file, or as a string, but for anything but the most trivial model I prefer to write my model in a separate file with a <code>.stan</code> extension (e.g. in RStudio, File &gt; New File &gt; Save As &gt; my_model.stan). You can find the <code>.stan</code> files in the <a href="https://github.com/DanOvando/weird-fishes/tree/master/src">repo</a>, but for this post I’ll also present the code as a code chunk in the body of the blog.</p>
+<p>A Stan model is broken into a number of “blocks”, each of which define a particular part of the model. There are many different possible blocks you can use, but to start with we’re going to work with the three that basically every model has to have: <code>data</code>, <code>parameters</code>, and <code>model</code></p>
 <pre class="stan"><code>/* 
 You can do long blocks of comments
 like this
@@ -108,20 +111,20 @@ model{
 
 }
 </code></pre>
-<p>You need to preallocate space for any variable that you include in your model, by declaring its type and its size. These declarations need to all happen at the start of each block. Stan uses what is called “Strong typing”, meaning basically that it is very strict in terms of what you can do to different kinds of data, and if you try and treat say an array of real numbers like a vector of real numbers it will blow up.</p>
+<p>You need to preallocate space for any variable that you include in your model, by declaring its type and its size. These declarations need to all happen at the start of each block. Stan uses what is called “strong typing”, meaning basically that it is very strict in terms of what you can do to different kinds of data, and if you try and treat say an array of real numbers like a vector of real numbers it will blow up.</p>
 <p>So, to start with our data section. Suppose we have <em>N</em> observations of <em>Y</em> data, where N is an integer (the number of observations), and Y is a vector of real numbers. We would declare those like</p>
 <pre class="stan"><code>
 data{
 
 int N; // the number of observations
 
-vector[N] Y; //
+vector[N] Y; // our data
 
 }
 </code></pre>
 <p>This tells Stan that we have an integer object N, and we have a vector Y of length N.</p>
-<p>Notice that like C++, every statement needs to be closed with a semi-colon <code>;</code>, and that comments are marked by <code>\\</code>.</p>
-<p>You can also declare arrays using a very confusing different in structure</p>
+<p>Notice that like C++, every statement needs to be closed with a semi-colon <code>;</code>, and that comments are marked by <code>//</code>.</p>
+<p>You can also declare arrays, <em>X</em>, using a very confusing different structure</p>
 <pre class="stan"><code>
 data{
 
@@ -149,7 +152,7 @@ real z[10];
 
 z = x * y
 </code></pre>
-<p>Would not work</p>
+<p>Would not work, since you can’t multiply arrays like this.</p>
 <pre class="stan"><code>
 vector[10] x;
 
@@ -159,8 +162,7 @@ vector[10] z;
 
 z = x * y
 </code></pre>
-<p>Also does not work! Why not???</p>
-<p>By default, Stan goes with matrix multiplication, and x and y are both [10,1] matrices, which can’t be matrix multiplied together. You can get Stan to do element-wise operations by using .* (or ./ for division).</p>
+<p>Also does not work! Why not??? These are vectors, we should be able to multiply them. By default, Stan goes with matrix multiplication, and X and Y are both [10,1] matrices, which can’t be matrix multiplied together. You can get Stan to do element-wise operations by using .* (or ./ for division).</p>
 <p>So this would work</p>
 <pre class="stan"><code>
 vector[10] x;
@@ -188,16 +190,6 @@ vector[10] x;
 
 vector[10] y;
 
-vector[5] z;
-
-z = x[1:5] .* y[1:5];
-</code></pre>
-<p>As does this</p>
-<pre class="stan"><code>
-vector[10] x;
-
-vector[10] y;
-
 int i[5];
 
 vector[5] z;
@@ -206,7 +198,7 @@ i = {1,2,3,4,7}
 
 z = x[i] .* y[i];
 </code></pre>
-<p>If things seem like they should be working and they’re not, 9 times out of 10 it’s a problem with these kinds of things (e.g. trying to multiply an array times a vector). One nice feature of running models through Rstudio is if you open up your <code>.stan</code> script in Rstudio, inside the IDE there’s a little “check” button in the right-hand corner of the script that will catch a lot of that stuff. It won’t tell you where the problem is, but it will let you know that your .stan file won’t run as written.</p>
+<p>If things seem like they should be working and they’re not, 9 times out of 10 it’s a problem with these kinds of things (e.g. trying to multiply an array times a vector). One nice feature of running models through Rstudio is if you open up your <code>.stan</code> script in Rstudio, inside the IDE there’s a little “check” button in the top right-hand corner of the script that will catch a lot of that stuff. It won’t tell you where the problem is, but it will let you know that your .stan file won’t run as written.</p>
 <p>There are a ton of other details out there in terms of structuring and manipulating data, and you can see chapters 3 and 4 of the official Stan documentation for very detailed description, but these examples should get you started with the kinds of operations most of us do.</p>
 <p>One other feature worth calling out for a moment is Stan’s ability to set bounds on just about anything. For example, suppose you have data <em>x</em> that you know can only be positive. You can let Stan know this by <code>&lt;lower = 0&gt;</code></p>
 <pre class="stan"><code>
@@ -279,12 +271,69 @@ print(&quot;hooray&quot;)
 
 }
 </code></pre>
-<p>Notice the use of <code>print</code> there. <code>print</code> is a great way to see what’s going on inside your code once you’ve got it at least syntactically correct (meaning it will compile).</p>
+<p>Notice the use of <code>print</code> there. <code>print</code> is a great way to see what’s going on inside your code once you’ve got it at least syntactically correct (meaning it will compile). If your code is syntactically correct, but you’re still getting errors or weird results, can you use <code>print</code> to debug.</p>
+<p>For example, if you know that some model output <code>thing</code> has to be positive, you can add <code>print(thing)</code> to your code to make sure that it is in fact positive.</p>
 <div id="a-note-on-priors" class="section level2">
 <h2>A Note on Priors</h2>
-<p>Setting priors is an art and a science that goes well beyond anything we can discuss here, and there are lots of resources out there to help you on this <span class="citation">(I recommend Hobbs and Hooten 2015, <span class="citation">McElreath (2016)</span>, and <span class="citation">Gelman et al. (2013)</span> as a foundation)</span>. You’ll notice though that Stan doesn’t force you to specify priors, so it can be tempting to say “hey, I like Stan, but priors scare me, so I just won’t specify any”. By default though, any parameter that isn’t supplied a specific prior gets assigned a uniform prior on the range <span class="math inline">\([-\infty, \infty]\)</span>, which might seem innocuous, but is not in fact an uninformative prior (in fact nothing may technically be), especially if your model is not actually defined along that range (e.g. if your parameter can only be positive).</p>
-<p>While Stan won’t force you to do it, you should always take the time to think carefully about your priors and test the affect of your choices on your model outcomes.</p>
-<p>So, that’s a small look at the key features of writing Stan code. There’s a ton more out there, but those are the basic tools for most coding. Feel free to play around with the <code>scratch.stan</code> file to test out different behaviors.</p>
+<p>Setting priors is an art and a science that goes well beyond anything we can discuss here, and there are lots of resources out there to help you on this <span class="citation">(I recommend Hobbs and Hooten 2015, <span class="citation">McElreath (2016)</span>, and <span class="citation">Gelman et al. (2013)</span> as a foundation)</span>. You’ll notice though that Stan doesn’t force you to specify priors, so it can be tempting to say “hey, I like Stan, but priors scare me, so I just won’t specify any”. By default though, any parameter that isn’t supplied a specific prior gets assigned a uniform prior on the range <span class="math inline">\([-\infty, \infty]\)</span>, which might seem innocuous, but is not in fact an uninformative prior (in fact nothing may technically be), especially if your model is not actually defined along that range (e.g. if your parameter can only be positive). Saying that <span class="math inline">\(-\infty\)</span> is just as likely as $ $ is in most cases a pretty strong and unlikely statement.</p>
+<p>So, while Stan won’t force you to specify priors explicitly, you should always take the time to think carefully about your priors and test the affect of your choices on your model outcomes.</p>
+<p>That’s a small look at the key features of writing Stan code. There’s a ton more out there, but those are the basic tools for most coding. Feel free to play around with the <code>scratch.stan</code> file to test out different behaviors.</p>
+<pre class="stan"><code>
+data{
+
+int n; // the number of observations
+
+vector[n] y; //
+
+vector[n] x;
+
+real z[n];
+
+
+}
+parameters{
+
+  real beta;
+
+  real&lt;lower = 0&gt; sigma;
+
+
+}
+model {
+
+real test[10];
+
+int cc;
+
+int CC;
+
+ CC = 10;
+
+for (i in 1:10){
+
+ print(test[i])
+
+}
+
+cc= 1;
+
+while (cc &lt;= CC) {
+
+  cc = cc + 1;
+
+  print(cc)
+
+}
+
+if (cc == CC){
+
+ print(&quot;hooray&quot;)
+}
+
+  y ~ normal(x * beta, sigma);
+
+}
+</code></pre>
 <pre class="r"><code>beta &lt;- 0.2
 
 sigma &lt;- 0.5
@@ -347,12 +396,12 @@ cross_df(list(ssb = 0:1000, h = c(0.21,0.6,0.8))) %&gt;%
   geom_line() + 
   scale_color_discrete(name = &#39;steepness&#39;)</code></pre>
 <p><img src="/blog/2018-02-16-a-practical-introduction-to-stan_files/figure-html/unnamed-chunk-17-2.svg" width="960" /></p>
-<p>Our goal then is going to be to try and estimate steepness and <span class="math inline">\(\alpha\)</span> for some real data</p>
+<p>Our goal then is going to be to try and fit a stock-recruitment model for some real data from some Pink Salmon in Alaska.</p>
 </div>
 <div id="examine-spawning-and-recruitment-data" class="section level2">
 <h2>Examine spawning and recruitment data</h2>
 <p>Let’s look at one stock in particular</p>
-<pre class="r"><code>sr_data &lt;- read_csv(here::here(&quot;data&quot;,&quot;rlsadb_v4.25_ssb_recruits.csv&quot;)) %&gt;% 
+<pre class="r"><code>sr_data &lt;- read_csv(here::here(&quot;content&quot;,&quot;blog&quot;,&quot;data&quot;,&quot;rlsadb_v4.25_ssb_recruits.csv&quot;)) %&gt;% 
   set_names(tolower)
 
 sal_data &lt;- sr_data %&gt;% 
@@ -365,7 +414,7 @@ sal_data %&gt;%
   geom_point() + 
   labs(x = &quot;SSB&quot;, y = &quot;Recruits&quot;)</code></pre>
 <p><img src="/blog/2018-02-16-a-practical-introduction-to-stan_files/figure-html/unnamed-chunk-18-1.svg" width="960" /></p>
-<p>So, there seems to be a relationship between SSB and R, but it’s messy. Our goal now will be to use Stan to estimate a BH curve for this stock.</p>
+<p>So, there seems to be a relationship between SSB and R, but it’s messy. Our goal is to use Stan to estimate a Beverton-Holt stock recruitment curve for this stock.</p>
 <p>Let’s start by writing out the model for this model. We have three parameters we need to estimate, steepness <em>h</em>, maximum recruitment <span class="math inline">\(\alpha\)</span>, and some error term <span class="math inline">\(\sigma\)</span>.</p>
 <p>We can write this as</p>
 <p><span class="math display">\[[\alpha,h,\sigma | r] \propto [ r | \alpha,h,\sigma][\alpha][h][\sigma]  \]</span></p>
@@ -470,23 +519,25 @@ generated quantities{
 <p><code>stanfit</code> options are designed to interface with a few base R commands that you’re use to, like <code>summary</code> and <code>plot</code> (though if you have lots of parameters simply calling these can be pretty messy)</p>
 <pre class="r"><code>summary(bh_fit)$summary %&gt;% head()</code></pre>
 <pre><code>##                 mean      se_mean           sd         2.5%          25%
-## h       6.143607e-01 1.948407e-03 8.209434e-02 4.697866e-01 5.569163e-01
-## alpha   1.342100e+07 2.703429e+04 1.365216e+06 1.077120e+07 1.252679e+07
-## sigma   1.240495e+00 3.302024e-03 1.494434e-01 9.804393e-01 1.137025e+00
-## rhat[1] 3.869804e+06 2.397929e+04 1.036059e+06 2.383079e+06 3.149035e+06
-## rhat[2] 2.454608e+06 1.913546e+04 7.903476e+05 1.413001e+06 1.916914e+06
-## rhat[3] 2.918570e+06 2.131825e+04 8.844892e+05 1.717420e+06 2.311455e+06
+## h       6.136892e-01 1.879484e-03 7.994916e-02 4.750152e-01 5.563544e-01
+## alpha   1.346101e+07 2.535822e+04 1.341923e+06 1.085106e+07 1.257735e+07
+## sigma   1.246053e+00 3.635003e-03 1.537177e-01 9.904340e-01 1.135341e+00
+## rhat[1] 3.857861e+06 2.532805e+04 1.006606e+06 2.434320e+06 3.150478e+06
+## rhat[2] 2.443592e+06 1.950312e+04 7.679510e+05 1.436324e+06 1.915208e+06
+## rhat[3] 2.906887e+06 2.182028e+04 8.593789e+05 1.748736e+06 2.313214e+06
 ##                  50%          75%        97.5%    n_eff     Rhat
-## h       6.084109e-01 6.652088e-01 7.949059e-01 1775.281 1.000544
-## alpha   1.339737e+07 1.435797e+07 1.612035e+07 2550.192 1.000308
-## sigma   1.228300e+00 1.332922e+00 1.566444e+00 2048.298 1.001593
-## rhat[1] 3.691065e+06 4.366969e+06 6.472851e+06 1866.793 1.000108
-## rhat[2] 2.288758e+06 2.793444e+06 4.530756e+06 1705.920 1.000115
-## rhat[3] 2.745932e+06 3.313054e+06 5.194199e+06 1721.401 1.000114</code></pre>
+## h       6.085502e-01 6.638182e-01 7.854106e-01 1809.467 1.001435
+## alpha   1.345356e+07 1.438353e+07 1.607191e+07 2800.387 1.001481
+## sigma   1.234218e+00 1.339884e+00 1.588910e+00 1788.291 1.002361
+## rhat[1] 3.689320e+06 4.359776e+06 6.290096e+06 1579.484 1.001275
+## rhat[2] 2.293448e+06 2.781249e+06 4.380441e+06 1550.453 1.001136
+## rhat[3] 2.749349e+06 3.305429e+06 5.044886e+06 1551.132 1.001186</code></pre>
 <p>The plot command is a great way to get a first glance at your fits</p>
 <pre class="r"><code>plot(bh_fit)</code></pre>
 <p><img src="/blog/2018-02-16-a-practical-introduction-to-stan_files/figure-html/unnamed-chunk-24-1.svg" width="960" /></p>
 <p>Before we look at using our model though, let’s take a look at a few diagnostics to try to evaluate our model fit. <strong>DISCLAIMER</strong> You should put a lot more thought and effort in model model diagnosis in real cases, this is just an example of accessing some of the starting points in this process. And, all of these diagnostics are produced by <code>shinystan</code>, but it’s handy to know how to access these things on your own (and I’d rather not have to take a bunch of screenshots for this blog-post)</p>
+<div id="assessing-and-fixing-divergences-and-treedepth-problems" class="section level3">
+<h3>Assessing and Fixing Divergences and Treedepth Problems</h3>
 <p>The first thing we can check is for the presence of “divergent” transitions (see earlier section for a reminder on what these are). Divergent transition during the sampling period of your model (the iterations after the burn-in) are sign that there maybe a problem with your model. We’ll talk about dealing with these later, but for now here’s how to see if they happened.</p>
 <p><code>rstan</code> has a few functions to check these things</p>
 <pre class="r"><code>rstan::check_divergences(bh_fit)</code></pre>
@@ -526,6 +577,19 @@ mack_diagnostics %&gt;%
 <p>There are many more diagnostics for the actual sampler, but those are a few of the really critical ones. Just because the divergences and treedepth look good doesn’t mean that your model doesn’t have problems that deeper diagnostics would reveal, but seeing problems in those two diagnostics should give you a huge red flag right off the bat.</p>
 <p>You can test these things by changing the <code>control</code> options in your call to Stan. Try for example setting <code>adapt_delta = 0.5</code> or <code>max_treedepth = 2</code>. You’ll see that you start to develop divergences in the first case, since in order to achieve that target acceptance rate Stan sets the stepsize quite large, meaning that you miss important parts of the parameter space and create divergences. In the second case you’ll start to see that the treedepth start so bump up against the <code>max_treedepth</code>.</p>
 <p>While these are extreme examples, this also gives an idea of a first step at fixing these problems if they pop up: if you fit a model and you get divergences, the first thing you can try is to increase <code>adapt_delta</code> (in fact, Stan will suggest as much to you if this happens). If you’re bumping up against <code>max_treedepth</code>, increase <code>max_treedepth</code>! If either of these don’t solve the problem, then you’ll need to start think about the specification of your model, which we’ll cover a little later.</p>
+</div>
+<div id="feature-engineering-and-non-centering" class="section level3">
+<h3>Feature Engineering and Non-Centering</h3>
+<p>If you’ve tried these tricks and you’re still getting lots of divergent transitions, or if your model is just taking forever to run, feature engineering and non-centered model parameterizations can help. Feature engineering refers to how you decide to encode your data. Suppose for example that you have a model of health outcomes that includes both birth weight (mean say 3 kg) and city population (mean say 20,000 people). These two variables are on vastly different scales, meaning that a numerical routine like HMC needs to jump around vastly different scales of numbers to find the right coefficient for each. You could instead center (subtract the mean value) and then scale (divide by the standard deviation) each variable (e.g. <code>sc_pop = (pop - mean(pop)) / sd(pop)</code>) before passing it to Stan, so that each variable is on on the same scale (standard deviations from its mean). The information content of the data hasn’t changed, it’s now just easier for Stan to hunt over the parameter space. Though of course this does change the interpretation of any coefficients that come out of the model, so you’ll need to think about that. There are lots of ways to do feature engineering, I recommend checking out the <a href="https://topepo.github.io/recipes/"><code>recipes</code></a> for a great set of feature engineering tools and discussion.</p>
+<p>Suppose you do that and you’re still running into divergences. You also decide that you want to include random effects for each city in your model, of the form</p>
+<p><span class="math display">\[city_{i} \sim normal(\mu_{city},\sigma_{city}) \]</span></p>
+<p>To estimate this, you could simply estimate the coefficient for each city, use the above relationship as its prior. This can run into problems related to a fun thing called “Neal’s Funnel” (see the Stan Documentation for a good description) that causes the model to produce a bunch of divergences and have trouble converging (this phenomenon pops up all the time in hierarchical models).</p>
+<p>Instead, you can do this</p>
+<p><span class="math display">\[city_i = \mu_{city} + d_{i}\sigma_{city}\]</span></p>
+<p>Where <span class="math inline">\(d_{i}\)</span> represents the estimated deviation (in standard deviations) of city <em>i</em>’s coefficient from the mean city coefficient, and is distributed</p>
+<p><span class="math display">\[d_{i} \sim normal(0,1) \]</span></p>
+<p>This will produce the same estimates of the net coefficient <span class="math inline">\(city_{i}\)</span>, but will do so much more efficiently. This might seem like voodoo, but it works, see the Stan reference guide for more examples on this.</p>
+</div>
 <div id="parameter-diagnostics" class="section level3">
 <h3>Parameter Diagnostics</h3>
 <p>Now that we’ve taken a look at the highest-level red flags (divergences and treedepth) and satisfied ourselves that we’re in the clear, we can start to diagnose individual parameter estimates. There are a lot of ways to look at the these, the most useful starting point in my opinion is to extract summary statistics on each model parameter. You can do that by <code>summary(my_model)$summary</code>. <code>summary</code> on it’s own prints out summaries of each parameter, the <code>$summary</code> part allows you to access and store the data behind the printed statistics.</p>
@@ -539,12 +603,12 @@ bh_summary %&gt;% head()</code></pre>
 <pre><code>## # A tibble: 6 x 11
 ##   variable    mean se_mean      sd  `2.5%`   `25%`   `50%`   `75%` `97.5%`
 ##   &lt;chr&gt;      &lt;dbl&gt;   &lt;dbl&gt;   &lt;dbl&gt;   &lt;dbl&gt;   &lt;dbl&gt;   &lt;dbl&gt;   &lt;dbl&gt;   &lt;dbl&gt;
-## 1 h        6.14e-1 1.95e-3 8.21e-2 4.70e-1 5.57e-1 6.08e-1 6.65e-1 7.95e-1
-## 2 alpha    1.34e+7 2.70e+4 1.37e+6 1.08e+7 1.25e+7 1.34e+7 1.44e+7 1.61e+7
-## 3 sigma    1.24e+0 3.30e-3 1.49e-1 9.80e-1 1.14e+0 1.23e+0 1.33e+0 1.57e+0
-## 4 rhat[1]  3.87e+6 2.40e+4 1.04e+6 2.38e+6 3.15e+6 3.69e+6 4.37e+6 6.47e+6
-## 5 rhat[2]  2.45e+6 1.91e+4 7.90e+5 1.41e+6 1.92e+6 2.29e+6 2.79e+6 4.53e+6
-## 6 rhat[3]  2.92e+6 2.13e+4 8.84e+5 1.72e+6 2.31e+6 2.75e+6 3.31e+6 5.19e+6
+## 1 h        6.14e-1 1.88e-3 7.99e-2 4.75e-1 5.56e-1 6.09e-1 6.64e-1 7.85e-1
+## 2 alpha    1.35e+7 2.54e+4 1.34e+6 1.09e+7 1.26e+7 1.35e+7 1.44e+7 1.61e+7
+## 3 sigma    1.25e+0 3.64e-3 1.54e-1 9.90e-1 1.14e+0 1.23e+0 1.34e+0 1.59e+0
+## 4 rhat[1]  3.86e+6 2.53e+4 1.01e+6 2.43e+6 3.15e+6 3.69e+6 4.36e+6 6.29e+6
+## 5 rhat[2]  2.44e+6 1.95e+4 7.68e+5 1.44e+6 1.92e+6 2.29e+6 2.78e+6 4.38e+6
+## 6 rhat[3]  2.91e+6 2.18e+4 8.59e+5 1.75e+6 2.31e+6 2.75e+6 3.31e+6 5.04e+6
 ## # ... with 2 more variables: n_eff &lt;dbl&gt;, Rhat &lt;dbl&gt;</code></pre>
 <p>There are two really important diagnostic statistics hidden in this summary:</p>
 <ul>
@@ -979,16 +1043,29 @@ bh_loo &lt;- loo::loo(log_lik_bh)
 compare(bh_loo, ricker_loo)</code></pre>
 <pre><code>## elpd_diff        se 
 ##      -0.8       0.5</code></pre>
-<p>The output of compare is a big confusing, but basically, if <code>elpd_diff</code> is positive, that means that according to <code>loo</code>, the second model is prefered. If it’s negative, the first model is preferred. So, in this case, per the <code>loo</code> criteria, there is a bit more support for the Beverton-Holt model, at least as we parameterized it here. But we can also see that <code>elpd_diff</code> is on about the same scale as the standard error <code>se</code>, giving some indication that there isn’t a big difference between the models (if for example <code>elpd_diff</code> had been <code>-2000</code>, much bigger than the <code>se</code> of <code>0.5</code>, this would indicate more support for the difference). Biologically, we have reasons to think that the Ricker model might still be the better option.</p>
+<p>The output of compare is a big confusing, but basically, if <code>elpd_diff</code> is positive, that means that according to <code>loo</code>, the second model is preferred. If it’s negative, the first model is preferred. So, in this case, per the <code>loo</code> criteria, there is a bit more support for the Beverton-Holt model, at least as we parameterized it here. But we can also see that <code>elpd_diff</code> is on about the same scale as the standard error <code>se</code>, giving some indication that there isn’t a big difference between the models (if for example <code>elpd_diff</code> had been <code>-2000</code>, much bigger than the <code>se</code> of <code>0.5</code>, this would indicate more support for the difference). Biologically, we have reasons to think that the Ricker model might still be the better option.</p>
 <p>If you want to compare more than two models, you just pass more <code>loo</code> objects to compare! Compare conveniently orders the matrix in descending order of model performance.</p>
 <pre class="r"><code>compare(bh_loo, ricker_loo, ricker_loo)</code></pre>
 <pre><code>##            elpd_diff elpd_loo se_elpd_loo p_loo se_p_loo looic se_looic
-## bh_loo       0.0     -57.8      4.8         2.2   0.8    115.7   9.7   
-## ricker_loo  -0.8     -58.7      5.0         2.5   1.0    117.3   9.9   
-## ricker_loo  -0.8     -58.7      5.0         2.5   1.0    117.3   9.9</code></pre>
+## bh_loo       0.0     -57.9      4.9         2.2   0.9    115.7   9.8   
+## ricker_loo  -0.8     -58.6      4.9         2.4   0.9    117.2   9.8   
+## ricker_loo  -0.8     -58.6      4.9         2.4   0.9    117.2   9.8</code></pre>
 <p>And just like that, we have a solid sketch of going from raw data, to model fits, to model comparison, using Stan and R. There is clearly a lot more work that would have to go into doing this analysis properly (e.g. we haven’t done any testing of the effects of our choices for our prior distributions), but the tools we’ve gone over here should serve as a useful template to build off of for more complete analysis.</p>
 <p>Hopefully this helps you to start using Stan in your analyses, I’ll post some more complicated examples as time allows. Good luck!</p>
 </div>
+</div>
+<div id="rstanarm" class="section level1">
+<h1><code>rstanarm</code></h1>
+<p>The approaches I’ve gone through here are great for rolling your own model, which lots of times we have to do. But, it can be pretty annoying to do all that work to just run say a linear model. To that end, the folks at Stan put together the <a href="http://mc-stan.org/rstanarm/"><code>rstanarm</code></a> package, which provides Bayesian methods for basically all your linear modeling needs, from <code>lm</code> to <code>glmer</code> and everything in between. Check it out!</p>
+<pre class="r"><code>library(rstanarm)
+example_model &lt;- 
+  rstanarm::stan_glmer(cbind(incidence, size - incidence) ~ size + period + (1|herd),
+             data = lme4::cbpp, family = binomial, QR = TRUE,
+             # this next line is only to keep the example small in size!
+             chains = 2, cores = 1, seed = 12345, iter = 500)
+
+plot(example_model)</code></pre>
+<p><img src="/blog/2018-02-16-a-practical-introduction-to-stan_files/figure-html/unnamed-chunk-45-1.svg" width="960" /></p>
 </div>
 <div id="references" class="section level1 unnumbered">
 <h1>References</h1>

@@ -1,5 +1,5 @@
 ---
-title: "Get Started Fitting Bayesian Models using Stan and R"
+title: "Fitting Bayesian Models using Stan and R"
 date: '2018-06-03'
 slug: a-practical-introduction-to-stan
 tags: [R, Stan, Bayesian]
@@ -543,7 +543,7 @@ cross_df(list(ssb = 0:1000, h = c(0.2,0.6,1))) %>%
 
 ```
 
-Our goal then is going to be to try and estimate steepness and $\alpha$ for some real data
+Our goal then is going to be to try and fit a stock-recruitment model for some real data from some Pink Salmon in Alaska. 
 
 ## Examine spawning and recruitment data
 
@@ -552,7 +552,7 @@ Let's look at one stock in particular
 
 ```{r}
 
-sr_data <- read_csv(here::here("data","rlsadb_v4.25_ssb_recruits.csv")) %>% 
+sr_data <- read_csv(here::here("content","blog","data","rlsadb_v4.25_ssb_recruits.csv")) %>% 
   set_names(tolower)
 
 sal_data <- sr_data %>% 
@@ -567,7 +567,7 @@ sal_data %>%
 
 ```
 
-So, there seems to be a relationship between SSB and R, but it's messy. Our goal now will be to use Stan to estimate a BH curve for this stock. 
+So, there seems to be a relationship between SSB and R, but it's messy. Our goal is to use Stan to estimate a Beverton-Holt stock recruitment curve for this stock. 
 
 Let's start by writing out the model for this model. We have three parameters we need to estimate, steepness *h*, maximum recruitment $\alpha$, and some error term $\sigma$. 
 
