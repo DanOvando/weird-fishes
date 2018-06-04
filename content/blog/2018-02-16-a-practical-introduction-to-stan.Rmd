@@ -472,7 +472,7 @@ plot(scratch)
 ```
 
 
-# Example Model: Stock Recruitment Relationships
+# Example Model: Predicting Salmon
 
 Now that you've hopefully developed a general idea of what Stan is and why you might like to use it, we're going to dig into actual using it. 
 
@@ -482,7 +482,7 @@ You can certainly do your entire analysis in Stan by itself. However, every lang
 
 We'll now work through the process of using R and Stan to fit a model predicting the number of young fish (recruits) produced by a given amount of adult fish (spawning biomass). This type of model is generally called a stock-recruitment model, and is a core part of fisheries management. For our purposes though, it's a handy way to see how to fit a non-linear model in R and Stan. 
 
-## Write your model
+## Write Your Statistical Model
 
 We are going use data from the [RAM Legacy Stock Assessment Database](http://ramlegacy.org/) to try and fit a Beverton-Holt stock recruitment relationship using the steepness parameterization from @Dorn2002 (for reasons that will become apparent). 
 
@@ -583,7 +583,7 @@ In English, this says that we believe that recruitment is a log-normal process, 
 
 <!-- Easiest way to think about the log normal distribution is a normal distribution with a cv instead of a sigma . So, you can just calculate the cv for your data and that can give you an idea of a reasonable prior on sigma in log space  -->
 
-## Write our Stan Model
+## Write Your Stan Model
 
 Now that we know what we need to model, we just have to code it. The model is below (though note that I store the actual `.stan` file in `src/bh_model.stan`)
 
@@ -714,7 +714,7 @@ bh_fit <- stan(file = here::here("src","bh_model.stan"),
 ```
 
 
-## Running Diagnostics
+## Run Diagnostics
 
 Now that we have a model run, it's time to examine our fits. 
 
@@ -1054,7 +1054,7 @@ All together then, this simple model walks us through the basic steps of using S
 
 Each of these steps warrants more careful consideration than we have gone through here, but this is a solid foundation to base future analysis are, that will work with simple models like this, or much more complex models, the process stays the same. 
 
-## Model Comparison
+## Comparing Models
 
 So far, we've been focused on diagnosing our model to make sure that it has in fact converged and to understand the behavior of our model if it has. However, to put it bluntly, if you're only writing one model, you're doing it wrong. We made a huge number of assumptions in the design of this model, from the functional form of our stock-recruitment relationship, to our choices of likelihoods and priors. 
 
