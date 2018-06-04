@@ -30,6 +30,7 @@ biblio-style: apalike
 </ul></li>
 <li><a href="#model-comparison">Model Comparison</a></li>
 </ul></li>
+<li><a href="#references">References</a></li>
 </ul>
 </div>
 
@@ -469,19 +470,19 @@ generated quantities{
 <p><code>stanfit</code> options are designed to interface with a few base R commands that you’re use to, like <code>summary</code> and <code>plot</code> (though if you have lots of parameters simply calling these can be pretty messy)</p>
 <pre class="r"><code>summary(bh_fit)$summary %&gt;% head()</code></pre>
 <pre><code>##                 mean      se_mean           sd         2.5%          25%
-## h       6.150511e-01 1.922103e-03 8.062714e-02 4.720693e-01 5.596780e-01
-## alpha   1.346261e+07 2.595858e+04 1.356028e+06 1.082618e+07 1.254905e+07
-## sigma   1.245031e+00 3.755467e-03 1.505190e-01 9.935027e-01 1.138588e+00
-## rhat[1] 3.877854e+06 2.572801e+04 1.021714e+06 2.407487e+06 3.168353e+06
-## rhat[2] 2.458035e+06 2.024807e+04 7.772876e+05 1.423473e+06 1.932844e+06
-## rhat[3] 2.923386e+06 2.232085e+04 8.706628e+05 1.732269e+06 2.329041e+06
-##                  50%          75%        97.5%    n_eff      Rhat
-## h       6.084583e-01 6.655396e-01 7.888066e-01 1759.582 1.0037139
-## alpha   1.346172e+07 1.435474e+07 1.616530e+07 2728.823 0.9994896
-## sigma   1.231708e+00 1.337999e+00 1.581796e+00 1606.403 1.0019572
-## rhat[1] 3.699929e+06 4.386175e+06 6.395152e+06 1577.053 1.0041158
-## rhat[2] 2.294908e+06 2.799282e+06 4.459851e+06 1473.657 1.0041504
-## rhat[3] 2.752464e+06 3.324554e+06 5.132500e+06 1521.523 1.0041469</code></pre>
+## h       6.143607e-01 1.948407e-03 8.209434e-02 4.697866e-01 5.569163e-01
+## alpha   1.342100e+07 2.703429e+04 1.365216e+06 1.077120e+07 1.252679e+07
+## sigma   1.240495e+00 3.302024e-03 1.494434e-01 9.804393e-01 1.137025e+00
+## rhat[1] 3.869804e+06 2.397929e+04 1.036059e+06 2.383079e+06 3.149035e+06
+## rhat[2] 2.454608e+06 1.913546e+04 7.903476e+05 1.413001e+06 1.916914e+06
+## rhat[3] 2.918570e+06 2.131825e+04 8.844892e+05 1.717420e+06 2.311455e+06
+##                  50%          75%        97.5%    n_eff     Rhat
+## h       6.084109e-01 6.652088e-01 7.949059e-01 1775.281 1.000544
+## alpha   1.339737e+07 1.435797e+07 1.612035e+07 2550.192 1.000308
+## sigma   1.228300e+00 1.332922e+00 1.566444e+00 2048.298 1.001593
+## rhat[1] 3.691065e+06 4.366969e+06 6.472851e+06 1866.793 1.000108
+## rhat[2] 2.288758e+06 2.793444e+06 4.530756e+06 1705.920 1.000115
+## rhat[3] 2.745932e+06 3.313054e+06 5.194199e+06 1721.401 1.000114</code></pre>
 <p>The plot command is a great way to get a first glance at your fits</p>
 <pre class="r"><code>plot(bh_fit)</code></pre>
 <p><img src="/blog/2018-02-16-a-practical-introduction-to-stan_files/figure-html/unnamed-chunk-24-1.svg" width="960" /></p>
@@ -503,7 +504,8 @@ mack_diagnostics %&gt;%
   summarise(percent_divergent = mean(divergent__ &gt;0)) %&gt;% 
   ggplot() +
   geom_col(aes(chain, percent_divergent, fill = warmup), position = &#39;dodge&#39;, color = &#39;black&#39;) + 
-  scale_y_continuous(labels = scales::percent, name = &quot;% Divergent Runs&quot;) </code></pre>
+  scale_y_continuous(labels = scales::percent, name = &quot;% Divergent Runs&quot;)  + 
+  scale_fill_npg()</code></pre>
 <p><img src="/blog/2018-02-16-a-practical-introduction-to-stan_files/figure-html/extract-diagnostics-1.svg" width="960" /></p>
 <p>We see then that across all chains, we had no divergences during the sampling period (after the warm-ups), which is what we want to see!</p>
 <p><code>treedepth</code> is another really important thing to take a look at. Remember how the HMC algorithm works (more or less). Ideally, a new candidate draw from the parameter space is selected from a place where the likelihood surface bends back on itself. If you think of the posterior probability space like a circular racetrack, the sampler is a runner on that racetrack. The runner starts off on the left side of the track and starts running north, goes around the bend, and then starts running south. The HMC algorithm would stop and try a new parameter at that point, where the runner has fully turned around. So that sounds great if you’ve got a small track to run on. Suppose though that you are on a 10,000 mile track. Your runner is going to have to run a looooong way before things start to bend around. Or, suppose your runner is on a straight line, the runner is never going to turn around, and so the HMC algorithm would just keep running forever! That’s where the <code>max_treedepth</code> option comes in. HMC will select a candidate parameter value when the parameter space bends back on itself OR when the number of steps specified by <code>max_treedepth</code> is reached. Basically, if the algorithm gets to <code>max_treedepth</code>, the runner says “phew, I’m tired, I’m stopping here”, evaluates that point, and then tries again for another iteration.</p>
@@ -511,13 +513,15 @@ mack_diagnostics %&gt;%
 <pre class="r"><code>mack_diagnostics %&gt;% 
   ggplot(aes(iteration, treedepth__, color = chain)) + 
   geom_line() + 
-  geom_hline(aes(yintercept = max_treedepth), color = &#39;red&#39;)</code></pre>
+  geom_hline(aes(yintercept = max_treedepth), color = &#39;red&#39;) + 
+  scale_color_locuszoom()</code></pre>
 <p><img src="/blog/2018-02-16-a-practical-introduction-to-stan_files/figure-html/unnamed-chunk-26-1.svg" width="960" /></p>
 <p>Looks like we’re good, the treedepth of each all of our iterations was below the max_treedepth, meaning that Stan was selected the parameters for that iteration.</p>
 <p>If you’re curious, you can also see the warmup process through the <code>stepsize</code> parameter. Stan uses the warmup period to tune the <code>stepsize</code> parameter to achieve a target acceptance rate (specified by <code>adapt_delta</code>). You can think of stepsize like resolution. A big <code>stepsize</code> means the model will quickly cover the entire picture of the posterior, but the picture will be really fuzzy, and if the posterior probability surface has important fine scale variation, the model will miss them. A really small stepsize will produce a really high resolution picture, but it will wake a lot longer to make that picture. So, a great feature of Stan is it uses this target acceptance rate to find the right stepsize for the model. You can see this process play out by plotting the stepsize as the model tunes itself during the warmup period (first 1000 iterations).</p>
 <pre class="r"><code>mack_diagnostics %&gt;% 
   ggplot(aes(iteration, stepsize__, color = chain)) + 
-  geom_line() </code></pre>
+  geom_line()  + 
+  scale_color_locuszoom()</code></pre>
 <p><img src="/blog/2018-02-16-a-practical-introduction-to-stan_files/figure-html/unnamed-chunk-27-1.svg" width="960" /></p>
 <p>There are many more diagnostics for the actual sampler, but those are a few of the really critical ones. Just because the divergences and treedepth look good doesn’t mean that your model doesn’t have problems that deeper diagnostics would reveal, but seeing problems in those two diagnostics should give you a huge red flag right off the bat.</p>
 <p>You can test these things by changing the <code>control</code> options in your call to Stan. Try for example setting <code>adapt_delta = 0.5</code> or <code>max_treedepth = 2</code>. You’ll see that you start to develop divergences in the first case, since in order to achieve that target acceptance rate Stan sets the stepsize quite large, meaning that you miss important parts of the parameter space and create divergences. In the second case you’ll start to see that the treedepth start so bump up against the <code>max_treedepth</code>.</p>
@@ -535,12 +539,12 @@ bh_summary %&gt;% head()</code></pre>
 <pre><code>## # A tibble: 6 x 11
 ##   variable    mean se_mean      sd  `2.5%`   `25%`   `50%`   `75%` `97.5%`
 ##   &lt;chr&gt;      &lt;dbl&gt;   &lt;dbl&gt;   &lt;dbl&gt;   &lt;dbl&gt;   &lt;dbl&gt;   &lt;dbl&gt;   &lt;dbl&gt;   &lt;dbl&gt;
-## 1 h        6.15e-1 1.92e-3 8.06e-2 4.72e-1 5.60e-1 6.08e-1 6.66e-1 7.89e-1
-## 2 alpha    1.35e+7 2.60e+4 1.36e+6 1.08e+7 1.25e+7 1.35e+7 1.44e+7 1.62e+7
-## 3 sigma    1.25e+0 3.76e-3 1.51e-1 9.94e-1 1.14e+0 1.23e+0 1.34e+0 1.58e+0
-## 4 rhat[1]  3.88e+6 2.57e+4 1.02e+6 2.41e+6 3.17e+6 3.70e+6 4.39e+6 6.40e+6
-## 5 rhat[2]  2.46e+6 2.02e+4 7.77e+5 1.42e+6 1.93e+6 2.29e+6 2.80e+6 4.46e+6
-## 6 rhat[3]  2.92e+6 2.23e+4 8.71e+5 1.73e+6 2.33e+6 2.75e+6 3.32e+6 5.13e+6
+## 1 h        6.14e-1 1.95e-3 8.21e-2 4.70e-1 5.57e-1 6.08e-1 6.65e-1 7.95e-1
+## 2 alpha    1.34e+7 2.70e+4 1.37e+6 1.08e+7 1.25e+7 1.34e+7 1.44e+7 1.61e+7
+## 3 sigma    1.24e+0 3.30e-3 1.49e-1 9.80e-1 1.14e+0 1.23e+0 1.33e+0 1.57e+0
+## 4 rhat[1]  3.87e+6 2.40e+4 1.04e+6 2.38e+6 3.15e+6 3.69e+6 4.37e+6 6.47e+6
+## 5 rhat[2]  2.45e+6 1.91e+4 7.90e+5 1.41e+6 1.92e+6 2.29e+6 2.79e+6 4.53e+6
+## 6 rhat[3]  2.92e+6 2.13e+4 8.84e+5 1.72e+6 2.31e+6 2.75e+6 3.31e+6 5.19e+6
 ## # ... with 2 more variables: n_eff &lt;dbl&gt;, Rhat &lt;dbl&gt;</code></pre>
 <p>There are two really important diagnostic statistics hidden in this summary:</p>
 <ul>
@@ -600,7 +604,8 @@ bh_pars %&gt;%
   ggplot(aes(value, fill = variable)) + 
   geom_density() + 
   facet_wrap(~variable, scales = &#39;free&#39;) + 
-  coord_flip()</code></pre>
+  coord_flip() + 
+  scale_fill_locuszoom()</code></pre>
 <p><img src="/blog/2018-02-16-a-practical-introduction-to-stan_files/figure-html/unnamed-chunk-33-1.svg" width="960" /></p>
 </div>
 <div id="posterior-predictive-analysis" class="section level3">
@@ -921,7 +926,9 @@ rhat &lt;- ricker_rhat %&gt;%
   ggplot() + 
   geom_point(data = sal_data,aes(ssb, r)) + 
   geom_line(aes(ssb, mean, color = model)) + 
-  geom_ribbon(aes(ssb, ymin = `2.5%`, ymax = `97.5%`, fill = model),alpha = 0.25)</code></pre>
+  geom_ribbon(aes(ssb, ymin = `2.5%`, ymax = `97.5%`, fill = model),alpha = 0.25) + 
+  scale_fill_manual(values = wes_palette(&quot;Royal1&quot;))  + 
+  scale_color_manual(values = wes_palette(&quot;Royal1&quot;))  </code></pre>
 <p><img src="/blog/2018-02-16-a-practical-introduction-to-stan_files/figure-html/unnamed-chunk-38-1.svg" width="960" /></p>
 <p>As a first step we should of course conduct all the same convergence tests for the Ricker model that we conducted for the BH model, and we can base some judgement based on those results. For example, if the posterior predictive test look much better for one model that might give us some indication that the data at least support one model over another. For now let’s just compare the posterior predictives of the two models</p>
 <pre class="r"><code>bh_pp_rhat &lt;- bh_mcmc[ &#39;pp_rhat&#39;] %&gt;% 
@@ -944,7 +951,8 @@ pp_rhat &lt;- bh_pp_rhat %&gt;%
 
 ggplot() + 
   geom_density(data = pp_rhat, aes(log(value), fill = model), alpha = 0.5) + 
-  geom_density(data = sal_data, aes(log(r), fill = &#39;Observed&#39;), alpha = 0.5)</code></pre>
+  geom_density(data = sal_data, aes(log(r), fill = &#39;Observed&#39;), alpha = 0.5) + 
+  scale_fill_manual(values = wes_palette(&quot;Zissou1&quot;))  </code></pre>
 <p><img src="/blog/2018-02-16-a-practical-introduction-to-stan_files/figure-html/unnamed-chunk-39-1.svg" width="960" /></p>
 <p>We can also use the <code>loo</code> package to try and quantitatively compare the two models. <code>loo</code> stands for leave-one-out, and the <code>loo</code> function provides a powerful interface for performing leave-one-out cross validation for Bayesian models. Basically, it tests the out-of-sample predictive accuracy of each of the models. You can think of it as an improvement over AIC/DIC for model comparison (see <code>?&quot;loo-package&quot;</code>). Of course, if visual diagnostics like the posterior predictive test strongly suggest that you should select one model over another, you can often trust that. But, for more ambiguous cases, we’d like to have some quantitative way to judge model performance, and that’s where <code>loo</code> can come in.</p>
 <p>There are a few ways to use <code>loo</code>, but the simplest requires a bit of prep work. <code>loo</code> needs to evaluate the likelihood as a function of leaving out data. So, it needs to have access to the pure likelihood. You can either write a function to do this, which we won’t cover here (see <code>?loo::loo</code>), or you can go back in your model and store the log-likelihood in the <code>generated quantities</code> block</p>
@@ -975,11 +983,15 @@ compare(bh_loo, ricker_loo)</code></pre>
 <p>If you want to compare more than two models, you just pass more <code>loo</code> objects to compare! Compare conveniently orders the matrix in descending order of model performance.</p>
 <pre class="r"><code>compare(bh_loo, ricker_loo, ricker_loo)</code></pre>
 <pre><code>##            elpd_diff elpd_loo se_elpd_loo p_loo se_p_loo looic se_looic
-## bh_loo       0.0     -57.8      4.9         2.2   0.8    115.6   9.8   
-## ricker_loo  -0.8     -58.6      4.9         2.4   0.9    117.2   9.9   
-## ricker_loo  -0.8     -58.6      4.9         2.4   0.9    117.2   9.9</code></pre>
+## bh_loo       0.0     -57.8      4.8         2.2   0.8    115.7   9.7   
+## ricker_loo  -0.8     -58.7      5.0         2.5   1.0    117.3   9.9   
+## ricker_loo  -0.8     -58.7      5.0         2.5   1.0    117.3   9.9</code></pre>
 <p>And just like that, we have a solid sketch of going from raw data, to model fits, to model comparison, using Stan and R. There is clearly a lot more work that would have to go into doing this analysis properly (e.g. we haven’t done any testing of the effects of our choices for our prior distributions), but the tools we’ve gone over here should serve as a useful template to build off of for more complete analysis.</p>
 <p>Hopefully this helps you to start using Stan in your analyses, I’ll post some more complicated examples as time allows. Good luck!</p>
+</div>
+</div>
+<div id="references" class="section level1 unnumbered">
+<h1>References</h1>
 <div id="refs" class="references">
 <div id="ref-Dorn2002">
 <p>Dorn, Martin W. 2002. “Advice on West Coast Rockfish Harvest Rates from Bayesian Meta-Analysis of Stock-Recruit Relationships.” <em>North American Journal of Fisheries Management</em> 22 (1): 280–300. doi:<a href="https://doi.org/10.1577/1548-8675(2002)022&lt;0280:AOWCRH&gt;2.0.CO;2">10.1577/1548-8675(2002)022&lt;0280:AOWCRH&gt;2.0.CO;2</a>.</p>
@@ -995,7 +1007,6 @@ compare(bh_loo, ricker_loo)</code></pre>
 </div>
 <div id="ref-Monnahan2016">
 <p>Monnahan, Cole C., James T. Thorson, and Trevor A. Branch. 2016. “Faster Estimation of Bayesian Models in Ecology Using Hamiltonian Monte Carlo.” <em>Methods in Ecology and Evolution</em>, November, n/a–n/a. doi:<a href="https://doi.org/10.1111/2041-210X.12681">10.1111/2041-210X.12681</a>.</p>
-</div>
 </div>
 </div>
 </div>
