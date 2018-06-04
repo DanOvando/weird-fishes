@@ -19,7 +19,7 @@ ignoreFiles = ["\\.Rmd$", "\\.Rmarkdown$", "_files$", "_cache$"]
   # Sets the meta tag description
   description          = "Dan Ovando's Blog of Fisheries and Data Science - Future Imperfect theme ported by Julio Pescador"
   # Sets the navbarTitle that appears in the top left of the navigation bar
-  navbarTitle          = "Weird Fishes"
+  navbarTitle          = "Dan Ovando"
   # Sets where "View More Posts" links
   viewMorePostLink     = "/blog/"
 
@@ -81,7 +81,7 @@ ignoreFiles = ["\\.Rmd$", "\\.Rmarkdown$", "_files$", "_cache$"]
   # These are optional params related to the sidebar. They are recommended, but not
   # required for proper functionality. HTML is supported within the params.
 [params.intro]
-  header    = "Dan Ovando"
+  header    = "Weird Fishes"
 
   paragraph = "Thoughts on fisheries, oceans, data science, and music"
 
