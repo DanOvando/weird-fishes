@@ -508,19 +508,19 @@ generated quantities{
 <p><code>stanfit</code> options are designed to interface with a few base R commands that you’re use to, like <code>summary</code> and <code>plot</code> (though if you have lots of parameters simply calling these can be pretty messy)</p>
 <pre class="r"><code>summary(bh_fit)$summary %&gt;% head()</code></pre>
 <pre><code>##                 mean      se_mean           sd         2.5%          25%
-## h       6.140876e-01 2.095460e-03 8.268003e-02 4.696206e-01 5.564374e-01
-## alpha   1.343008e+07 2.518362e+04 1.334708e+06 1.073784e+07 1.257461e+07
-## sigma   1.242414e+00 4.155813e-03 1.531363e-01 9.757900e-01 1.134881e+00
-## rhat[1] 3.870578e+06 2.864660e+04 1.059479e+06 2.389528e+06 3.140981e+06
-## rhat[2] 2.456841e+06 2.328837e+04 8.191981e+05 1.411865e+06 1.912524e+06
-## rhat[3] 2.920348e+06 2.571491e+04 9.118564e+05 1.716592e+06 2.305584e+06
+## h       6.096621e-01 1.679480e-03 7.744664e-02 4.770985e-01 5.532279e-01
+## alpha   1.345417e+07 2.572745e+04 1.348479e+06 1.079848e+07 1.253839e+07
+## sigma   1.234879e+00 3.151301e-03 1.444486e-01 9.842045e-01 1.135305e+00
+## rhat[1] 3.803097e+06 2.156687e+04 9.554870e+05 2.441801e+06 3.119599e+06
+## rhat[2] 2.400692e+06 1.641751e+04 7.182892e+05 1.450280e+06 1.894045e+06
+## rhat[3] 2.859291e+06 1.839825e+04 8.083293e+05 1.763930e+06 2.285446e+06
 ##                  50%          75%        97.5%    n_eff     Rhat
-## h       6.077028e-01 6.642299e-01 7.963546e-01 1556.835 1.001970
-## alpha   1.342319e+07 1.433939e+07 1.597443e+07 2808.902 1.000466
-## sigma   1.228873e+00 1.337173e+00 1.590017e+00 1357.826 1.003466
-## rhat[1] 3.675763e+06 4.364097e+06 6.524811e+06 1367.849 1.001961
-## rhat[2] 2.283411e+06 2.790702e+06 4.585368e+06 1237.370 1.001852
-## rhat[3] 2.734682e+06 3.309451e+06 5.283239e+06 1257.427 1.001902</code></pre>
+## h       6.044879e-01 6.605037e-01 7.775764e-01 2126.450 1.001078
+## alpha   1.345978e+07 1.435916e+07 1.607038e+07 2747.229 1.000013
+## sigma   1.221963e+00 1.321630e+00 1.555552e+00 2101.101 1.000913
+## rhat[1] 3.638955e+06 4.325942e+06 6.119721e+06 1962.797 1.001086
+## rhat[2] 2.264298e+06 2.758953e+06 4.233344e+06 1914.186 1.000954
+## rhat[3] 2.710048e+06 3.278013e+06 4.898765e+06 1930.295 1.000999</code></pre>
 <p>The plot command is a great way to get a first glance at your fits</p>
 <pre class="r"><code>plot(bh_fit)</code></pre>
 <p><img src="/blog/2018-02-16-a-practical-introduction-to-stan_files/figure-html/unnamed-chunk-24-1.svg" width="960" /></p>
@@ -592,12 +592,12 @@ bh_summary %&gt;% head()</code></pre>
 <pre><code>## # A tibble: 6 x 11
 ##   variable    mean se_mean      sd  `2.5%`   `25%`   `50%`   `75%` `97.5%`
 ##   &lt;chr&gt;      &lt;dbl&gt;   &lt;dbl&gt;   &lt;dbl&gt;   &lt;dbl&gt;   &lt;dbl&gt;   &lt;dbl&gt;   &lt;dbl&gt;   &lt;dbl&gt;
-## 1 h        6.14e-1 2.10e-3 8.27e-2 4.70e-1 5.56e-1 6.08e-1 6.64e-1 7.96e-1
-## 2 alpha    1.34e+7 2.52e+4 1.33e+6 1.07e+7 1.26e+7 1.34e+7 1.43e+7 1.60e+7
-## 3 sigma    1.24e+0 4.16e-3 1.53e-1 9.76e-1 1.13e+0 1.23e+0 1.34e+0 1.59e+0
-## 4 rhat[1]  3.87e+6 2.86e+4 1.06e+6 2.39e+6 3.14e+6 3.68e+6 4.36e+6 6.52e+6
-## 5 rhat[2]  2.46e+6 2.33e+4 8.19e+5 1.41e+6 1.91e+6 2.28e+6 2.79e+6 4.59e+6
-## 6 rhat[3]  2.92e+6 2.57e+4 9.12e+5 1.72e+6 2.31e+6 2.73e+6 3.31e+6 5.28e+6
+## 1 h        6.10e-1 1.68e-3 7.74e-2 4.77e-1 5.53e-1 6.04e-1 6.61e-1 7.78e-1
+## 2 alpha    1.35e+7 2.57e+4 1.35e+6 1.08e+7 1.25e+7 1.35e+7 1.44e+7 1.61e+7
+## 3 sigma    1.23e+0 3.15e-3 1.44e-1 9.84e-1 1.14e+0 1.22e+0 1.32e+0 1.56e+0
+## 4 rhat[1]  3.80e+6 2.16e+4 9.55e+5 2.44e+6 3.12e+6 3.64e+6 4.33e+6 6.12e+6
+## 5 rhat[2]  2.40e+6 1.64e+4 7.18e+5 1.45e+6 1.89e+6 2.26e+6 2.76e+6 4.23e+6
+## 6 rhat[3]  2.86e+6 1.84e+4 8.08e+5 1.76e+6 2.29e+6 2.71e+6 3.28e+6 4.90e+6
 ## # ... with 2 more variables: n_eff &lt;dbl&gt;, Rhat &lt;dbl&gt;</code></pre>
 <p>There are two really important diagnostic statistics hidden in this summary:</p>
 <ul>
@@ -628,7 +628,6 @@ bh_summary %&gt;% head()</code></pre>
   geom_crossbar(aes(variable, mean, ymin = `25%`, ymax = `75%`), fill= &#39;grey&#39;) + 
   facet_wrap(~variable, scales = &#39;free&#39;)</code></pre>
 <p><img src="/blog/2018-02-16-a-practical-introduction-to-stan_files/figure-html/unnamed-chunk-31-1.svg" width="960" /></p>
-<p>So, we see that most of our credible intervals are fairly tight, though our estimate of unfished recruits <span class="math inline">\(\alpha\)</span> is somewhat wide.</p>
 <p>That’s all well and good, but what we might really want to see are the actual recruits estimated by our model. Stan is great for this as well: Since we calculated our estimates of recruitment in the <code>transformed parameter</code> block, Stan automatically stores the values for recruitment associated with each draw from the posterior, giving us our credible intervals for our recruitment estimates as well!</p>
 <p>Our recruitment estimates were stored in the <code>rhat</code> object</p>
 <pre class="r"><code>rhat &lt;- bh_summary %&gt;% 
@@ -1031,14 +1030,14 @@ bh_loo &lt;- loo::loo(log_lik_bh)
 
 compare(bh_loo, ricker_loo)</code></pre>
 <pre><code>## elpd_diff        se 
-##      -0.6       0.5</code></pre>
+##      -0.9       0.5</code></pre>
 <p>The output of compare is a big confusing, but basically, if <code>elpd_diff</code> is positive, that means that according to <code>loo</code>, the second model is preferred. If it’s negative, the first model is preferred. So, in this case, per the <code>loo</code> criteria, there is a bit more support for the Beverton-Holt model, at least as we parameterized it here. But we can also see that <code>elpd_diff</code> is on about the same scale as the standard error <code>se</code>, giving some indication that there isn’t a big difference between the models (if for example <code>elpd_diff</code> had been <code>-2000</code>, much bigger than the <code>se</code> of <code>0.5</code>, this would indicate more support for the difference). Biologically, we have reasons to think that the Ricker model might still be the better option.</p>
 <p>If you want to compare more than two models, you just pass more <code>loo</code> objects to compare! Compare conveniently orders the matrix in descending order of model performance.</p>
 <pre class="r"><code>compare(bh_loo, ricker_loo, ricker_loo)</code></pre>
 <pre><code>##            elpd_diff elpd_loo se_elpd_loo p_loo se_p_loo looic se_looic
-## bh_loo       0.0     -58.0      4.9         2.3   0.9    115.9   9.8   
-## ricker_loo  -0.6     -58.5      4.9         2.3   0.9    117.1   9.8   
-## ricker_loo  -0.6     -58.5      4.9         2.3   0.9    117.1   9.8</code></pre>
+## bh_loo       0.0     -57.8      4.8         2.2   0.8    115.6   9.7   
+## ricker_loo  -0.9     -58.7      4.9         2.5   1.0    117.4   9.9   
+## ricker_loo  -0.9     -58.7      4.9         2.5   1.0    117.4   9.9</code></pre>
 <p>And just like that, we have a solid sketch of going from raw data, to model fits, to model comparison, using Stan and R. There is clearly a lot more work that would have to go into doing this analysis properly (e.g. we haven’t done any testing of the effects of our choices for our prior distributions), but the tools we’ve gone over here should serve as a useful template to build off of for more complete analysis.</p>
 <p>Hopefully this helps you to start using Stan in your analyses, I’ll post some more complicated examples as time allows. Good luck!</p>
 </div>

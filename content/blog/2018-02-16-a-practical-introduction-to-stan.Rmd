@@ -902,9 +902,6 @@ bh_summary %>%
  
 ```
 
-So, we see that most of our credible intervals are fairly tight, though our estimate of unfished recruits $\alpha$ is somewhat wide.
-
-
 That's all well and good, but what we might really want to see are the actual recruits estimated by our model. Stan is great for this as well: Since we calculated our estimates of recruitment in the `transformed parameter` block, Stan automatically stores the values for recruitment associated with each draw from the posterior, giving us our credible intervals for our recruitment estimates as well!
 
 Our recruitment estimates were stored in the `rhat` object
