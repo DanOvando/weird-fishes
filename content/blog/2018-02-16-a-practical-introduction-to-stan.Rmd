@@ -21,6 +21,7 @@ library(loo)
 library(tidyverse)
 library(patchwork)
 library(hrbrthemes)
+library(here)
 library(scico)
 plot_theme <- hrbrthemes::theme_ipsum(base_size = 14,
                                       axis_title_size = 16)
@@ -733,7 +734,8 @@ mack_diagnostics %>%
   summarise(percent_divergent = mean(divergent__ >0)) %>% 
   ggplot() +
   geom_col(aes(chain, percent_divergent, fill = warmup), position = 'dodge', color = 'black') + 
-  scale_y_continuous(labels = scales::percent, name = "% Divergent Runs") 
+  scale_y_continuous(labels = scales::percent, name = "% Divergent Runs")  + 
+  scale_fill_npg()
 
 ```
 
