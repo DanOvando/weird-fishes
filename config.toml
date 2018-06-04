@@ -19,7 +19,7 @@ ignoreFiles = ["\\.Rmd$", "\\.Rmarkdown$", "_files$", "_cache$"]
   # Sets the meta tag description
   description          = "Dan Ovando's Blog of Fisheries and Data Science - Future Imperfect theme ported by Julio Pescador"
   # Sets the navbarTitle that appears in the top left of the navigation bar
-  navbarTitle          = "Dan Ovando"
+  navbarTitle          = "Weird Fishes"
   # Sets where "View More Posts" links
   viewMorePostLink     = "/blog/"
 
