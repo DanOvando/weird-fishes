@@ -37,7 +37,7 @@ Stan is a programming language designed to make statistical modeling easier and 
 
 That all sounds good, but why is that useful for me? Suppose you have a hierarchical ecological modeling problem with data clustered by space, time, and species, such as estimating the effect of ocean temperatures on coral growth. You can use Stan to fit that model (and it will likely be faster than BUGS/JAGS if you're already used to working in those platforms). Suppose just want to use informative priors to help fit a growth model. You can use Stan for that. Suppose you just prefer Bayesian analysis and want to run a simple multiple regression. Stan can do that. 
 
-The purpose of this document is not to perfectly describe or debate Bayesian analysis, but to provide a path to get you started using Stan in your research. This is not a deep dive into the inner workings of Stan and model fitting - explanations and examples are designed to try and help people get the hang of using Stan. There are many great resources to understand the inner workings of Stan and provide higher-level examples, but I've found that they are often either too basic, or jump straight to the finished product without explaining the steps to get there. This tutorial is intended as a bridge to help get people from zero to working in Stan. Comments and suggestions are welcome!
+The purpose of this document is not to perfectly describe or debate Bayesian analysis, but to provide a path to get you started using Stan in your research. This is not a deep dive into the inner workings of Stan and model fitting - explanations and examples are designed to try and help people get the hang of using Stan. There are many [great resources](http://mc-stan.org/users/documentation/index.html) to understand the inner workings of Stan and provide higher-level examples, but I've found that they are often either too basic, or jump straight to the finished product without explaining the steps to get there. This tutorial is intended as a bridge to help get people from zero to working in Stan. Comments and suggestions are welcome!
 
 Bayesian analysis on its own has a number of appealing traits
 
@@ -552,7 +552,7 @@ Let's look at one stock in particular
 
 ```{r}
 
-sr_data <- read_csv(here::here("content","blog","data","rlsadb_v4.25_ssb_recruits.csv")) %>% 
+sr_data <- read_csv(here::here("data","rlsadb_v4.25_ssb_recruits.csv")) %>% 
   set_names(tolower)
 
 sal_data <- sr_data %>% 
