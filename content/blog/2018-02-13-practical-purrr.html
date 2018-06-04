@@ -321,10 +321,10 @@ mutate(both_na = map2_lgl(x,y, ~ is.na(.x) &amp; is.na(.y)))</code></pre>
 <pre><code>## # A tibble: 4 x 3
 ##       x     y both_na
 ##   &lt;dbl&gt; &lt;dbl&gt; &lt;lgl&gt;  
-## 1    1.    1. FALSE  
-## 2    1.   NA  FALSE  
-## 3   NA     1. FALSE  
-## 4   NA    NA  TRUE</code></pre>
+## 1     1     1 FALSE  
+## 2     1    NA FALSE  
+## 3    NA     1 FALSE  
+## 4    NA    NA TRUE</code></pre>
 <pre class="r"><code>nafoo &lt;- function(x,y){
   
 out &lt;- (is.na(x) &amp; is.na(y))
@@ -336,19 +336,19 @@ mutate(both_na = map2_lgl(x,y,nafoo))</code></pre>
 <pre><code>## # A tibble: 4 x 3
 ##       x     y both_na
 ##   &lt;dbl&gt; &lt;dbl&gt; &lt;lgl&gt;  
-## 1    1.    1. FALSE  
-## 2    1.   NA  FALSE  
-## 3   NA     1. FALSE  
-## 4   NA    NA  TRUE</code></pre>
+## 1     1     1 FALSE  
+## 2     1    NA FALSE  
+## 3    NA     1 FALSE  
+## 4    NA    NA TRUE</code></pre>
 <pre class="r"><code>z %&gt;%
 mutate(both_na = pmap_lgl(list(x = x,y = y), nafoo))</code></pre>
 <pre><code>## # A tibble: 4 x 3
 ##       x     y both_na
 ##   &lt;dbl&gt; &lt;dbl&gt; &lt;lgl&gt;  
-## 1    1.    1. FALSE  
-## 2    1.   NA  FALSE  
-## 3   NA     1. FALSE  
-## 4   NA    NA  TRUE</code></pre>
+## 1     1     1 FALSE  
+## 2     1    NA FALSE  
+## 3    NA     1 FALSE  
+## 4    NA    NA TRUE</code></pre>
 </div>
 </div>
 <div id="wrangling-lists" class="section level2">
@@ -900,24 +900,17 @@ test_data$fit &lt;- fits</code></pre>
 <p>There is also a new package called <a href="https://davisvaughan.github.io/furrr/"><code>furrr</code></a> which looks really promising. This allows you to run things in parallel by simply setting up a cluster and appending <code>future_</code> to your <code>map</code> call (leveraging the <a href="https://github.com/HenrikBengtsson/future"><code>future</code></a> package).</p>
 <pre class="r"><code>library(furrr)</code></pre>
 <pre><code>## Loading required package: future</code></pre>
-<pre class="r"><code>future::plan(multiprocess(workers = 2))
+<pre class="r"><code>future::plan(multiprocess(workers = 1))
 
 start &lt;- Sys.time()
 
 test_data &lt;- test_data %&gt;% 
   mutate(par_fits = future_map2(model, splits, ~lm(.x, data = rsample::analysis(.y)),.progress = T)
-)</code></pre>
-<pre><code>## 
- Progress: ───────────────────────                100%
- Progress: ─────────────────────────              100%
- Progress: ───────────────────────────            100%
- Progress: ───────────────────────────            100%
- Progress: ───────────────────────────            100%
- Progress: ──────────────────────────────────     100%
- Progress: ────────────────────────────────────── 100%
- Progress: ────────────────────────────────────── 100%</code></pre>
-<pre class="r"><code>Sys.time() - start</code></pre>
-<pre><code>## Time difference of 3.227449 secs</code></pre>
+)
+
+
+Sys.time() - start</code></pre>
+<pre><code>## Time difference of 1.925768 secs</code></pre>
 </div>
 <div id="miscellaneos-purrr" class="section level2">
 <h2>Miscellaneos <code>purrr</code></h2>

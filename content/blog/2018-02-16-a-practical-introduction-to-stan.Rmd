@@ -1,59 +1,51 @@
 ---
-title: A Practical Introduction to Stan
-author: Dan Ovando
-date: '2018-02-16'
+title: "A Practical Introduction to Stan"
+author: "Dan Ovando"
+date: '2018-06-03'
 slug: a-practical-introduction-to-stan
-categories:
-  - programming
-tags:
-  - stan
+tags: [R, Stan]
+categories: [Statistics]
 type: post
-draft: true
+bibliography: blog.bib
+biblio-style: apalike
 ---
-
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE, message = F, warning = F, cache = F)
 ```
 
-```{r, include= F}
+```{r, include=F}
 library(rstan)
 library(rstanarm)
 library(loo)
-library(patchwork)
-library(extrafont)
 library(tidyverse)
+library(patchwork)
+library(hrbrthemes)
+library(scico)
+plot_theme <- hrbrthemes::theme_ipsum(base_size = 14,
+                                      axis_title_size = 16)
 
-extrafont::loadfonts()
-
-theme_set(hrbrthemes::theme_ipsum(base_size = 18))
-
+theme_set(plot_theme)
 ```
 
 
 # What's Stan and Why Use It?
 
-Stan is a programming language designed to make statistical modeling easier and faster, especially for Bayesian estimation problems. Stan can help you estimate complex models with large numbers of parameters, and can generally do it faster than alternative like BUGS/JAGS. 
+Stan is a programming language designed to make statistical modeling easier and faster, especially for Bayesian estimation problems. Stan can help you estimate complex models with large numbers of parameters, and can generally do it faster than alternative like JAGS/BUGS 
 
-That all sounds good, but what why is that useful for me? Suppose you have a hierarchical ecological modeling problem with data clustered by space, time, and species, such as estimating the effect of ocean temperatures on coral growth. You can use Stan to fit that model (and it will likely be faster than BUGS/JAGS if you're already used to working in those platforms). Suppose just want to use informative priors to help fit a growth model. You can use Stan for that. Suppose you just prefer Bayesian analysis and want to run a simple multiple regression. Stan can do that. 
+That all sounds good, but why is that useful for me? Suppose you have a hierarchical ecological modeling problem with data clustered by space, time, and species, such as estimating the effect of ocean temperatures on coral growth. You can use Stan to fit that model (and it will likely be faster than BUGS/JAGS if you're already used to working in those platforms). Suppose just want to use informative priors to help fit a growth model. You can use Stan for that. Suppose you just prefer Bayesian analysis and want to run a simple multiple regression. Stan can do that. 
 
 The purpose of this document is not to illustrate or debate Bayesian analysis, but rather assumes a general knowledge and interest in model fitting, and instead seeks to provide a path to get started using Stan for the practical quantitative researcher. This is not a deep dive into the inner workings of Stan and model fitting - explanations and examples are designed to try and help people get the hang of using Stan. There are many great resources to understand the inner workings of Stan and provide higher-level examples; this is intended as a bridge to help get people there. 
-
-
-## Why Stan?
-
-If you do any kind of hierarchical modeling (which as ecologists basically everything we do is; e.g. analyzing coral populations across space and time), if you want to incorporate prior knowledge into a new analysis (e.g. other people's estimates of growth rates for a similar species), if you just have a gnarly model that something like `optim` can't handle, or if you just philosophically prefer Bayesian statistics, Bayesian analysis and Stan may be a great tool for you.
-
 
 Bayesian analysis on its own has a number of appealing traits
 
   - Forces you to very explicitly write out the error structure of your model and prior beliefs
   
-  - Credibility intervals mean that you think confidence intervals mean
+  - Bayesian credible intervals mean what we'd like Frequentist confidence intervals to mean
   
-  - Statistically sound method for building in prior knowledge
+  - Is a statistically sound way to use prior knowledge
   
-  - Gets you away from the (in my opinion) very confusing world of "fixed" vs "random" effects, since in a Bayesian world all parameters are random, and the question is just how you structure the priors on those parameters
+  - Gets you away from the (in my opinion) very confusing world of "fixed" vs "random" effects, since in a Bayesian world all parameters are random, and the question how you structure the priors on those parameters
   
   - Diagnostics are much more intuitive than the wild wilderness of Frequentist tests (IMO)
   
@@ -62,21 +54,22 @@ But like all things comes with tradeoffs
 
   - Computationally intensive (read: can take a lot longer to run, like hours or days compared to seconds to minutes)
   
-  - Requires careful thought on priors 
+  - Priors require careful thought
   
   - Unfamiliar reviewers might not like it (though you can and should push back on this one, but still, worth thinking about)
+
+I assume that if you're reading this you're already interested in using Bayesian tools in your analysis, if you want further information on the philosophy, mathematics, and usefulness of Bayesian methods I really recommend [Bayesian Models: A Statistical Primer for Ecologists](https://press.princeton.edu/titles/10523.html) by @Hobbs2015 and [Statiscial Rethinking: A Bayesian Course with Examples in R and Stan](http://xcelab.net/rm/statistical-rethinking/) by @McElreath2016. 
 
 ## How does Stan work?
 
 Stan is a programming language that allows you to write and fit models. It is also "compiled language", meaning that you have to write a model, then compile it to run it. This is unlike interpreted languages like R that let you more or less run code as you go. This can be a pain if you're not used to that sort of thing, but it helps make Stan much faster than saying writing the same model in R. We'll get into this later. 
 
 
-Stan's key feature are a series of tools for numerical model fitting, i.e. algorithms that help you can't be fit by analytical methods, or simpler algorithms like those behind `optim`. While Stan provides a few different mode fitting algorithms, we're going to focus on the Markov chain Monte Carlo (MCMC) based methods here. 
+Stan's key feature are a series of tools for numerical model fitting. While Stan provides a few different fitting algorithms, we're going to focus on the Markov Chain Monte Carlo (MCMC) based methods here. 
 
-MCMC's are an incredibly useful class of algorithms that can be used to fit complex models provide Bayesian inference to statistical problems. 
+MCMC's are an incredibly useful class of algorithms that can be used to fit complex models and provide Bayesian inference to statistical problems. 
 
 An MCMC works more or less like this
-
 
 1. Pick some initial parameters
 
@@ -86,14 +79,13 @@ An MCMC works more or less like this
 
 4. Accept or reject the new parameters by some function proportional to how much the new parameters improve the model fit.
 
-5. Repeat the process many many times 
+5. Repeat the process many many many times 
 
-This simple algorithm can be shown to always converge on an approximation of the posterior probability distribution of the model eventually. The challenge then is mostly in designing functions for selecting and accepting/rejecting new values that will help the algorithm converge in your lifetime. 
+This simple algorithm can be shown to always converge on an approximation of the posterior probability distribution of the model eventually. The challenge then is mostly in designing functions for selecting and accepting/rejecting new values that will help the algorithm converge in your (or the universe's) lifetime. 
 
-That's where Stan comes in. If you write the model, Stan has a number of built in algorithms for helping you use MCMC to fit and diagnose that model quickly and efficiently. It's beyond the scope of this article or my ability to explain perfectly how it does this, but @Monahan2016 provides a really great summary of the mathematics behind Stan's algorithms, that I will now butcher. 
+That's where Stan comes in. If you write the model, Stan has a number of built in algorithms for helping you use MCMC to fit and diagnose that model quickly and efficiently. It's beyond the scope of this article or my ability to explain exactly how it does this, but @Monnahan2016 provides a really great summary of the mathematics behind Stan's algorithms, that I will now butcher. 
 
-
-Stan makes use of two main tools to efficiently solve Bayesian problems:  Hamiltonian Monte Carlo (HMC) and the no-U-turn sampler (NUTS). A simple MCMC might choose a new parameter value by drawing from a multivariate normal distribution with means set as the last parameter values, with some tuned or supplied covariance matrix. This means that each new parameter value is likely to be highly correlated with the last parameter value, requiring you to draw a large number of samples and then "thin" the samples to create independent draws from the posterior. 
+Stan makes use of two main tools to efficiently solve Bayesian problems:  Hamiltonian Monte Carlo (HMC) and the no-U-turn sampler (NUTS). A simple MCMC might choose a new parameter value by drawing from a multivariate normal distribution centered on the last parameter value, with some tuned or supplied covariance matrix. This means that each new parameter value is likely to be highly correlated with the last parameter value, requiring you to draw a large number of samples and then "thin" the samples to create independent draws from the posterior. 
 
 HMC and NUTS works a little differently. The details are very complicated, and I recommend reading more on this if you're interested (see @Monnahan2016), but the good news is someone else worked out all the details so that you can use it! But it's good to have a rough sense of what's going on. 
 
@@ -103,13 +95,13 @@ This leaves really one key decision for the astronaut to make: how big should he
 
 There's a lot in here then, but to translate this back into practical terms, this means that for the most part, the only key decision that you, the analyst, needs to make in implementing the HMC/NUTS algorithm is what your target acceptance rate is. Stan then does the work for you of finding the right step size to achieve that target acceptance rate during it's "warmup" period. Once it's done with that, it enters the "sampling period", holding that same step size constant.
 
-We'll get into the implementation details of this later, but that gives a general idea of what's happening when you call Stan. This has a few really nice features. It's more efficient than say an MCMC, and the HMC process means that you don't have to thin anymore, since the HMC itself should more or less pick values that are largely independent of the last value (though this isn't always true, and sometimes some thinning is needed). This saves you that annoying step in other Monte-Carlo based approached of having to run a boatload of samples and then "waste" them by thinning them down (though HMC still discards a lot of steps in the process). But, it makes it much easier to set a target number of samples from the posterior. In addition, programs such as BUGs like to try and take advantage of Gibbs sampling to speed things up, which requires conjugate priors, giving you an incentive to select conjugate priors for your model. Unfortunately, nature is rarely so kind; we should pick distributions based off reasonable hypotheses about the state of the world, not computational efficient. Stan (i.e HMC) doesn't care at all whether you are using conjugate priors, encouraging you to find the right model, not the most mathematically convenient model. 
+We'll get into the implementation details of this later, but that gives a general idea of what's happening when you call Stan. This has a few really nice features. It's more efficient than say an MCMC, and the HMC process means that you don't have to thin anymore, since the HMC itself should more or less pick values that are largely independent of the last value (though this isn't always true, and sometimes some thinning is needed). This saves you that annoying step in other Monte-Carlo based approached of having to run a boatload of samples and then "waste" them by thinning them down (though HMC still discards a lot of steps in the process). But, it makes it much easier to set a target number of samples from the posterior. In addition, programs such as BUGs like to try and take advantage of Gibbs sampling to speed things up, which requires conjugate priors, giving you an incentive to select conjugate priors for your model. Unfortunately, nature is rarely so kind; we should pick distributions based off reasonable hypotheses about the state of the world, not computational efficiency. Stan (i.e HMC) doesn't care at all whether you are using conjugate priors, encouraging you to find the right model, not the most mathematically convenient model. 
 
 So, this all means that you can focus on writing your model, and leave the complicated tuning and running of HMC to NUTS. 
 
 ## A Note on Divergences
 
-HMC uses a process called the "leapfrog integrator" to draw a sketch of the posterior probability surface, since for all but the most trivial model cases there is no analytical solution. The nice thing is, failures in this integrator are identified by "divergences", which basically mean that the sampler has deviated from that energy isocline we talked about before. So, the model is going along at say an average energy of 10, and then all of a sudden goes to 20, 40, 100, etc. This tells NUTS that something has gone wrong, and it abandons ship. This can be a sign of two things. Either you just need to decrease the step size (which you do by increasing the target acceptance rate), or it can be a sign that there's a problem in the design of your model. In the later case, this can sometimes be solved by just reparameterizing your model (which we'll touch on later), but in other cases can be a sign of a fundamental problem in your model (e.g. a population model that goes negative and as a result produces Inf or NA values in your posterior probability). 
+HMC uses a process called the "leapfrog integrator" to draw a sketch of the posterior probability surface, since for all but the most trivial model cases there is no analytical solution. The nice thing is, failures in this integrator are identified by "divergences", which basically mean that the sampler has deviated from that energy isocline we talked about before. So, the model is going along at say an average energy of 10, and then all of a sudden goes to 20, 40, 100, etc. This tells NUTS that something has gone wrong, and it abandons ship. This can be a sign of two things. Either you just need to decrease the step size (which you do by increasing the target acceptance rate), or it can be a sign that there's a problem in the design of your model. In the later case, this can sometimes be solved by just reparametrizing your model (which we'll touch on later), but in other cases can be a sign of a fundamental problem in your model (e.g. a population model that goes negative and as a result produces Inf or NA values in your posterior probability). 
 
 Understanding and dealing with divergences is a bit of an art, but it's important to note that Stan will warn you if divergences pop up, and it's something you have to look into. Divergences mean that the model didn't correctly survey the posterior probability and so your results may by suspect. 
 
@@ -145,7 +137,7 @@ model{
 
 ```
 
-You need to pre-allocate space for any variable that you include in your model, by declaring its type and its size. These declarations need to all happen at the start of each block. Stan uses what is called "Strong typing", meaning basically that it is very strict in terms of what you can do to different kinds of data, and if you try and treat say an array of real numbers like a vector of real numbers it will blow up. 
+You need to preallocate space for any variable that you include in your model, by declaring its type and its size. These declarations need to all happen at the start of each block. Stan uses what is called "Strong typing", meaning basically that it is very strict in terms of what you can do to different kinds of data, and if you try and treat say an array of real numbers like a vector of real numbers it will blow up. 
 
 So, to start with our data section. Suppose we have *N* observations of *Y* data, where N is an integer (the number of observations), and Y is a vector of real numbers. We would declare those like 
 
@@ -166,7 +158,7 @@ This tells Stan that we have an integer object N, and we have a vector Y of leng
 
 Notice that like C++, every statement needs to be closed with a semi-colon `;`, and that comments are marked by `\\`. 
 
-You can also declare arrays using a slightly different syntax
+You can also declare arrays using a very confusing different in structure
 
 ```{stan, eval = F, output.var="dataex"}
 
@@ -257,6 +249,21 @@ z = x[1:5] .* y[1:5];
 
 As does this
 
+
+```{stan, eval = F, output.var="dataex"}
+
+vector[10] x;
+
+vector[10] y;
+
+vector[5] z;
+
+z = x[1:5] .* y[1:5];
+
+```
+
+As does this
+
 ```{stan, eval = F, output.var="dataex"}
 
 vector[10] x;
@@ -267,16 +274,16 @@ int i[5];
 
 vector[5] z;
 
-i = {1,2,3,4,7};
+i = {1,2,3,4,7}
 
 z = x[i] .* y[i];
 
 ```
 
 
-If your code seems like it should be working and it's not, 9 times out of 10 it's a problem with these kinds of things (e.g. trying to multiply an array times a vector). One nice feature of running models through Rstudio is if you open up your `.stan` script in RStudio, inside the IDE there's a little "check" button in the right-hand corner of the script that will catch a lot of that stuff. It won't always tell you where the problem is, but it will let you know that your .stan file won't run as written. 
+If things seem like they should be working and they're not, 9 times out of 10 it's a problem with these kinds of things (e.g. trying to multiply an array times a vector). One nice feature of running models through Rstudio is if you open up your `.stan` script in Rstudio, inside the IDE there's a little "check" button in the right-hand corner of the script that will catch a lot of that stuff. It won't tell you where the problem is, but it will let you know that your .stan file won't run as written. 
 
-There are a ton of other details out there in terms of structuring and manipulating data, and you can see chapters 3 and 4 of the official [Stan documentation](http://mc-stan.org/users/documentation/) for very detailed descriptions, but these examples should get you started with the kinds of operations most of us do. 
+There are a ton of other details out there in terms of structuring and manipulating data, and you can see chapters 3 and 4 of the official Stan documentation for very detailed description, but these examples should get you started with the kinds of operations most of us do. 
 
 One other feature worth calling out for a moment is Stan's ability to set bounds on just about anything. For example, suppose you have data *x* that you know can only be positive. You can let Stan know this by `<lower = 0>`
 
@@ -300,7 +307,7 @@ This lets stan know that X is defined on the range `[0, Inf]`
 
 If x has a positive constraint, say 100, you guessed it `<lower = 0, upper = 100>`
 
-When declared in the `data` block this isn't all that useful, beside causing Stan to crash if you accidentally pass data in violation of the constraints (which can be handy as a check that you haven't messed something up in your R script that prepares the data). 
+When declared in the `data` block this isn't all that useful, beside causing Stan to crash if you accidentally pass data in violation of the constraints (which can be handy as a check that you haven't messed something up in you R script that prepares the data). 
 
 Where the bounds get really useful is in the `parameters` block. For example, suppose we are estimating a standard deviation $\sigma$. We know that $\sigma$ has to be positive. So, we could do something like estimate $log(\sigma)$ and then use $exp(log(\sigma))$ in our model. 
 
@@ -339,11 +346,7 @@ There are a few ways to do this, but for now we'll stick with generally preferre
 
 So in the above example, we are saying that parameter $\sigma$ come from a normal distribution with mean 0 and standard deviation 2. Stan has support for all kinds of different distributions, and you should see the documentation for descriptions and notes on the meaning of different distribution parameters. 
 
-
-## Conditional statements
-
 Lastly, we should touch on `for`, `while`, and `if` statements. These all work more or less the same as they do in R, thankfully. 
-
 
 
 ```{stan, eval = F, output.var="dataex"}
@@ -388,14 +391,14 @@ Notice the use of `print` there. `print` is a great way to see what's going on i
 
 ## A Note on Priors
 
-Setting priors is an art and a science that goes well beyond anything we can discuss here, and there are lots of resources out there to help you on this. You'll notice though that Stan doesn't force you to specify priors, so it can be tempting to say "hey, I like Stan, but priors scare me, so I just won't specify any". By default though, any parameter that isn't supplied a specific prior gets assigned a uniform prior on the range $[-\infty, \infty]$, which might seem innocuous, but is not in fact an uninformative prior (in fact nothing may technically be), especially if your model is not actually defined along that range (e.g. if your parameter can only be positive). 
+Setting priors is an art and a science that goes well beyond anything we can discuss here, and there are lots of resources out there to help you on this [I recommend @Hobbs2015,  @McElreath2016, and @Gelman2013 as a foundation]. You'll notice though that Stan doesn't force you to specify priors, so it can be tempting to say "hey, I like Stan, but priors scare me, so I just won't specify any". By default though, any parameter that isn't supplied a specific prior gets assigned a uniform prior on the range $[-\infty, \infty]$, which might seem innocuous, but is not in fact an uninformative prior (in fact nothing may technically be), especially if your model is not actually defined along that range (e.g. if your parameter can only be positive).  
 
-As such, while Stan won't force you to do it, you should always take the time to think carefully about your priors and test the affect of your choices on your model outcomes. At the very least remember that not choosing a prior implicitly still chooses a prior. 
+While Stan won't force you to do it, you should always take the time to think carefully about your priors and test the affect of your choices on your model outcomes. 
 
 So, that's a small look at the key features of writing Stan code. There's a ton more out there, but those are the basic tools for most coding. Feel free to play around with the `scratch.stan` file to test out different behaviors. 
 
 
-```{r, eval = F}
+```{r, results = "hide"}
 
 beta <- 0.2
 
@@ -408,12 +411,13 @@ data <- list(y = x * beta + rnorm(length(x), 0, sigma), n = length(x), x = x,
 
 plot(x,data$y)
 
-scratch <- stan(file = here::here('scripts', 'scratch.stan'),
+scratch <- stan(file = here::here('src', 'scratch.stan'),
                 iter = 2000, 
                 warmup = 1000,
                 data = data)
 
 plot(scratch)
+
 ```
 
 
@@ -421,20 +425,18 @@ plot(scratch)
 
 Now that you've hopefully developed a general idea of what Stan is and why you might like to use it, we're going to dig into actual using it. 
 
-This is just generally good practice: before you start frantically coding you should sit down and write out your model. @Hobbs provides a great introduction on how to do this if you're not familiar with the process. 
+This is just generally good practice: before you start frantically coding you should sit down and write out your model. @Hobbs2015 provides a great introduction on how to do this if you're not familiar with the process. 
 
-You can certainly do your entire analysis in Stan by itself. However, every language has it's purpose, and the purpose of Stan is not fast and easy data manipulation. The good news is that Stan has clean interfaces with other programming languages like R and Python, allowing you to do a lot of the complex data manipulation in languages better suited to those tasks. You can then pass your processed data to Stan to do the model fitting, and then analyze your results back in say R. 
+You can certainly do your entire analysis in Stan by itself. However, every language has it's purpose, and the purpose of Stan is not fast and easy data manipulation. The good news is that Stan easily interfaces with other programming languages like R and Python, allowing you to do a lot of the complex data manipulation in languages better suited to those tasks. You can then pass your processed data to Stan to do the model fitting, and then analyze your results back in say R. 
 
-The most useful way to write a Stan model is in its own file, with the extension `.stan`. For the purposes of this blog, I'm going to embed the Stan code as chunks in the .Rmd though
-
-
-We'll learn the basics of Stan by working trying to fill in this model one step at a time, using the fitting of a Beverton-Holt stock-recruitment relationship as an example. 
+We'll now work through the process of using R and Stan to fit a model predicting the number of young fish (recruits) produced by a given amount of adult fish (spawning biomass). This type of model is generally called a stock-recruitment model, and is a core part of fisheries management. For our purposes though, it's a handy way to see how to fit a non-linear model in R and Stan. 
 
 ## Write your model
 
-We are going use data from the RAM Legacy Stock Assessment Database to try and fit a Beverton-Holt stock recruitment relationship using the steepness parameterization from @Dorn2002 (for reasons that will become apparent). 
+We are going use data from the [RAM Legacy Stock Assessment Database](http://ramlegacy.org/) to try and fit a Beverton-Holt stock recruitment relationship using the steepness parameterization from @Dorn2002 (for reasons that will become apparent). 
 
-To back up, a stock recruit relationship's job is to say, for a given amount of observed spawning biomass in a fishery, how many new fish (recruits) enter the population.
+To back up, a stock recruit relationship's job is to say, for a given amount of observed spawning biomass (*SSB*) in a fishery, how many new fish (recruits, *R*) enter the population. 
+
 
 We can write a general BH model by
 
@@ -442,7 +444,7 @@ $$ R = \frac{\alpha{SSB}}{1 + \beta{SSB}}$$
 
 Where SSB is spawning stock biomass (the biomass of reproductively mature fish in the population),  $\alpha$ is the maximum average number of recruits (new fish) possible in the population, and $\beta$ is the amount of SSB needed to produce on average $\alpha{/2}$
 
-```{r, echo = F}
+```{r, echo = F, fig.cap= "Example Beverton-Holt stock recruitmenet relationship (black line), red line shows beta"}
 
 alpha <- 100
 
@@ -451,14 +453,17 @@ beta <- 200
 data_frame(ssb = 0:1000) %>% 
   mutate(recruits = alpha * ssb / (beta + ssb)) %>% 
   ggplot(aes(ssb, recruits)) + 
-    geom_vline(aes(xintercept = beta), color = 'red') + 
-  geom_hline(aes(yintercept = alpha / 2), color = 'blue') +
-  geom_line()
+  geom_line() + 
+  geom_vline(aes(xintercept = beta), color = 'red') 
+  # geom_hline(aes(yintercept = alpha / 2), color = 'blue')
+
+
 
 ```
 
 
-The problem here is that $\beta$ is obviously very specific to each species, making it difficult to really say much about the resilience of a species based on that parameter. To that end @Mace1988 provided a reparameterization of the BH equation using a term called "steepness" (*h*), which is the slope of the stock-recruitment when SSB is 20% of max (i.e. unfished) SSB. This allows for species with vastly different stock sizes to be compared in terms of their steepness, with species with higher values of steepness being more resilient to fishing than those with lower steepness
+The problem here is that $\beta$ is obviously very specific to each species, making it difficult to really say much about the resilience of a species based on that parameter. To that end Mace & Doonan 1988 provided a reparameterization of the BH equation using a term called "steepness" (*h*), which is the slope of the stock-recruitment curve when SSB is 20% of max (i.e. unfished) SSB. This allows for species with vastly different stock sizes to be compared in terms of their steepness, with species with higher values of steepness being more resilient to fishing than those with lower steepness
+
 
 $$ \frac{0.8(\alpha){(h){{SSB}}}}{0.2 (\alpha)(1 - h) + (h - 0.2)SSB}$$
 
@@ -491,28 +496,14 @@ Our goal then is going to be to try and estimate steepness and $\alpha$ for some
 
 ## Examine spawning and recruitment data
 
+Let's look at one stock in particular 
+
 
 ```{r}
 
-sr_data <- read_csv("rlsadb_v4.25_ssb_recruits.csv") %>% 
+sr_data <- read_csv(here::here("data","rlsadb_v4.25_ssb_recruits.csv")) %>% 
   set_names(tolower)
 
-sr_plots <- sr_data %>%
-  select(stockid, stocklong, r, ssb) %>% 
-  na.omit() %>% 
-  nest(-stockid, -stocklong) %>% 
-  mutate(sr_plot = map(data, ~ ggplot(.x,aes(ssb,r)) + 
-  geom_point()))
-
-# trelliscopejs::trelliscope(sr_plots, name = 'sr_plots', panel_col = 'sr_plot', self_contained = TRUE)
-
-```
-
-
-First, let's take a look at the spawner-recruit data for one stock in particular 
-
-
-```{r}
 sal_data <- sr_data %>% 
   filter(stockid == 'PSALMAKPSWUD') %>% 
   select(stocklong, year, ssb, r) %>% 
@@ -520,11 +511,12 @@ sal_data <- sr_data %>%
 
 sal_data %>% 
   ggplot(aes(ssb, r)) + 
-  geom_point()
+  geom_point() + 
+  labs(x = "SSB", y = "Recruits")
 
 ```
 
-So, there seems to be a relationship, but it's messy. Our goal now will be to use Stan to estimate a BH model for this stock. 
+So, there seems to be a relationship between SSB and R, but it's messy. Our goal now will be to use Stan to estimate a BH curve for this stock. 
 
 Let's start by writing out the model for this model. We have three parameters we need to estimate, steepness *h*, maximum recruitment $\alpha$, and some error term $\sigma$. 
 
@@ -534,18 +526,17 @@ $$[\alpha,h,\sigma | r] \propto [ r | \alpha,h,\sigma][\alpha][h][\sigma]  $$
 
 Where *r* are our recruitment data. That's just a conceptual framework for the model; we can write it more clearly by specifying the model in terms of distributions. 
 
-$$[\alpha,h,\sigma | r] \propto normal( log(r) | bh(h,\alpha),\sigma) * unif(h|0.2,1) * normal(\alpha|10*max(r),0.1*max(r)) * cauchy(\sigma|0,5)$$
+$$[\alpha,h,\sigma | r] \propto normal( log(r) | bh(h,\alpha),\sigma) * unif(h|0.2,1) * normal(\alpha|10*max(r),0.1*max(r)) * cauchy(\sigma|0,2.5)  $$
 
-In English, this says that we believe that recruitment is a log-normal process, while specifying some plausible priors for our other parameters. E.g. we know that *h* has to be between 0.2 and 1, and it's reasonable to think that max recruitment is something larger than the largest recruitment ever observed (**much more care needs to be taken in prior construction, this is just an example**) 
+In English, this says that we believe that recruitment is a log-normal process, while specifying appropriate priors for our other parameters. E.g. we know that *h* has to be between 0.2 and 1, and it's reasonable to think that max recruitment is something larger than the largest recruitment ever observed (**much more care needs to be taken in prior construction, this is just an example**) 
 
-
-Easiest way to think about the log normal distribution is a normal distribution with a cv instead of a sigma. So, you can just calculate the cv for your data and that should be sigma in log space 
+<!-- Easiest way to think about the log normal distribution is a normal distribution with a cv instead of a sigma . So, you can just calculate the cv for your data and that can give you an idea of a reasonable prior on sigma in log space  -->
 
 ## Write our Stan Model
 
-Now that we know what we need to model, we just have to code it. We'll work step by step through this process now over in "scripts/bh_model.stan". 
+Now that we know what we need to model, we just have to code it. The model is below (though note that I store the actual `.stan` file in `src/bh_model.stan`)
 
-```{stan, output.var = "bhmodel"}
+```{stan,eval = F, output.var = "bh_model"}
 
 data{
 
@@ -574,7 +565,7 @@ real<lower = 0.2, upper = 1> h; //steepness
 
 real<lower = 0> alpha; // max recruitment
 
-real<lower = 0> sigma; // standard deviation of recruitment
+real<lower = 0> sigma; // recruitment standard deviation 
 
 
 }
@@ -584,7 +575,7 @@ vector[n] rhat;
 
 vector[n] log_rhat;
 
-rhat = (0.8 * alpha * h * ssb) ./ (0.2 * alpha * (1 - h) +(h - 0.2) * ssb);
+rhat = (0.8 * alpha * h * ssb) ./ (0.2 * alpha * (1 - h) +(h - 0.2) * ssb); // beverton holt model
 
 log_rhat = log(rhat);
 
@@ -593,11 +584,11 @@ log_rhat = log(rhat);
 
 model{
 
-log_r ~ normal(log_rhat - 0.5 * sigma^2, sigma);
+log_r ~ normal(log_rhat - 0.5 * sigma^2, sigma); //account for retransformation bias
 
 sigma ~ cauchy(0,2.5);
 
-alpha ~ normal(2*max_r, 0.1*2*max_r);
+alpha ~ normal(2*max_r, 0.2*max_r);
 
 }
 
@@ -607,7 +598,7 @@ generated quantities{
 
   for (i in 1:n) {
 
-   pp_rhat[i] = exp(normal_rng(log_rhat[i] - 0.5 * sigma^2, sigma));
+   pp_rhat[i] = exp(normal_rng(log_rhat[i] - 0.5 * sigma^2, sigma)); // generate posterior predictives
 
   }
 
@@ -617,31 +608,25 @@ generated quantities{
 ```
 
 
-One confusing thing about the model block. For those of us that come from a population modeling background (or maybe just me), the term "model" implies the structure you use to simulate say a population (e.g. a logistic model). So, my inclination was to put these structures in the `model` block. This works, but has some undesirable properties, namely that things in the model block don't get automatically reported. So, if you want to see the vector of predicted population numbers from a model, you'd have to get your parameters from and 
+Now that we have our `.stan` file written, we just need to pass out data to it and fit the model. the `rstan` package makes it really easy to interface between R and Stan. 
+The first step is passing data from the R environment to Stan. You remember our `DATA` block in our `.stan` file? We simply need to pass create a list in R containing named objects matching each of the entries in our `DATA` block. 
 
+Once we've done that, we use the Stan function to fit our model. 
 
-Now that we have our `.stan` file written, we just need to pass out data to it and fit the model. the `rstan` package makes it really easy to interface between `R` and `Stan`. 
-
-The first step is passing data from the `R` environment to `Stan`. You remember our `DATA` block in our `.stan` file? We simply need to pass create a list in `R` containing named objects matching each of the entries in our `DATA` block. 
-
-Once we've done that, we use the `stan` function to fit our model. 
-
-There are a few options that are important to specify in the call to `stan`
+There are a few options that are important to specify in the call to Stan
 
   - The `file` entry specifies the path to the `.stan` file containing your model
   
   - `data` is your list of data 
   
-  - `chains` specifies the number of chains used in the model fitting. Any actual model run should contain multiple chains to verify convergence, but you can start with one chain for diagnostics. If you have more than one chain, by default `stan` will run them one after another, so if your model takes a long time this can be daunting. However, you can also specify `cores`. If you set `cores` to more than 1, then `Stan` will run each chain in parallel on different cores. So, if you specify 4 chains and 4 cores, each chain will be run simultaneously on separate cores, so your run time should be about the same as 1 chain on 1 core
+  - `chains` specifies the number of chains used in the model fitting. Any actual model run should contain multiple chains to verify convergence, but you can start with one chain for diagnostics. If you have more than one chain, by default Stan will run them one after another, so if your model takes a long time this can be daunting. However, you can also specify `cores`. If you set `cores` to more than 1, then Stan will run each chain in parallel on different cores. So, if you specify 4 chains and 4 cores, each chain will be run simultaneously on separate cores, so your run time should be about the same as 1 chain on 1 core
   
   - `warmup` is the number of model iterations dedicated to burn-in/tuning/whatever you want to call it. This number defaults to half of `iter` (the total number of model iterations), but if you start to do large iteration runs (e.g. 20,000), there isn't necessarily a need to do 10,000 warmup runs. If you've tested your model on lower iterations and diagnostics look good with say 1,000 warmup runs, there shouldn't be any problem with leaving warmup at 1,000 and setting iterations to 20,000; it just gives you a lot more samples to play with. 
   
- - `init` allows you to pass initial parameter values for each chain. This is optional, but can help **A LOT**. By default, `Stan` randomly draws numbers between -2 and 2 for initial values for each parameter. This works if you're model is reasonably centered. But, if you're working in a situation where parameters can vary wildly from that (say estimating carrying capacity for a population), this range is going to be a really bad guess if the true parameter value is in the millions. If your model is correctly written, `Stan` will get to the right result eventually, but it will take a lot longer if you feed it a really poor starting guess. There are a few different ways to set `init`, I'm just going to cover passing explicit starting guesses. `init` must by a list of list, of the general form `list(chain_1 = list(h = 0.2), chain_2 = list(h = 0.8))`. The inner lists contain are names objects for any parameters in the model. In this case, I have a parameter named `h` in the model, and I'm going to specify an initial guess of `h` at 0.2 for the first chain, and 0.8 for the second chain. It is very important if you are manually specifying starting guesses to have different initial values for your parameters, since a test of model convergence is whether or not different chains initiated at different values reach the same result. Any parameters you do not manually specify a starting guess for `stan` goes back to the default random number between -2 and 2
- 
+ - `init` allows you to pass initial parameter values for each chain. This is optional, but can help **A LOT**. By default, Stan randomly draws numbers between -2 and 2 for initial values for each parameter. This works if you're model is reasonably centered. But, if you're working in a situation where parameters can vary wildly from that (say estimating carrying capacity for a population), this range is going to be a really bad guess if the true parameter value is in the millions. If your model is correctly written, Stan will get to the right result eventually, but it will take a lot longer if you feed it a really poor starting guess. There are a few different ways to set `init`, I'm just going to cover passing explicit starting guesses. `init` must by a list of list, of the general form `list(chain_1 = list(h = 0.2), chain_2 = list(h = 0.8))`. The inner lists contain are names objects for any parameters in the model. In this case, I have a parameter named `h` in the model, and I'm going to specify an initial guess of `h` at 0.2 for the first chain, and 0.8 for the second chain. It is very important if you are manually specifying starting guesses to have different initial values for your parameters, since a test of model convergence is whether or not different chains initiated at different values reach the same result. Any parameters you do not manually specify a starting guess for Stan goes back to the default random number between -2 and 2
  
 
-
-```{r, message=F, warning=F}
+```{r, message=F, warning=F, include = F, results = "hide"}
 
 warmups <- 1000
 
@@ -653,13 +638,15 @@ n_chains <-  4
 
 n_cores <- 1
 
+adapt_delta <- 0.95
+
 data <- list(n = nrow(sal_data),
                r = sal_data$r,
              ssb = sal_data$ssb,
                max_r = max(sal_data$r)
              )
 
-bh_fit <- rstan::sampling(bhmodel,
+bh_fit <- stan(file = here::here("src","bh_model.stan"),
                  data = data,
                  chains = n_chains,
                  warmup = warmups,
@@ -671,44 +658,8 @@ bh_fit <- rstan::sampling(bhmodel,
                              list(h = 0.8, alpha = 1 * data$max_r),
                              list(h = 0.3, alpha = .8 * data$max_r)),
                  control = list(max_treedepth = max_treedepth,
-                                adapt_delta = 0.95))
+                                adapt_delta = adapt_delta))
 
-
-```
-
-And there we go, we have a model fit! Note, when you're running `stan` from a saved `.stan` file, the format is a little different. Suppose that you have your model saved in `scripts/bhmodel.stan`. In this case, it's a bit easier to fir the model use the `stan` call instead of the `sampling` call. This would look like
-
-```{r, eval = F}
-
-warmups <- 1000
-
-total_iterations <- 2000
-
-max_treedepth <-  10
-
-n_chains <-  4
-
-n_cores <- 1
-
-data <- list(n = nrow(sal_data),
-               r = sal_data$r,
-             ssb = sal_data$ssb,
-               max_r = max(sal_data$r)
-             )
-
-bh_fit <- rstan::stan(file = "scripts/bhmodel.stan",
-                 data = data,
-                 chains = n_chains,
-                 warmup = warmups,
-                 iter = total_iterations,
-                 cores = n_cores,
-                 refresh = 250,
-                 init = list(list(h = 0.4, alpha = 2 * data$max_r),
-                             list(h = 0.21, alpha = 3 * data$max_r),
-                             list(h = 0.8, alpha = 1 * data$max_r),
-                             list(h = 0.3, alpha = .8 * data$max_r)),
-                 control = list(max_treedepth = max_treedepth,
-                                adapt_delta = 0.95))
 ```
 
 
@@ -716,9 +667,9 @@ bh_fit <- rstan::stan(file = "scripts/bhmodel.stan",
 
 Now that we have a model run, it's time to examine our fits. 
 
-In my opinion, `rstanarm::launch_shinystan` is by far the best way to do this. The folks at `Stan` built a pretty amazing interface (`shinystan`) that automatically puts together a wide array of numeric and graphical diagnostics that they recommend running on `Stan` models. 
+In my opinion, `rstanarm::launch_shinystan` is by far the best way to do this. The folks at Stan built a pretty amazing interface (`shinystan`) that automatically puts together a wide array of numeric and graphical diagnostics that they recommend running on Stan model. 
 
-To get started, I recommend running `?launch_shinystan` and taking a look at their examples to get a feel for what it can do. 
+I recommend running `?launch_shinystan` and taking a look at their examples to get a feel for what it can do. 
 
 ```{r, eval = F}
 
@@ -726,9 +677,10 @@ rstanarm::launch_shinystan(bh_fit)
 
 ```
 
-However, we might also want to be able to run some important diagnostics from within R, either for model comparison or inclusion in reports/publications, so we'll now look at use the fitted `stan` model in R. 
+However, we might also want to be able to run some important diagnostics from within R, either for model comparison or inclusion in reports/publications, so we'll now look at use the fitted Stan model in R. 
 
-Calling `stan`/`sampling` creates an object of class `stanfit`
+
+Calling Stan creates an object of class `stanfit`
 
 ```{r}
 
@@ -740,24 +692,22 @@ class(bh_fit)
 
 ```{r}
 
-summary(bh_fit,maxsum = 5) %>% 
-  str()
+summary(bh_fit)$summary %>% head()
 
 ```
 
 The plot command is a great way to get a first glance at your fits
 
 ```{r}
-plot(bh_fit) + theme_light()
+plot(bh_fit)
 ```
 
-Before we look at using our model though, let's take a look at a few diagnostics to try to evaluate our model fit. **DISCLAIMER** You should put a lot more thought and effort in model model diagnosis in real cases, this is just an example of accessing some of the starting points in this process. 
+Before we look at using our model though, let's take a look at a few diagnostics to try to evaluate our model fit. **DISCLAIMER** You should put a lot more thought and effort in model model diagnosis in real cases, this is just an example of accessing some of the starting points in this process. And, all of these diagnostics are produced by `shinystan`, but it's handy to know how to access these things on your own (and I'd rather not have to take a bunch of screenshots for this blog-post)
 
 The first thing we can check is for the presence of "divergent" transitions (see earlier section for a reminder on what these are). Divergent transition during the sampling period of your model (the iterations after the burn-in) are sign that there maybe a problem with your model. We'll talk about dealing with these later, but for now here's how to see if they happened. 
 
 
 `rstan` has a few functions to check these things
-
 
 ```{r}
 
@@ -765,8 +715,7 @@ rstan::check_divergences(bh_fit)
 
 ```
 
-
-We can also look manually at these diagnostics using the output of `rstan::get_sampler_params`. `get_sampler_params` returns a list with one object per chain. Each object is a matrix showing diagnostics of each of the stored iterations from the model fitting (by default `get_sampler_params` includes the warmup iterations, you can set the option `inc_warmpup = FALSE` to omit these from the report if you want)
+We can also look manually at these diagnostics using the output of `rstan::get_sampler_params`. `get_sampler_params` returns a list with one object per chain. Each object is a matrix showing diagnostics of each of the stored iterations from the model fitting (by default `get_sampler_params` includes the warmup iterations, you can set the option `inc_warmpup = FALSE` to omit these from the report if you want). I prefer to wrangle things into `tibbles` for analysis (you can check out my [introduction to `purrr`](http://www.weirdfishes.blog/blog/practical-purrr/) if these steps are confusing to you)
 
 ```{r extract-diagnostics}
 
@@ -784,13 +733,13 @@ mack_diagnostics %>%
   summarise(percent_divergent = mean(divergent__ >0)) %>% 
   ggplot() +
   geom_col(aes(chain, percent_divergent, fill = warmup), position = 'dodge', color = 'black') + 
-  scale_y_continuous(labels = scales::percent)
+  scale_y_continuous(labels = scales::percent, name = "% Divergent Runs") 
 
 ```
 
 We see then that across all chains,  we had no divergences during the sampling period (after the warm-ups), which is what we want to see!
 
-`treedepth` is another really important thing to take a look at. Remember how the HMC algorithm works (more or less). Ideally, a new candidate draw from the parameter space is selected from a place where the likelihood bends back on itself. If you think of the posterior probability space like a circular racetrack, the sampler is a runner on that racetrack. The runner starts off on the left side of the track and starts running north, goes around the bend, and then starts running south. The HMC algorithm would stop and try a new parameter at that point, where the runner has fully turned around. So that sounds great if you've got a small track to run on. Suppose though that you are on a 10,000 mile track. Your runner is going to have to run a looooong way before things start to bend around. Or, suppose your runner is on a straight line, the runner is never going to turn around, and so the HMC algorithm would just keep running forever! That's where the `max_treedepth` option comes in. HMC will select a candidate parameter value when the parameter space bends back on itself OR when the number of steps specified by `max_treedepth` is reached. Basically, if the algorithm gets to `max_treedepth`, the runner says "phew, I'm tired, I'm stopping here", evaluates that point, and then tries again for another iteration. 
+`treedepth` is another really important thing to take a look at. Remember how the HMC algorithm works (more or less). Ideally, a new candidate draw from the parameter space is selected from a place where the likelihood surface bends back on itself. If you think of the posterior probability space like a circular racetrack, the sampler is a runner on that racetrack. The runner starts off on the left side of the track and starts running north, goes around the bend, and then starts running south. The HMC algorithm would stop and try a new parameter at that point, where the runner has fully turned around. So that sounds great if you've got a small track to run on. Suppose though that you are on a 10,000 mile track. Your runner is going to have to run a looooong way before things start to bend around. Or, suppose your runner is on a straight line, the runner is never going to turn around, and so the HMC algorithm would just keep running forever! That's where the `max_treedepth` option comes in. HMC will select a candidate parameter value when the parameter space bends back on itself OR when the number of steps specified by `max_treedepth` is reached. Basically, if the algorithm gets to `max_treedepth`, the runner says "phew, I'm tired, I'm stopping here", evaluates that point, and then tries again for another iteration. 
 
 By default, `max_treedepth` is set to 10. So, we should check and make sure that our model isn't bumping up against `max_treedepth` a bunch. If it is, that means that the model is selecting candidate draws based on hitting this cap, rather than properties of the posterior probability. 
 
@@ -805,10 +754,9 @@ mack_diagnostics %>%
 ```
 
 
-Looks like we're good, the treedepth of each all of our iterations was below the max_treedepth.
+Looks like we're good, the treedepth of each all of our iterations was below the max_treedepth, meaning that Stan was selected the parameters for that iteration. 
 
-If you're curious, you can also examine the warmup process through the `stepsize` parameter. `Stan` uses the warmup period to tune the `stepsize` parameter to achieve a target acceptance rate (specified by `adapt_delta`). You can think of stepsize like resolution. A big `stepsize` means the model will quickly cover the entire picture of the posterior, but the picture will be really fuzzy, and if the posterior probability surface has important fine scale variation, the model will miss them. A really small stepsize will produce a really high resolution picture, but it will wake a lot longer to make that picture. So, a great feature of `stan` is it uses this target acceptance rate to find the right stepsize for the model.
-
+If you're curious, you can also see the warmup process through the `stepsize` parameter. Stan uses the warmup period to tune the `stepsize` parameter to achieve a target acceptance rate (specified by `adapt_delta`). You can think of stepsize like resolution. A big `stepsize` means the model will quickly cover the entire picture of the posterior, but the picture will be really fuzzy, and if the posterior probability surface has important fine scale variation, the model will miss them. A really small stepsize will produce a really high resolution picture, but it will wake a lot longer to make that picture. So, a great feature of Stan is it uses this target acceptance rate to find the right stepsize for the model. You can see this process play out by plotting the stepsize as the model tunes itself during the warmup period (first `r warmups` iterations). 
 
 ```{r}
 
@@ -818,15 +766,16 @@ mack_diagnostics %>%
 
 ```
 
-There are many more diagnostics for the actual sampler, but those are two of the really critical ones. Just because the divergences and treedepth look good doesn't mean that your model doesn't have problems that deeper diagnostics would reveal, but seeing problems in those two diagnostics should give you a huge red flag right off the bat. 
 
-You can test these things by changing the `control` options in your call to `stan`. Try for example setting `adapt_delta = 0.5` or `max_treedepth = 2`. You'll see that you start to develop divergences in the first case, since in order to achieve that target acceptance rate `stan` sets the stepsize quite large, meaning that you miss important parts of the parameter space and create divergences. In the second case you'll start to see that the treedepth start so bump up against the `max_treedepth`. 
+There are many more diagnostics for the actual sampler, but those are a few of the really critical ones. Just because the divergences and treedepth look good doesn't mean that your model doesn't have problems that deeper diagnostics would reveal, but seeing problems in those two diagnostics should give you a huge red flag right off the bat. 
 
-While these are extreme examples, this also gives an idea of a first step at fixing these problems if they pop up: if you fit a model and you get divergences, the first thing you can try is to increase `adapt_delta` (in fact, `Stan` will suggest as much to you if this happens). If you're bumping up against `max_treedepth`, increase `max_treedepth`! If either of these don't solve the problem, then you'll need to start think about the specification of your model, which we'll cover a little later. Note though that both increasing `adapt_delta` and `max_treedepth` can dramatically increase your model runtime, so it's not necessarily a good idea just to crank these things up to high values in order to be conservative. 
+You can test these things by changing the `control` options in your call to Stan. Try for example setting `adapt_delta = 0.5` or `max_treedepth = 2`. You'll see that you start to develop divergences in the first case, since in order to achieve that target acceptance rate Stan sets the stepsize quite large, meaning that you miss important parts of the parameter space and create divergences. In the second case you'll start to see that the treedepth start so bump up against the `max_treedepth`. 
+
+While these are extreme examples, this also gives an idea of a first step at fixing these problems if they pop up: if you fit a model and you get divergences, the first thing you can try is to increase `adapt_delta` (in fact, Stan will suggest as much to you if this happens). If you're bumping up against `max_treedepth`, increase `max_treedepth`! If either of these don't solve the problem, then you'll need to start think about the specification of your model, which we'll cover a little later. 
 
 ### Parameter Diagnostics
 
-Now that we've taken a look at the highest-level red flags (divergences and treedepth) and satisfied ourselves that we're in the clear, we can start to diagnose individual parameter estimates. There are a lot of ways to look at the these, the most useful starting point in my opinion is to extract summary statistics on each model parameter. You can do that by `summary(my_model)$summary`. `summary` on it's own prints out summaries of each parameter, the `$summary` part allows you to access and store the data behind the printed statistics. As you'll notice throughout this, I spend a bit of time getting my results out of the `stanfit` object and into a tidy format. You don't have to do this, but I find it makes life much easier. 
+Now that we've taken a look at the highest-level red flags (divergences and treedepth) and satisfied ourselves that we're in the clear, we can start to diagnose individual parameter estimates. There are a lot of ways to look at the these, the most useful starting point in my opinion is to extract summary statistics on each model parameter. You can do that by `summary(my_model)$summary`. `summary` on it's own prints out summaries of each parameter, the `$summary` part allows you to access and store the data behind the printed statistics. 
 
 ```{r}
  bh_summary <- summary(bh_fit)$summary %>% 
@@ -835,7 +784,7 @@ Now that we've taken a look at the highest-level red flags (divergences and tree
   select(variable, everything()) %>% 
   as_data_frame()
 
-bh_summary
+bh_summary %>% head()
 ```
 
 There are two really important diagnostic statistics hidden in this summary:
@@ -845,9 +794,9 @@ There are two really important diagnostic statistics hidden in this summary:
   - `Rhat`: the "Gelman and Rubin potential scale reduction statistic"
   
 
-`n_eff` measures the effective sample size of that particular parameter. Remember that each iteration of the HMC is based off the parameter value on the previous iteration. Ideally though, through the magic of the NUTS algorithm, if the algorithm works correctly, the parameter chosen at the next iteration will be independent of that early parameter value (this is what "thinning" looks to accomplish in other MCMCs, though you can also thin using HMC). If you're not doing a very efficient job at sampling the parameter space though, parameter values at a given iteration are more likely to be close to the parameter values at the last iteration. This means that these parameters aren't really independent, and so if you have 1000 draws from the posterior, you might not actually have 1000 independent samples of the parameter, but rather some smaller number of truly "independent" draws. 
+`n_eff` measures the effective sample size of that particular parameter. Remember that each iteration of the HMC is based off the parameter value on the previous iteration. Ideally though, if the algorithm works correctly, the parameter chosen at the next iteration will be independent of that early parameter value (this is what "thinning" looks to accomplish in other MCMCs, though you can also thin using HMC). If you're not doing a very efficient job at sampling the parameter space though, parameter values at a given iteration are more likely to be close to the parameter values at the last iteration. This means that these parameters aren't really independent, and so if you have 1000 draws from the posterior, you might not actually have 1000 independent samples of the parameter, but rather some smaller number of truly "independent" draws. 
 
-So, the `n_eff` is an estimate of the number of independent samples of a parameter across all chains. In this case, we have 4 chains, with 2000 iterations, half of which are warmup, meaning we sample 1000 iterations in each chain, so the max `n_eff` possible in this case is 4000
+So, `n_eff` is the sum of the effectively independent sampling iterations across all chains. In this case, we have 4 chains, with 2000 iterations, half of which are warmup, meaning we sample 1000 iterations in each chain, so the max `n_eff` possible in this case is 4000
 
 ```{r}
 
@@ -858,7 +807,7 @@ bh_summary %>%
 
 ```
 
-Most of our parameters have a fairly high `n_eff`, though we see a few are somewhat lower. The `Rhat` statistic helps tell us whether these parameters are so poorly sampled that we have a problem. More or less `Rhat` tells you whether or not each of the chains has reached a stable posterior distribution, despite starting at different starting values. Gelman recommends that `Rhat` for each parameter be less than 1.1
+Most of our parameters have a fairly high `n_eff`, though we see a few are somewhat lower. How do we know if an n_eff like 2000 (out of 4000 possible) is too low? The `Rhat` statistic helps tell us whether these parameters are so poorly sampled that we have a problem. More or less `Rhat` tells you whether or not each of the chains has reached a stable posterior distribution, despite starting at different starting values. Gelman recommends that `Rhat` for each parameter be less than 1.1
 
 ```{r}
 
@@ -869,12 +818,12 @@ bh_summary %>%
 
 ```
 
-Looks like we're good! However, if you're concerned effective sample size of some of your parameters, the easiest thing to do is simply increase the total number of iterations and especially the warmup period. E.g. in this case we could move to 4000 iterations per chain with 2000 warmup iterations (longer warmup helps tune the algorithm to improve the independence of samples). 
+Looks like we're good! However, if you're concerned effective sample size of some of your parameters, the easiest thing to do is simply increase the total number of iterations and especially the warmup period. E.g. in this case we could move to 4000 iterations per chain with 2000 warmup iterations. 
 
 So now that we've checked some individual parameter diagnostics, we can take a look at our parameter estimates themselves. 
 
 
-Going back to the summary we created, you'll notice that `stan` kindly calculated mean values and credible intervals for us. 
+Going back to the summary we created, you'll notice that Stan kindly calculated mean values and credible intervals for us. 
 
 Remember that we had three parameters in our model, steepness `h`, max recruits $\alpha$, and our standard deviation of the log recruits $\sigma$. Let's take a look at the fits for those variables
 
@@ -892,7 +841,7 @@ bh_summary %>%
 So, we see that most of our credible intervals are fairly tight, though our estimate of unfished recruits $\alpha$ is somewhat wide.
 
 
-That's all well and good, but what we might really want to see are the actual recruits estimated by our model. `stan` is great for this as well: Since we calculated our estimates of recruitment in the `transformed parameter` block, `stan` automatically stores the values for recruitment associated with each draw from the posterior, giving us our credible intervals for our recruitment estimates as well!
+That's all well and good, but what we might really want to see are the actual recruits estimated by our model. Stan is great for this as well: Since we calculated our estimates of recruitment in the `transformed parameter` block, Stan automatically stores the values for recruitment associated with each draw from the posterior, giving us our credible intervals for our recruitment estimates as well!
 
 Our recruitment estimates were stored in the `rhat` object
 
@@ -915,7 +864,8 @@ sal_data %>%
 
 ```
 
-Looks good! So, the black line is our model's estimate of the expected recruits at a given sob, and the grey ribbon corresponds to the 95% credibility interval around this expected value. 
+Looks good! So, the black line is our model's estimate of the expected recruits at a given observed SSB, and the grey ribbon corresponds to the 95% credibility interval around this expected value. 
+
 
 If we're sticklers for the truly raw data, we can also look at the parameter values at each of our samples, rather than using `summary` to process them for us. We can get at those using `rstan::extract()`. Note: by default `rstan::extract()` excludes the warmup iterations, and reshuffles the draws. If you want to keep the draws in their original order (for example to check for autocorrelation), you can set `rstan::extract(permuted = FALSE)`, and if you want to include the warmup period `rstan::extract(inc_warmup = TRUE)`
 
@@ -928,26 +878,28 @@ bh_pars <- bh_mcmc[ c('h','alpha','sigma')] %>%
   map_df(as_data_frame, .id = 'variable')
 
 bh_pars %>% 
-  ggplot(aes(variable,value, fill = variable)) + 
-  geom_violin() + 
-  facet_wrap(~variable, scales = 'free') 
+  ggplot(aes(value, fill = variable)) + 
+  geom_density() + 
+  facet_wrap(~variable, scales = 'free') + 
+  coord_flip()
+  
 ```
 
 
 ### Posterior Predictive Analysis
 
-So far, we've fit our model, checked some critical diagnostics, and examined our model fits. `Stan` also allows us to examine "posterior predictive" fits, an immensely powerful tool in diagnosing Bayesian models, and in using Bayesian models for prediction. 
+So far, we've fit our model, checked some critical diagnostics, and examined our model fits. Stan also allows us to examine "posterior predictive" fits, an immensely powerful tool in diagnosing Bayesian models, and in using Bayesian models for prediction. 
 
 A huge advantage of Bayesian modeling is that it forces us to very explicitly write out our model in terms of our beliefs about the error structures of the model. For example, here we have assumed that our observed recruitment data come from a log-normal distribution, that steepness comes from a uniform distribution on the interval 0.2-1, etc. 
 
-Together then, each of these distributions make up the posterior probability distribution, which `stan` helps us sample from. This also means though that we have a very clear hypothesis about the underlying process generating our data. So, if our hypothesis is right, our model should be able to generate data that looks very similar to the data we actually observed. 
+Together then, each of these distributions make up the posterior probability distribution, which Stan helps us sample from. This also means though that we have a very clear hypothesis about the underlying process generating our data. So, if our hypothesis is right, our model should be able to generate data that looks very similar to the data we actually observed. 
 
 In this case, our data are observed recruits. We hypothesize that these observed recruits come from a distribution. 
 
 
 $$log(recruits) \sim normal(bh(h,\alpha,ssb), \sigma)$$
 
-So, using our draws from the posterior of h, $\alpha$, $\sigma$ and our observed SSB, we can use this model to generate draws of log_recruits, and compare those to the values that we actually see. 
+So, using our draws from the posterior of h, $\alpha$, $\sigma$ and our observed SSB, we can use this model to generate draws of log_recruits, and compare those to the values that we actually see (we did this in the `generated quantities` block of `bh_model.stan`)
 
 ```{r}
 
@@ -962,9 +914,9 @@ ggplot() +
 
 ```
 
-So, we see that our data does a reasonable job of reproducing the overall shape of the observed data, a good sign! Though we also see that our model doesn't do a great job of reproducing that little hump of lower densities observed in the data. We can do a lot more with this type of analysis, for example testing the ability of the posterior predictive to estimate "test statistics" like the min, max, mean, and standard deviation of the observed data, `launch_shinystan` does several of these for you. 
+So, we see that our data does a reasonable job of reproducing the overall shape of the observed data, a good sign! But, we can also see that our model is not perfectly reproducing the data it was fit to; the data had both more smaller values and larger values than our model predicts (our model looks like it basically split the difference here). We can do a lot more with this type of analysis, for example testing the ability of the posterior predictive to estimate "test statistics" like the min, max, mean, and standard deviation of the observed data, `launch_shinystan` can do several of these for you if you set your model up correctly. 
 
-We can also use the posterior predictive to use our model to make predictions. Suppose we monitor another year of data for SSB, and we want to use our model to predict the recruits that that SSB will produce. We can use the posterior predictive to generate replicates from our distribution across our posterior draws of *h*, $\alpha$, and $\sigma$. To illustrate this process, we can look at the posterior predictive distributions for the SSBs we used to fit the model 
+We can also use the posterior predictive process to make predictions for new data-points. Suppose we get a new observation of SSB for our salmon stock; what does our model suggest is the 95% credible interval of recruits that that SSB will produce? We can of course take the mean of  *h*, $\alpha$, and $\sigma$ and make a prediction. Ideally though we want to incorporate the uncertainty (and covariance) across our parameters. We can do this by taking our posteriors for all of our parameters, and generating new draws from our model using our these draws. 
 
 ```{r}
 
@@ -974,6 +926,21 @@ rhat <- bh_summary %>%
 pp_rhat <- bh_summary %>% 
   filter(str_detect(variable,'pp_rhat')) %>% 
   mutate(ssb = sal_data$ssb)
+
+new_ssb <-  mean(sal_data$ssb)
+
+bh_prediction <- bh_pars %>%
+  filter(variable %in% c("h", "alpha", "sigma")) %>%
+  group_by(variable) %>%
+  mutate(iteration = seq_along(value)) %>%
+  spread(variable, value) %>%
+  mutate(mean_predicted_recruits = (0.8 * alpha * h * new_ssb) / (0.2 * alpha * (1 - h) +
+  (h - 0.2) * new_ssb)) %>% 
+  ungroup() %>% 
+  mutate(log_predicted_recruits = rnorm(nrow(.), log(mean_predicted_recruits) - 0.5 * sigma^2, sigma)) %>% 
+  mutate(predicted_recruits = exp(log_predicted_recruits)) %>% 
+  mutate(percentile = percent_rank(predicted_recruits)) %>% 
+  filter(percentile >= 0.025 & percentile <= 0.965)
 
 
 sal_data <- sal_data %>% 
@@ -985,15 +952,13 @@ sal_data %>%
   ggplot() + 
   geom_point(aes(ssb, r)) + 
   geom_line(aes(ssb, mean_rhat)) + 
-  geom_ribbon(aes(ssb, ymin = lower, ymax = upper), alpha = 0.25) + 
-  geom_line(data = pp_rhat, aes(ssb, mean), color = 'red') +
-  geom_ribbon(data = pp_rhat, aes(ssb, ymin = `2.5%`, ymax = `97.5%`), alpha = 0.25, fill = 'red') 
+  geom_ribbon(aes(ssb, ymin = lower, ymax = upper), alpha = 0.25) +
+  geom_violin(data = bh_prediction, aes(new_ssb,predicted_recruits), color = "red") 
 
 ```
 
-We see that this interval is much broader than our credibility intervals for the mean of the fitted values. This is because the grey shaded area is our credibility interval of the expected values of our model for the observed data. That is different though than our expected value for a new observation of SSB. 
 
-All together then, this simple model walks us through the basic steps of using `stan` to fit models:
+All together then, this simple model walks us through the basic steps of using Stan to fit models:
 
   1. Writing our model (in terms of likelihoods)
   
@@ -1009,17 +974,18 @@ All together then, this simple model walks us through the basic steps of using `
   
   7. Using our coefficients for prediction
   
+
 Each of these steps warrants more careful consideration than we have gone through here, but this is a solid foundation to base future analysis are, that will work with simple models like this, or much more complex models, the process stays the same. 
 
 ## Model Comparison
 
 So far, we've been focused on diagnosing our model to make sure that it has in fact converged and to understand the behavior of our model if it has. However, to put it bluntly, if you're only writing one model, you're doing it wrong. We made a huge number of assumptions in the design of this model, from the functional form of our stock-recruitment relationship, to our choices of likelihoods and priors. 
 
-Our next step should be to test these assumptions by constructin alternative models and comparing them. Luckily, `stan` has a number of tools available to help us with model comparison. 
+Our next step should be to test these assumptions by constructing alternative models and comparing them. Luckily, Stan has a number of tools available to help us with model comparison. 
 
-The Beverton-Holt model assumes a "compensatory" nature of density dependence. A simple ecological example would be habitat filling: if there is a finite amount of available habitat for recruits, once those spots fill up even if you put more and more eggs into the system the total number of recruits will stay the same. The Ricker model is a bit more flexible, and allows for "depensatory" dynamics, which basically means that the SR curve can start to bend back down. An example of this would be a canabalistic process, where once adult density (SSB) gets high enough, they start to prety on recruits and actually drive recruitment back down. 
+The Beverton-Holt model assumes a "compensatory" nature of density dependence. A simple ecological example would be habitat filling: if there is a finite amount of available habitat for recruits, once those spots fill up even if you put more and more eggs into the system the total number of recruits will stay the same. The Ricker model is a bit more flexible, and allows for "depensatory" dynamics, which basically means that the SR curve can start to bend back down. An example of this would be a cannibalistic process, where once adult density (SSB) gets high enough, they start to prey on recruits and actually drive recruitment back down. 
 
-We can use Stan to test the relative performance of the BH vs Ricker models in explaining the observed patterns of SSB and recruitmenbt. 
+We can use Stan to test the relative performance of the BH vs Ricker models in explaining the observed patterns of SSB and recruitment. 
 
 We'll use a parameterization of the Ricker curve that still includes steepness
 
@@ -1029,17 +995,19 @@ $$\alpha = log(r_{ssb_{max}} /  ssb_{max}) + beta * ssb_{max}$$
 
 $$ r = ssb  e^{(alpha - beta * ssb)}$$
 
+
+
 ```{r}
 
-rzero <-  1000
+rzero <-  10
 
-szero <- 90
+szero <- 200
 
-h = 0.9
+h <-  0.9
 
 beta <- log(5 * h) / (0.8 * szero)
 
-ssb <- 0:100
+ssb <- 0:500
 
 alpha <- log(rzero / szero) + (beta * szero)
 
@@ -1049,15 +1017,14 @@ data_frame(ssb = ssb, recruits = recruits) %>%
   ggplot(aes(ssb, recruits)) +
   geom_point()
 
+
+
 ```
 
+So how to fit this? We could of course write a new .stan file called "ricker_model.stan". However, this seems a little wasteful; the Beverton-Holt and Ricker parameterizations take the same data and do many of the same operations, just with slightly different parameters. We'd like then to write one script that can be used to fit either of these two models. I'm going to do this by writing a function in Stan that calculates calculates recruits using either Beverton-Holt or Ricker dynamics, leaving the rest of the code the same. You specify functions in Stan in the `functions` block. I recommend reading the Stan documentation for more information on functions, but you'll see that they work pretty much the same as other things. The biggest sticking point is in specifying the type of the function arguments inside the definition. 
 
-## Functions in Stan
+```{stan, eval = F, output.var = "ex2"}
 
-Our goal now is to fit a Ricker instead of a BH model to the data. I could of course write another file/model called something like `ricker-model.stan`. However, you'll notice that the Ricker and BH model are very similar in many ways, and of course take the same data. So, it would be a lot nicer to write one function that can change what it needs to fit either a BH or Ricker model, but keep the shared components the same. This is a step that I feel is missing in many of the other Stan examples out there: we only see design of the finished model, where what we often need are examples of how to make our code flexible enough to easily consider alternative models. My solution to this is in the following chunk
-
-
-```{stan, output.var = "generic_sr"}
 functions{
 
   vector calc_recruits(vector rec_pars, real h, vector ssb, int n, int bh){
@@ -1068,16 +1035,16 @@ functions{
 
     real alpha;
 
-     if (bh == 1) { // if model is in beverton holt mode
+     if (bh == 1) {
       rhat = (0.8 * rec_pars[1] * h * ssb) ./ (0.2 * rec_pars[1] * (1 - h) +(h - 0.2) * ssb);
 
-     } else { // ricker mode
+     } else {
 
       beta = log(5 * h) / (0.8 * rec_pars[2]);
 
       alpha = log(rec_pars[1] / rec_pars[2]) + 0.8 * beta * rec_pars[2];
 
-      rhat = ssb .* exp(alpha - beta * ssb);
+      rhat = ssb .* exp(alpha - beta * ssb); //.* exp(alpha - beta .* ssb);
 
       }
 
@@ -1086,14 +1053,14 @@ functions{
 
 } // close function
 
-} // close function block
+}
 
 
 data{
 
 int<lower = 0> n; // number of observations
 
-int<lower = 0> n_sr_params; // number of observations
+int<lower = 0> n_sr_params; // number spawner recruit parameters
 
 vector[n] ssb; // vector of observed ssb
 
@@ -1109,15 +1076,15 @@ real<lower = 0> rec_par_mean[n_sr_params];
 
 real<lower = 0> rec_par_cv[n_sr_params];
 
-} // close data block
 
+}
 transformed data{
 
 vector[n] log_r; // log recruitment
 
 log_r = log(r);
 
-} // close transformed data block
+}
 
 parameters{
 
@@ -1127,8 +1094,7 @@ real<lower = 0> sigma;
 
 vector<lower = 0 >[n_sr_params] rec_pars;
 
-} // close parameters block
-
+}
 transformed parameters{
 
 vector[n] rhat;
@@ -1139,8 +1105,7 @@ rhat = calc_recruits(rec_pars, h, ssb, n, bh);
 
 log_rhat = log(rhat);
 
-} //close transformed parameters block
-
+}
 
 model{
 log_r ~ normal(log_rhat - 0.5 * sigma^2, sigma);
@@ -1153,7 +1118,7 @@ rec_pars[i] ~ normal(rec_par_mean[i],rec_par_cv[i] * rec_par_mean[i]);
 
 }
 
-} // close model block
+}
 
 generated quantities{
 
@@ -1173,21 +1138,25 @@ generated quantities{
 
    }
 
-} // close generated quantities block
+}
 
 
 ```
 
 
+To do this, I'm going to include a variable called `bh`, where if `bh == 1` the model uses Beverton-Holt dynamics, and otherwise it uses Ricker dynamics (you can see how this can easily be generalized to more than two candidate models). I'll call this model "generic_stock_recruit.stan", and I'll now use it to fit both the Ricker and Beverton-Holt models. 
 
-
-```{r generic-ricker}
+```{r ricker, results = "hide"}
 
 warmups <- 2000
 
 total_iterations <- 4000
 
 max_treedepth <-  10
+
+adapt_delta <-  0.95
+
+chains <- 4
 
 data <- list(
   n = nrow(sal_data),
@@ -1201,33 +1170,37 @@ data <- list(
   rec_par_cv = c(0.5, 0.5)
   )
 
-ricker_fit <- rstan::sampling(generic_sr,
-                 data = data,
-                 chains = 4,
-                 warmup = warmups,
-                 iter = total_iterations,
-                 cores = 1,
-                 refresh = 250,
-                 init = list(list(h = 0.4, rec_pars = c(2 * data$max_r, 4 * max(data$ssb))),
-                             list(h = 0.21, rec_pars = c(1 * data$max_r, 10 *  max(data$ssb))),
-                             list(h = 0.8, rec_pars = c(3 * data$max_r, 6 *  max(data$ssb))),
-                             list(h = 0.3, rec_pars = c(4 * data$max_r, 5 *  max(data$ssb)))),
-                 control = list(max_treedepth = max_treedepth,
-                                adapt_delta = 0.95))
+
+inits <-
+  map(1:chains,
+  ~ list(
+  h = runif(1, 0.2, 1),
+  rec_pars = rnorm(2, c(2 * data$max_r, 6 * data$max_r), .2 * data$max_r)
+  ))
+  
+
+ricker_fit <-
+stan(
+file = here::here("src", "generic_stock_recruit.stan"),
+data = data,
+chains = 4,
+warmup = warmups,
+iter = total_iterations,
+cores = 1,
+refresh = 250,
+init = inits,
+control = list(max_treedepth = max_treedepth,
+adapt_delta = adapt_delta)
+)
 
 
 ```
 
 
-You'll notice below that I'm doing some slightly odd things with arrays in my data call. This is because `Stan` is much more finicky (or exact if you want to think of it that way) about data types. Part of the appeal of `R` from a data wrangling perspective is that it is **REALLY** forgiving about data types. R is perfectly happy to construct a vector of length 1, or a 1 by 1 matrix, and these things will more or less behave in the same way (don't hold me to that). `Stan` though is a bit pickier. If `Stan` sees a piece of data that is supposed to be a vector, and sees that it is only length 1, it says "nope, that's a scalar", and bad things happen. In this case, I have specified `rec_par_mean` and `rec_par_cv` to be real vectors in my `DATA` block, of length `n_sr_params`. But, when `n_sr_params` is 1, and `Stan` sees that `rec_par_mean` is just one number, it says OK, this is a scalar, and a scalar can't have a length, so what's this dimensions thing doing here? We get arround that by specifying that `rec_par_mean` is an array with 1 dimension (see [here](http://mc-stan.org/rstan/reference/stan.html), down above the references). 
+You'll notice below when I call the Beverton-Holt version of the model that I'm doing some slightly odd things with arrays when I create my data list. This is because Stan is much more finicky (or exact if you want to think of it that way) about data types. Part of the appeal of R from a data wrangling perspective is that it is **REALLY** forgiving about data types. R is perfectly happy to construct a vector of length 1, or a 1 by 1 matrix, and these things will more or less behave in the same way (don't hold me to that). Stan though is a bit pickier. If Stan sees a piece of data that is supposed to be a vector, and sees that it is only length 1, it says "nope, that's a scalar", and bad things happen. In this case, I have specified `rec_par_mean` and `rec_par_cv` to be real vectors in my `DATA` block, of length `n_sr_params`. But, when `n_sr_params` is 1, and Stan sees that `rec_par_mean` is just one number, it says OK, this is a scalar, and a scalar can't have a length, so what's this dimensions thing doing here? We get around that by specifying that `rec_par_mean` is an array with 1 dimension (see [here](http://mc-stan.org/rstan/reference/stan.html), down above the references). 
 
-```{r bh2}
+```{r bh2, results ="hide"}
 
-warmups <- 2000
-
-total_iterations <- 4000
-
-max_treedepth <-  10
 
 data <- list(
   n = nrow(sal_data),
@@ -1241,17 +1214,22 @@ data <- list(
   rec_par_cv = array(0.5, dim = 1)
   )
 
-bh_fit <- rstan::sampling(generic_sr,
+inits <-
+  map(1:chains,
+  ~ list(
+  h = runif(1, 0.2, 1),
+  rec_pars = as.array(rnorm(1, 2 * data$max_r, .2 * data$max_r)
+  )))
+  
+
+bh_fit <- stan(file = here::here("src","generic_stock_recruit.stan"),
                  data = data,
-                 chains = 4,
+                 chains = chains,
                  warmup = warmups,
                  iter = total_iterations,
                  cores = 1,
                  refresh = 250,
-                 init = list(list(h = 0.4, rec_pars = as.array(2 * data$max_r)),
-                             list(h = 0.21, rec_pars = as.array(1 * data$max_r)),
-                             list(h = 0.8, rec_pars = as.array(3 * data$max_r)),
-                             list(h = 0.3, rec_pars = as.array(4 * data$max_r))),
+                 init = inits,
                  control = list(max_treedepth = max_treedepth,
                                 adapt_delta = 0.95))
 
@@ -1261,6 +1239,8 @@ bh_fit <- rstan::sampling(generic_sr,
 
 ```
 
+
+Great, we've used one script to fit both models, now let's start comparing them. 
 
 ```{r}
  bh_summary <- summary(bh_fit)$summary %>% 
@@ -1297,11 +1277,36 @@ rhat <- ricker_rhat %>%
 ```
 
 
-We now have two alternative models, a Beverton-Holt and a Ricker SR relationship. 
+As a first step we should of course conduct all the same convergence tests for the Ricker model that we conducted for the BH model, and we can base some judgement based on those results. For example, if the posterior predictive test look much better for one model that might give us some indication that the data at least support one model over another. For now let's just compare the posterior predictives of the two models
 
-As a first step we should of course conduct all the same convergenve tests for the Ricker model that we conducted for the BH model, and we can base some judegement based on those results. For example, if the posterior predictive test look much better for one model that might give us some indication that the data at least support one model over another. 
+```{r}
 
-We can also use the `loo` package to try and quantitatively compare the two models. `loo` stands for leave-one-out, and the `loo` function provides a powerful interface for performing leave-one-out cross validation for Bayesian models. Basically, it tests the out-of-sample predictive accuracy of each of the models. You can think of it as an improvement over AIC/DIC for model comparison (see `?"loo-package"`). 
+bh_pp_rhat <- bh_mcmc[ 'pp_rhat'] %>% 
+  map_df(as_data_frame, .id = 'variable') %>% 
+  gather(observation,value, -variable) %>% 
+  mutate(model = "Beverton-Holt")
+
+
+ricker_pp_rhat <- ricker_fit %>% 
+  rstan::extract() %>% 
+  pluck("pp_rhat") %>% 
+  map_df(as_data_frame, .id = 'variable') %>% 
+  gather(observation,value, -variable) %>% 
+  mutate(model = "Ricker")
+
+
+pp_rhat <- bh_pp_rhat %>% 
+  bind_rows(ricker_pp_rhat)
+  
+
+ggplot() + 
+  geom_density(data = pp_rhat, aes(log(value), fill = model), alpha = 0.5) + 
+  geom_density(data = sal_data, aes(log(r), fill = 'Observed'), alpha = 0.5)
+
+```
+
+
+We can also use the `loo` package to try and quantitatively compare the two models. `loo` stands for leave-one-out, and the `loo` function provides a powerful interface for performing leave-one-out cross validation for Bayesian models. Basically, it tests the out-of-sample predictive accuracy of each of the models. You can think of it as an improvement over AIC/DIC for model comparison (see `?"loo-package"`). Of course, if visual diagnostics like the posterior predictive test strongly suggest that you should select one model over another, you can often trust that. But, for more ambiguous cases, we'd like to have some quantitative way to judge model performance, and that's where `loo` can come in.    
 
 There are a few ways to use `loo`, but the simplest requires a bit of prep work. `loo` needs to evaluate the likelihood as a function of leaving out data. So, it needs to have access to the pure likelihood. You can either write a function to do this, which we won't cover here (see `?loo::loo`), or you can go back in your model and store the log-likelihood in the `generated quantities` block
 
@@ -1321,7 +1326,7 @@ There are a few ways to use `loo`, but the simplest requires a bit of prep work.
 
 Once we've done this, we can extract the log-likelihood using `loo::extract_log_lik`. 
 
-`loo::extract_log_lik()` has an option `parameter_name` that defaults to `parameter_name = "log_lik"`, but for the sake of this example we've named our log-likelood object in the `stanfit` object `parameter_name`
+`loo::extract_log_lik()` has an option `parameter_name` that defaults to `parameter_name = "log_lik"`, but for the sake of this example we've named our log-likelihood object in the `stanfit` object `parameter_name`
 
 
 ```{r}
@@ -1350,23 +1355,24 @@ log_lik_bh <- extract_log_lik(bh_fit, parameter_name = "log_likelihood")
 
 bh_loo <- loo::loo(log_lik_bh)
 
+compare(bh_loo, ricker_loo)
 
 ```
 
-THe output of compare is a big confusing, but basically, if `elpd_diff` is positive, that means that according to `loo`, the second model is prefered. If it's negative, the first model is preferred. So, in this case, per the `loo` criteria, there is a bit more support for the Beverton-Holt model, at least as we parameterized it here. But we can also see that `elpd_diff` is on about the same scale as the standard error `se`, giving some indication that there isn't a big difference between the models (if for example `elpd_diff` had been `-2000`, much bigger than the `se` of `0.5`, this would indicate more support for the difference). 
+The output of compare is a big confusing, but basically, if `elpd_diff` is positive, that means that according to `loo`, the second model is prefered. If it's negative, the first model is preferred. So, in this case, per the `loo` criteria, there is a bit more support for the Beverton-Holt model, at least as we parameterized it here. But we can also see that `elpd_diff` is on about the same scale as the standard error `se`, giving some indication that there isn't a big difference between the models (if for example `elpd_diff` had been `-2000`, much bigger than the `se` of `0.5`, this would indicate more support for the difference). Biologically, we have reasons to think that the Ricker model might still be the better option. 
 
-If you want to compare more than two models, you just pass more `loo` objects to compare!
+If you want to compare more than two models, you just pass more `loo` objects to compare! Compare conveniently orders the matrix in descending order of model performance. 
+
 
 ```{r}
-
 compare(bh_loo, ricker_loo, ricker_loo)
 
 ```
 
 
-Compare conveniently orders the matrix in descending order of model performance. 
-
 And just like that, we have a solid sketch of going from raw data, to model fits, to model comparison, using Stan and R. There is clearly a lot more work that would have to go into doing this analysis properly (e.g. we haven't done any testing of the effects of our choices for our prior distributions), but the tools we've gone over here should serve as a useful template to build off of for more complete analysis. 
+
+Hopefully this helps you to start using Stan in your analyses, I'll post some more complicated examples as time allows. Good luck!
 
 
 

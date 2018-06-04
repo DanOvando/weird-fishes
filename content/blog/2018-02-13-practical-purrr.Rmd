@@ -19,7 +19,6 @@ library(gapminder)
 library(modelr)
 library(extrafont)
 library(doParallel)
-library(furrr)
 library(tidyverse)
 extrafont::loadfonts(quiet = T)
 
@@ -795,9 +794,10 @@ There is also a new package called [`furrr`](https://davisvaughan.github.io/furr
 
 
 ```{r}
+
 library(furrr)
 
-future::plan(multiprocess(workers = 2))
+future::plan(multiprocess(workers = 1))
 
 start <- Sys.time()
 
