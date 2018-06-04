@@ -22,7 +22,8 @@ library(tidyverse)
 library(patchwork)
 library(hrbrthemes)
 library(here)
-library(scico)
+library(ggsci)
+library(wesanderson)
 plot_theme <- hrbrthemes::theme_ipsum(base_size = 14,
                                       axis_title_size = 16)
 
@@ -751,7 +752,8 @@ By default, `max_treedepth` is set to 10. So, we should check and make sure that
 mack_diagnostics %>% 
   ggplot(aes(iteration, treedepth__, color = chain)) + 
   geom_line() + 
-  geom_hline(aes(yintercept = max_treedepth), color = 'red')
+  geom_hline(aes(yintercept = max_treedepth), color = 'red') + 
+  scale_color_locuszoom()
 
 ```
 
@@ -764,7 +766,8 @@ If you're curious, you can also see the warmup process through the `stepsize` pa
 
 mack_diagnostics %>% 
   ggplot(aes(iteration, stepsize__, color = chain)) + 
-  geom_line() 
+  geom_line()  + 
+  scale_color_locuszoom()
 
 ```
 
@@ -883,7 +886,8 @@ bh_pars %>%
   ggplot(aes(value, fill = variable)) + 
   geom_density() + 
   facet_wrap(~variable, scales = 'free') + 
-  coord_flip()
+  coord_flip() + 
+  scale_fill_locuszoom()
   
 ```
 
@@ -1275,7 +1279,10 @@ rhat <- ricker_rhat %>%
   ggplot() + 
   geom_point(data = sal_data,aes(ssb, r)) + 
   geom_line(aes(ssb, mean, color = model)) + 
-  geom_ribbon(aes(ssb, ymin = `2.5%`, ymax = `97.5%`, fill = model),alpha = 0.25)
+  geom_ribbon(aes(ssb, ymin = `2.5%`, ymax = `97.5%`, fill = model),alpha = 0.25) + 
+  scale_fill_manual(values = wes_palette("Royal1"))  + 
+  scale_color_manual(values = wes_palette("Royal1"))  
+
 ```
 
 
@@ -1303,7 +1310,9 @@ pp_rhat <- bh_pp_rhat %>%
 
 ggplot() + 
   geom_density(data = pp_rhat, aes(log(value), fill = model), alpha = 0.5) + 
-  geom_density(data = sal_data, aes(log(r), fill = 'Observed'), alpha = 0.5)
+  geom_density(data = sal_data, aes(log(r), fill = 'Observed'), alpha = 0.5) + 
+  scale_fill_manual(values = wes_palette("Zissou1"))  
+
 
 ```
 
