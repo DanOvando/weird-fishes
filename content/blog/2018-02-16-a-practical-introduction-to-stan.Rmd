@@ -535,7 +535,7 @@ Our goal then is going to be to try and fit a stock-recruitment model for some r
 
 ## Examine spawning and recruitment data
 
-Let's look at one stock in particular 
+Let's look at one stock in particular. Data for this analyses can be found in the underyling repo [here](https://github.com/DanOvando/weird-fishes/tree/master/content/blog)
 
 
 ```{r}
@@ -645,6 +645,14 @@ generated quantities{
 
 
 ```
+
+You'll no
+
+### Transformed Paremeters Block
+
+You'll notice a new block in our `.stan` file: `transformed parameters`. This is where I usually write out the actual operations involved in my model; in this case, translating parameters into actual recruitment estimates, but in more complex cases I will usually put for example my model of a fish population in the `transformed parameters` block. My background is in population dynamics as opposed to pure statistics, so I found this terminology confusing: my instinct was to put all these steps in the `model` block. Stan thinks of the `model` block as **statistical** model.  You can put steps in the `model` block, but this has a few drawbacks. Stan will produce draws from the posterior for anything you put in the `transformed parameters` block. In this case, suppose we want to easily plot the mean estimated recruits (`rhat`) and the credible intervals around our estimates. By putting this step in the `transformed parameters` block, Stan will return those values. We could put the calculation of `rhat` in the `model` block, and our code will run, but when we look at our results we won't see the draws from the posterior for `rhat`. In addition, steps in the `model` block aren't visible to the `generated quantities` block (we'll talk about this later), but steps in `transormed parameters` are. In our case, we used `log_rhat` in `generated quantities`. If we'd put the calculation of `log_rhat` in the `model` block, we would have to calculate it again in `generated quantities`. I'm not entirely sure if there are speed benefits to putting things in the `model` block instead of the `transformed parameters` block, so my default is to put just about everything that I might have interest in the `transformed parameters` block except of course for the actual **statistical** model. But, if you have a bunch of intermediate steps that you don't really care about and don't want to use the memory to store those objects, consider putting them in the `model` block. 
+
+### Fitting your model
 
 
 Now that we have our `.stan` file written, we just need to pass out data to it and fit the model. the `rstan` package makes it really easy to interface between R and Stan. 
@@ -961,7 +969,7 @@ In this case, our data are observed recruits. We hypothesize that these observed
 
 $$log(recruits) \sim normal(bh(h,\alpha,ssb), \sigma)$$
 
-So, using our draws from the posterior of h, $\alpha$, $\sigma$ and our observed SSB, we can use this model to generate draws of log_recruits, and compare those to the values that we actually see (we did this in the `generated quantities` block of `bh_model.stan`)
+So, using our draws from the posterior of h, $\alpha$, $\sigma$ and our observed SSB, we can use this model to generate draws of log_recruits, and compare those to the values that we actually see (we did this in the `generated quantities` block of `bh_model.stan`). The `generated quantities` is only evaluated during succesful draws from the algorithm, and so is less time/memory intensive than the other blocks. 
 
 ```{r}
 
@@ -1384,7 +1392,7 @@ There are a few ways to use `loo`, but the simplest requires a bit of prep work.
 
   for (i in 1:n) {
 
-   parameter_name[i] = normal_lpdf(log_r[i] | log_rhat[i] - 0.5 * sigma^2, sigma);
+   log_likelihood[i] = normal_lpdf(log_r[i] | log_rhat[i] - 0.5 * sigma^2, sigma);
     
   }
 
