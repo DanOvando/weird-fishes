@@ -1,12 +1,13 @@
 ---
 title: "Fitting Bayesian Models using Stan and R"
 date: '2018-06-03'
-slug: a-practical-introduction-to-stan
+slug: fitting-bayesian-models-with-stan-and-r
 tags: [R, Stan, Bayesian]
 categories: [Statistics]
 type: post
 bibliography: blog.bib
 biblio-style: apalike
+description: "An introduction to fitting Bayesian models using Stan and R"
 ---
 
 ```{r setup, include=FALSE}
