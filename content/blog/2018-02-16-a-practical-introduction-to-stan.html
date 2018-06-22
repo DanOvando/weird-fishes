@@ -24,7 +24,7 @@ description: "An introduction to fitting Bayesian models using Stan and R"
 <li><a href="#write-your-statistical-model">Write Your Statistical Model</a></li>
 <li><a href="#examine-spawning-and-recruitment-data">Examine spawning and recruitment data</a></li>
 <li><a href="#write-your-stan-model">Write Your Stan Model</a><ul>
-<li><a href="#transformed-paremeters-block">Transformed Paremeters Block</a></li>
+<li><a href="#transformed-parameters-block">Transformed Parameters Block</a></li>
 <li><a href="#fitting-your-model">Fitting your model</a></li>
 </ul></li>
 <li><a href="#run-diagnostics">Run Diagnostics</a><ul>
@@ -486,9 +486,8 @@ generated quantities{
 
 }
 </code></pre>
-<p>You’ll no</p>
-<div id="transformed-paremeters-block" class="section level3">
-<h3>Transformed Paremeters Block</h3>
+<div id="transformed-parameters-block" class="section level3">
+<h3>Transformed Parameters Block</h3>
 <p>You’ll notice a new block in our <code>.stan</code> file: <code>transformed parameters</code>. This is where I usually write out the actual operations involved in my model; in this case, translating parameters into actual recruitment estimates, but in more complex cases I will usually put for example my model of a fish population in the <code>transformed parameters</code> block. My background is in population dynamics as opposed to pure statistics, so I found this terminology confusing: my instinct was to put all these steps in the <code>model</code> block. Stan thinks of the <code>model</code> block as <strong>statistical</strong> model. You can put steps in the <code>model</code> block, but this has a few drawbacks. Stan will produce draws from the posterior for anything you put in the <code>transformed parameters</code> block. In this case, suppose we want to easily plot the mean estimated recruits (<code>rhat</code>) and the credible intervals around our estimates. By putting this step in the <code>transformed parameters</code> block, Stan will return those values. We could put the calculation of <code>rhat</code> in the <code>model</code> block, and our code will run, but when we look at our results we won’t see the draws from the posterior for <code>rhat</code>. In addition, steps in the <code>model</code> block aren’t visible to the <code>generated quantities</code> block (we’ll talk about this later), but steps in <code>transormed parameters</code> are. In our case, we used <code>log_rhat</code> in <code>generated quantities</code>. If we’d put the calculation of <code>log_rhat</code> in the <code>model</code> block, we would have to calculate it again in <code>generated quantities</code>. I’m not entirely sure if there are speed benefits to putting things in the <code>model</code> block instead of the <code>transformed parameters</code> block, so my default is to put just about everything that I might have interest in the <code>transformed parameters</code> block except of course for the actual <strong>statistical</strong> model. But, if you have a bunch of intermediate steps that you don’t really care about and don’t want to use the memory to store those objects, consider putting them in the <code>model</code> block.</p>
 </div>
 <div id="fitting-your-model" class="section level3">
@@ -503,6 +502,37 @@ generated quantities{
 <li><p><code>warmup</code> is the number of model iterations dedicated to burn-in/tuning/whatever you want to call it. This number defaults to half of <code>iter</code> (the total number of model iterations), but if you start to do large iteration runs (e.g. 20,000), there isn’t necessarily a need to do 10,000 warmup runs. If you’ve tested your model on lower iterations and diagnostics look good with say 1,000 warmup runs, there shouldn’t be any problem with leaving warmup at 1,000 and setting iterations to 20,000; it just gives you a lot more samples to play with.</p></li>
 <li><p><code>init</code> allows you to pass initial parameter values for each chain. This is optional, but can help <strong>A LOT</strong>. By default, Stan randomly draws numbers between -2 and 2 for initial values for each parameter. This works if you’re model is reasonably centered. But, if you’re working in a situation where parameters can vary wildly from that (say estimating carrying capacity for a population), this range is going to be a really bad guess if the true parameter value is in the millions. If your model is correctly written, Stan will get to the right result eventually, but it will take a lot longer if you feed it a really poor starting guess. There are a few different ways to set <code>init</code>, I’m just going to cover passing explicit starting guesses. <code>init</code> must by a list of list, of the general form <code>list(chain_1 = list(h = 0.2), chain_2 = list(h = 0.8))</code>. The inner lists contain are names objects for any parameters in the model. In this case, I have a parameter named <code>h</code> in the model, and I’m going to specify an initial guess of <code>h</code> at 0.2 for the first chain, and 0.8 for the second chain. It is very important if you are manually specifying starting guesses to have different initial values for your parameters, since a test of model convergence is whether or not different chains initiated at different values reach the same result. Any parameters you do not manually specify a starting guess for Stan goes back to the default random number between -2 and 2</p></li>
 </ul>
+<pre class="r"><code>warmups &lt;- 1000
+
+total_iterations &lt;- 2000
+
+max_treedepth &lt;-  10
+
+n_chains &lt;-  4
+
+n_cores &lt;- 1
+
+adapt_delta &lt;- 0.95
+
+data &lt;- list(n = nrow(sal_data),
+               r = sal_data$r,
+             ssb = sal_data$ssb,
+               max_r = max(sal_data$r)
+             )
+
+bh_fit &lt;- stan(file = here::here(&quot;src&quot;,&quot;bh_model.stan&quot;),
+                 data = data,
+                 chains = n_chains,
+                 warmup = warmups,
+                 iter = total_iterations,
+                 cores = n_cores,
+                 refresh = 250,
+                 init = list(list(h = 0.4, alpha = 2 * data$max_r),
+                             list(h = 0.21, alpha = 3 * data$max_r),
+                             list(h = 0.8, alpha = 1 * data$max_r),
+                             list(h = 0.3, alpha = .8 * data$max_r)),
+                 control = list(max_treedepth = max_treedepth,
+                                adapt_delta = adapt_delta))</code></pre>
 </div>
 </div>
 <div id="run-diagnostics" class="section level2">
@@ -520,19 +550,19 @@ generated quantities{
 <p><code>stanfit</code> options are designed to interface with a few base R commands that you’re use to, like <code>summary</code> and <code>plot</code> (though if you have lots of parameters simply calling these can be pretty messy)</p>
 <pre class="r"><code>summary(bh_fit)$summary %&gt;% head()</code></pre>
 <pre><code>##                 mean      se_mean           sd         2.5%          25%
-## h       6.120910e-01 1.706022e-03 7.869429e-02 4.686744e-01 5.586543e-01
-## alpha   1.347531e+07 2.502975e+04 1.317396e+06 1.084006e+07 1.261413e+07
-## sigma   1.238365e+00 3.211526e-03 1.438240e-01 9.948680e-01 1.134103e+00
-## rhat[1] 3.836618e+06 2.167695e+04 9.747477e+05 2.389011e+06 3.158846e+06
-## rhat[2] 2.425458e+06 1.652602e+04 7.360274e+05 1.407788e+06 1.927120e+06
-## rhat[3] 2.887306e+06 1.850910e+04 8.269106e+05 1.718738e+06 2.322205e+06
-##                  50%          75%        97.5%    n_eff     Rhat
-## h       6.076727e-01 6.617612e-01 7.833428e-01 2127.734 1.000316
-## alpha   1.347208e+07 1.435103e+07 1.603913e+07 2770.255 1.001189
-## sigma   1.225494e+00 1.328871e+00 1.555419e+00 2005.581 1.001390
-## rhat[1] 3.676433e+06 4.333402e+06 6.212342e+06 2022.032 1.000178
-## rhat[2] 2.285204e+06 2.764109e+06 4.301929e+06 1983.587 1.000251
-## rhat[3] 2.736539e+06 3.286057e+06 4.985161e+06 1995.936 1.000228</code></pre>
+## h       6.122018e-01 1.878528e-03 8.149059e-02 4.686039e-01 5.545115e-01
+## alpha   1.346039e+07 2.532067e+04 1.357560e+06 1.079454e+07 1.254891e+07
+## sigma   1.239993e+00 3.606768e-03 1.533700e-01 9.815190e-01 1.133376e+00
+## rhat[1] 3.847066e+06 2.589706e+04 1.045757e+06 2.375588e+06 3.127361e+06
+## rhat[2] 2.438670e+06 2.078789e+04 8.110435e+05 1.404600e+06 1.901814e+06
+## rhat[3] 2.900012e+06 2.284724e+04 9.018045e+05 1.708167e+06 2.291389e+06
+##                  50%          75%        97.5%    n_eff      Rhat
+## h       6.057019e-01 6.621410e-01 7.904720e-01 1881.827 1.0003649
+## alpha   1.344675e+07 1.436423e+07 1.606685e+07 2874.535 0.9997094
+## sigma   1.224721e+00 1.330857e+00 1.589064e+00 1808.193 1.0005449
+## rhat[1] 3.651012e+06 4.327608e+06 6.444508e+06 1630.650 1.0002756
+## rhat[2] 2.272673e+06 2.763294e+06 4.495143e+06 1522.185 1.0001603
+## rhat[3] 2.722925e+06 3.285532e+06 5.197816e+06 1557.963 1.0001938</code></pre>
 <p>The plot command is a great way to get a first glance at your fits</p>
 <pre class="r"><code>plot(bh_fit)</code></pre>
 <p><img src="/blog/2018-02-16-a-practical-introduction-to-stan_files/figure-html/unnamed-chunk-24-1.svg" width="960" /></p>
@@ -604,12 +634,12 @@ bh_summary %&gt;% head()</code></pre>
 <pre><code>## # A tibble: 6 x 11
 ##   variable    mean se_mean      sd  `2.5%`   `25%`   `50%`   `75%` `97.5%`
 ##   &lt;chr&gt;      &lt;dbl&gt;   &lt;dbl&gt;   &lt;dbl&gt;   &lt;dbl&gt;   &lt;dbl&gt;   &lt;dbl&gt;   &lt;dbl&gt;   &lt;dbl&gt;
-## 1 h        6.12e-1 1.71e-3 7.87e-2 4.69e-1 5.59e-1 6.08e-1 6.62e-1 7.83e-1
-## 2 alpha    1.35e+7 2.50e+4 1.32e+6 1.08e+7 1.26e+7 1.35e+7 1.44e+7 1.60e+7
-## 3 sigma    1.24e+0 3.21e-3 1.44e-1 9.95e-1 1.13e+0 1.23e+0 1.33e+0 1.56e+0
-## 4 rhat[1]  3.84e+6 2.17e+4 9.75e+5 2.39e+6 3.16e+6 3.68e+6 4.33e+6 6.21e+6
-## 5 rhat[2]  2.43e+6 1.65e+4 7.36e+5 1.41e+6 1.93e+6 2.29e+6 2.76e+6 4.30e+6
-## 6 rhat[3]  2.89e+6 1.85e+4 8.27e+5 1.72e+6 2.32e+6 2.74e+6 3.29e+6 4.99e+6
+## 1 h        6.12e-1 1.88e-3 8.15e-2 4.69e-1 5.55e-1 6.06e-1 6.62e-1 7.90e-1
+## 2 alpha    1.35e+7 2.53e+4 1.36e+6 1.08e+7 1.25e+7 1.34e+7 1.44e+7 1.61e+7
+## 3 sigma    1.24e+0 3.61e-3 1.53e-1 9.82e-1 1.13e+0 1.22e+0 1.33e+0 1.59e+0
+## 4 rhat[1]  3.85e+6 2.59e+4 1.05e+6 2.38e+6 3.13e+6 3.65e+6 4.33e+6 6.44e+6
+## 5 rhat[2]  2.44e+6 2.08e+4 8.11e+5 1.40e+6 1.90e+6 2.27e+6 2.76e+6 4.50e+6
+## 6 rhat[3]  2.90e+6 2.28e+4 9.02e+5 1.71e+6 2.29e+6 2.72e+6 3.29e+6 5.20e+6
 ## # ... with 2 more variables: n_eff &lt;dbl&gt;, Rhat &lt;dbl&gt;</code></pre>
 <p>There are two really important diagnostic statistics hidden in this summary:</p>
 <ul>
@@ -1042,14 +1072,14 @@ bh_loo &lt;- loo::loo(log_lik_bh)
 
 compare(bh_loo, ricker_loo)</code></pre>
 <pre><code>## elpd_diff        se 
-##      -0.8       0.5</code></pre>
+##      -0.7       0.5</code></pre>
 <p>The output of compare is a big confusing, but basically, if <code>elpd_diff</code> is positive, that means that according to <code>loo</code>, the second model is preferred. If it’s negative, the first model is preferred. So, in this case, per the <code>loo</code> criteria, there is a bit more support for the Beverton-Holt model, at least as we parameterized it here. But we can also see that <code>elpd_diff</code> is on about the same scale as the standard error <code>se</code>, giving some indication that there isn’t a big difference between the models (if for example <code>elpd_diff</code> had been <code>-2000</code>, much bigger than the <code>se</code> of <code>0.5</code>, this would indicate more support for the difference). Biologically, we have reasons to think that the Ricker model might still be the better option.</p>
 <p>If you want to compare more than two models, you just pass more <code>loo</code> objects to compare! Compare conveniently orders the matrix in descending order of model performance.</p>
 <pre class="r"><code>compare(bh_loo, ricker_loo, ricker_loo)</code></pre>
 <pre><code>##            elpd_diff elpd_loo se_elpd_loo p_loo se_p_loo looic se_looic
-## bh_loo       0.0     -57.8      4.8         2.2   0.8    115.6   9.6   
-## ricker_loo  -0.8     -58.6      4.9         2.4   0.9    117.2   9.9   
-## ricker_loo  -0.8     -58.6      4.9         2.4   0.9    117.2   9.9</code></pre>
+## bh_loo       0.0     -57.8      4.8         2.2   0.8    115.6   9.7   
+## ricker_loo  -0.7     -58.6      4.9         2.4   0.9    117.1   9.9   
+## ricker_loo  -0.7     -58.6      4.9         2.4   0.9    117.1   9.9</code></pre>
 <p>And just like that, we have a solid sketch of going from raw data, to model fits, to model comparison, using Stan and R. There is clearly a lot more work that would have to go into doing this analysis properly (e.g. we haven’t done any testing of the effects of our choices for our prior distributions), but the tools we’ve gone over here should serve as a useful template to build off of for more complete analysis.</p>
 <p>Hopefully this helps you to start using Stan in your analyses, I’ll post some more complicated examples as time allows. Good luck!</p>
 </div>

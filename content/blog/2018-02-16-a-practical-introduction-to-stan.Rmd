@@ -647,9 +647,7 @@ generated quantities{
 
 ```
 
-You'll no
-
-### Transformed Paremeters Block
+### Transformed Parameters Block
 
 You'll notice a new block in our `.stan` file: `transformed parameters`. This is where I usually write out the actual operations involved in my model; in this case, translating parameters into actual recruitment estimates, but in more complex cases I will usually put for example my model of a fish population in the `transformed parameters` block. My background is in population dynamics as opposed to pure statistics, so I found this terminology confusing: my instinct was to put all these steps in the `model` block. Stan thinks of the `model` block as **statistical** model.  You can put steps in the `model` block, but this has a few drawbacks. Stan will produce draws from the posterior for anything you put in the `transformed parameters` block. In this case, suppose we want to easily plot the mean estimated recruits (`rhat`) and the credible intervals around our estimates. By putting this step in the `transformed parameters` block, Stan will return those values. We could put the calculation of `rhat` in the `model` block, and our code will run, but when we look at our results we won't see the draws from the posterior for `rhat`. In addition, steps in the `model` block aren't visible to the `generated quantities` block (we'll talk about this later), but steps in `transormed parameters` are. In our case, we used `log_rhat` in `generated quantities`. If we'd put the calculation of `log_rhat` in the `model` block, we would have to calculate it again in `generated quantities`. I'm not entirely sure if there are speed benefits to putting things in the `model` block instead of the `transformed parameters` block, so my default is to put just about everything that I might have interest in the `transformed parameters` block except of course for the actual **statistical** model. But, if you have a bunch of intermediate steps that you don't really care about and don't want to use the memory to store those objects, consider putting them in the `model` block. 
 
@@ -674,7 +672,7 @@ There are a few options that are important to specify in the call to Stan
  - `init` allows you to pass initial parameter values for each chain. This is optional, but can help **A LOT**. By default, Stan randomly draws numbers between -2 and 2 for initial values for each parameter. This works if you're model is reasonably centered. But, if you're working in a situation where parameters can vary wildly from that (say estimating carrying capacity for a population), this range is going to be a really bad guess if the true parameter value is in the millions. If your model is correctly written, Stan will get to the right result eventually, but it will take a lot longer if you feed it a really poor starting guess. There are a few different ways to set `init`, I'm just going to cover passing explicit starting guesses. `init` must by a list of list, of the general form `list(chain_1 = list(h = 0.2), chain_2 = list(h = 0.8))`. The inner lists contain are names objects for any parameters in the model. In this case, I have a parameter named `h` in the model, and I'm going to specify an initial guess of `h` at 0.2 for the first chain, and 0.8 for the second chain. It is very important if you are manually specifying starting guesses to have different initial values for your parameters, since a test of model convergence is whether or not different chains initiated at different values reach the same result. Any parameters you do not manually specify a starting guess for Stan goes back to the default random number between -2 and 2
  
 
-```{r, message=F, warning=F, include = F, results = "hide"}
+```{r, message=F, warning=F, results = "hide"}
 
 warmups <- 1000
 
