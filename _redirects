@@ -1,5 +1,0 @@
-# Redirect default Netlify subdomain to primary domain
-https://weirdfishes.netlify.com/* https://www.weirdfishes.blog/:splat 301!
-
-# These extra rules are required because HTTPS is not forced
-http://weirdfishes.netlify.com/* https://www.weirdfishes.blog/:splat 301!
