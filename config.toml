@@ -85,7 +85,7 @@ ignoreFiles = ["\\.Rmd$", "\\.Rmarkdown$", "_files$", "_cache$"]
 
   paragraph = "Thoughts on fisheries, oceans, data science, and music"
 
-  about     = "Dan Ovando is a PhD candidate at UC Santa Barbara"
+  about     = "Dan Ovando is a PhD candidate at UC Santa Barbara -  Future Imperfect theme ported by Julio Pescador"
 
   # This appears at the top of the sidebar above params.intro.header.
   # A width of less than 100px is recommended from a design perspective.
