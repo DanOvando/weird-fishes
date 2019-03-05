@@ -28,10 +28,10 @@ My work is mostly in fisheries, so many of the posts will be demonstrations of d
 
 I develop data-driven tools and ideas to help manage marine resources. My current projects include using the behavior of fishermen to predict the abundance of fish, estimating the conservation impacts of marine protected areas, and integrating economic information into data-limited stock assessments. Other projects include helping design and teach fisheries management strategies, looking at the factors that help make fisheries management work, and researching the state of global marine resources.  
 
-I received my B.S. from the University of Miami, and my Master's in Environmental Science and Management from the Bren School at UC Santa Barbara. After that I worked as a research scientist for the [Sustainable Fisheries Group](http://sfg.msi.ucsb.edu/) for several years, before returning to the Bren School where I'm currently a PhD candidate. 
+I received my B.S. from the University of Miami, and my Master's in Environmental Science and Management from the Bren School at UC Santa Barbara. After that I worked as a research scientist for the [Sustainable Fisheries Group](http://sfg.msi.ucsb.edu/) for several years, before returning to the Bren School to do a PhD with Dr. Chris Costello and Dr. Steve Gaines. I am currently a postdoctoral researcher with Dr. Ray Hilborn at the University of Washington School of Aquatic and Fishery Sciences.
 
 
-# Publications
+# Selected Publications
 
 
 
