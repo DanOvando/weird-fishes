@@ -1,6 +1,6 @@
 blogdown::html_page:
   toc: true
-  toc_float: true
+  toc_float: FALSE
   fig_width: 10
   dev: "svg"
 type: post

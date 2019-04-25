@@ -316,6 +316,8 @@ pmap(list(list1 = 1:nrow(dmonds), list2 = dmonds$price, list3 = dmonds$carat), p
 y &lt;-  c(1, NA, 1, NA)
 
 z &lt;-  data_frame(x = x, y = y)</code></pre>
+<pre><code>## Warning: `data_frame()` is deprecated, use `tibble()`.
+## This warning is displayed once per session.</code></pre>
 <pre class="r"><code>z %&gt;%
 mutate(both_na = map2_lgl(x,y, ~ is.na(.x) &amp; is.na(.y)))</code></pre>
 <pre><code>## # A tibble: 4 x 3
@@ -818,19 +820,19 @@ test_data &lt;- cross_df(test_data) %&gt;%
 
 test_data</code></pre>
 <pre><code>## # A tibble: 40 x 6
-##    model_name model_number splits       id     model         fit     
-##    &lt;chr&gt;      &lt;chr&gt;        &lt;list&gt;       &lt;chr&gt;  &lt;list&gt;        &lt;list&gt;  
-##  1 woah       1            &lt;S3: rsplit&gt; Fold01 &lt;S3: formula&gt; &lt;S3: lm&gt;
-##  2 woah       1            &lt;S3: rsplit&gt; Fold02 &lt;S3: formula&gt; &lt;S3: lm&gt;
-##  3 woah       1            &lt;S3: rsplit&gt; Fold03 &lt;S3: formula&gt; &lt;S3: lm&gt;
-##  4 woah       1            &lt;S3: rsplit&gt; Fold04 &lt;S3: formula&gt; &lt;S3: lm&gt;
-##  5 woah       1            &lt;S3: rsplit&gt; Fold05 &lt;S3: formula&gt; &lt;S3: lm&gt;
-##  6 woah       1            &lt;S3: rsplit&gt; Fold06 &lt;S3: formula&gt; &lt;S3: lm&gt;
-##  7 woah       1            &lt;S3: rsplit&gt; Fold07 &lt;S3: formula&gt; &lt;S3: lm&gt;
-##  8 woah       1            &lt;S3: rsplit&gt; Fold08 &lt;S3: formula&gt; &lt;S3: lm&gt;
-##  9 woah       1            &lt;S3: rsplit&gt; Fold09 &lt;S3: formula&gt; &lt;S3: lm&gt;
-## 10 woah       1            &lt;S3: rsplit&gt; Fold10 &lt;S3: formula&gt; &lt;S3: lm&gt;
-## # ... with 30 more rows</code></pre>
+##    model_name model_number splits             id     model         fit     
+##    &lt;chr&gt;      &lt;chr&gt;        &lt;list&gt;             &lt;chr&gt;  &lt;list&gt;        &lt;list&gt;  
+##  1 woah       1            &lt;split [1.5K/171]&gt; Fold01 &lt;S3: formula&gt; &lt;S3: lm&gt;
+##  2 woah       1            &lt;split [1.5K/171]&gt; Fold02 &lt;S3: formula&gt; &lt;S3: lm&gt;
+##  3 woah       1            &lt;split [1.5K/171]&gt; Fold03 &lt;S3: formula&gt; &lt;S3: lm&gt;
+##  4 woah       1            &lt;split [1.5K/171]&gt; Fold04 &lt;S3: formula&gt; &lt;S3: lm&gt;
+##  5 woah       1            &lt;split [1.5K/170]&gt; Fold05 &lt;S3: formula&gt; &lt;S3: lm&gt;
+##  6 woah       1            &lt;split [1.5K/170]&gt; Fold06 &lt;S3: formula&gt; &lt;S3: lm&gt;
+##  7 woah       1            &lt;split [1.5K/170]&gt; Fold07 &lt;S3: formula&gt; &lt;S3: lm&gt;
+##  8 woah       1            &lt;split [1.5K/170]&gt; Fold08 &lt;S3: formula&gt; &lt;S3: lm&gt;
+##  9 woah       1            &lt;split [1.5K/170]&gt; Fold09 &lt;S3: formula&gt; &lt;S3: lm&gt;
+## 10 woah       1            &lt;split [1.5K/170]&gt; Fold10 &lt;S3: formula&gt; &lt;S3: lm&gt;
+## # … with 30 more rows</code></pre>
 <p>In a few lines of code, we now have “tidy” cross validation routine across multiple models, not bad.</p>
 <pre class="r"><code>test_data &lt;- test_data %&gt;%
 mutate(fit = map2(model, splits, ~lm(.x, data = rsample::analysis(.y)))) %&gt;%
@@ -910,7 +912,7 @@ test_data &lt;- test_data %&gt;%
 
 
 Sys.time() - start</code></pre>
-<pre><code>## Time difference of 1.925768 secs</code></pre>
+<pre><code>## Time difference of 1.286494 secs</code></pre>
 </div>
 <div id="miscellaneos-purrr" class="section level2">
 <h2>Miscellaneos <code>purrr</code></h2>
@@ -968,7 +970,7 @@ head(diagnose_length,2)</code></pre>
 ## NULL
 ## 
 ## $tech2$error
-## &lt;simpleError in log(x = x, base = base): non-numeric argument to mathematical function&gt;</code></pre>
+## &lt;simpleError in .Primitive(&quot;log&quot;)(x, base): non-numeric argument to mathematical function&gt;</code></pre>
 <p>Great, now we at least have something to work with. <code>safely</code> gives us two objects per entry: the data if it worked, and a log of the error messages if it didn’t.</p>
 <p>How do we figure out which tech’s are the problem? We can use <code>map_lgl</code> to help us out here</p>
 <pre class="r"><code>bad_lengths &lt;- map_lgl(diagnose_length, ~is.null(.x$error) == F)
@@ -1010,7 +1012,7 @@ listviewer::jsonedit(diagnose_length)</code></pre>
 ##  8 Afghanistan Asia       1987    40.8 13867957      852.
 ##  9 Afghanistan Asia       1992    41.7 16317921      649.
 ## 10 Afghanistan Asia       1997    41.8 22227415      635.
-## # ... with 1,694 more rows</code></pre>
+## # … with 1,694 more rows</code></pre>
 <p>Yep, look at that, country and continent are both factors. Useful for regression, but a little dangerous to have in your raw data.</p>
 <p>We can use <code>purrr</code> to find all the factors in our data</p>
 <pre class="r"><code>gapminder %&gt;%

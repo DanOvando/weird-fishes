@@ -143,7 +143,8 @@ real X[N];
 <p>and X is a an array of 10 1 dimensional objects. That is a pretty confusing distinction, the main difference being that</p>
 <ul>
 <li><p>vectors allow vector/matrix algebra. You can’t do this with arrays</p></li>
-<li><p>arrays allow for integer storage. So, if for example you want to pass a bunch of indices showing which columns correspond to different subgroups, you need to use <code>int index[n];</code> would produce an array of length n each storing one integer</p></li>
+<li><p>arrays allow for integer storage. So, if for example you want to pass a bunch of
+indices showing which columns correspond to different subgroups, you need to use <code>int index[n];</code> would produce an array of length n each storing one integer</p></li>
 </ul>
 <p>To give a few illustrations of this</p>
 <pre class="stan"><code>
@@ -234,7 +235,8 @@ model{
   sigma ~ normal(0, 2);
   
 }</code></pre>
-<p>This is equivalent of saying that our prior on sigma is half normal, with standard deviation 2. The above example may have been a bit confusing since we haven’t gotten to the <code>model</code> block yet.</p>
+<p>This is equivalent of saying that our prior on sigma is half normal, with standard deviation 2.
+The above example may have been a bit confusing since we haven’t gotten to the <code>model</code> block yet.</p>
 <p>The <code>model</code> block is where we actually define our model (in terms of likelihoods and priors).</p>
 <p>There are a few ways to do this, but for now we’ll stick with generally preferred syntax of</p>
 <p><code>some_thing ~ some_distribution(distribution_parameters)</code></p>
@@ -278,7 +280,7 @@ print(&quot;hooray&quot;)
 <p>For example, if you know that some model output <code>thing</code> has to be positive, you can add <code>print(thing)</code> to your code to make sure that it is in fact positive.</p>
 <div id="a-note-on-priors" class="section level2">
 <h2>A Note on Priors</h2>
-<p>Setting priors is an art and a science that goes well beyond anything we can discuss here, and there are lots of resources out there to help you on this <span class="citation">(I recommend Hobbs and Hooten 2015, <span class="citation">McElreath (2016)</span>, and <span class="citation">Gelman et al. (2013)</span> as a foundation)</span>. You’ll notice though that Stan doesn’t force you to specify priors, so it can be tempting to say “hey, I like Stan, but priors scare me, so I just won’t specify any”. By default though, any parameter that isn’t supplied a specific prior gets assigned a uniform prior on the range <span class="math inline">\([-\infty, \infty]\)</span>, which might seem innocuous, but is not in fact an uninformative prior (in fact nothing may technically be), especially if your model is not actually defined along that range (e.g. if your parameter can only be positive). Saying that <span class="math inline">\(-\infty\)</span> is just as likely as $ $ is in most cases a pretty strong and unlikely statement.</p>
+<p>Setting priors is an art and a science that goes well beyond anything we can discuss here, and there are lots of resources out there to help you on this <span class="citation">(I recommend Hobbs and Hooten 2015, <span class="citation">@McElreath2016</span>, and <span class="citation">@Gelman2013</span> as a foundation)</span>. You’ll notice though that Stan doesn’t force you to specify priors, so it can be tempting to say “hey, I like Stan, but priors scare me, so I just won’t specify any”. By default though, any parameter that isn’t supplied a specific prior gets assigned a uniform prior on the range <span class="math inline">\([-\infty, \infty]\)</span>, which might seem innocuous, but is not in fact an uninformative prior (in fact nothing may technically be), especially if your model is not actually defined along that range (e.g. if your parameter can only be positive). Saying that <span class="math inline">\(-\infty\)</span> is just as likely as $ $ is in most cases a pretty strong and unlikely statement.</p>
 <p>So, while Stan won’t force you to specify priors explicitly, you should always take the time to think carefully about your priors and test the affect of your choices on your model outcomes.</p>
 <p>That’s a small look at the key features of writing Stan code. There’s a ton more out there, but those are the basic tools for most coding. Feel free to play around with the <code>scratch.stan</code> file to test out different behaviors.</p>
 <pre class="stan"><code>
@@ -492,7 +494,8 @@ generated quantities{
 </div>
 <div id="fitting-your-model" class="section level3">
 <h3>Fitting your model</h3>
-<p>Now that we have our <code>.stan</code> file written, we just need to pass out data to it and fit the model. the <code>rstan</code> package makes it really easy to interface between R and Stan. The first step is passing data from the R environment to Stan. You remember our <code>DATA</code> block in our <code>.stan</code> file? We simply need to pass create a list in R containing named objects matching each of the entries in our <code>DATA</code> block.</p>
+<p>Now that we have our <code>.stan</code> file written, we just need to pass out data to it and fit the model. the <code>rstan</code> package makes it really easy to interface between R and Stan.
+The first step is passing data from the R environment to Stan. You remember our <code>DATA</code> block in our <code>.stan</code> file? We simply need to pass create a list in R containing named objects matching each of the entries in our <code>DATA</code> block.</p>
 <p>Once we’ve done that, we use the Stan function to fit our model.</p>
 <p>There are a few options that are important to specify in the call to Stan</p>
 <ul>
@@ -550,19 +553,19 @@ bh_fit &lt;- stan(file = here::here(&quot;src&quot;,&quot;bh_model.stan&quot;),
 <p><code>stanfit</code> options are designed to interface with a few base R commands that you’re use to, like <code>summary</code> and <code>plot</code> (though if you have lots of parameters simply calling these can be pretty messy)</p>
 <pre class="r"><code>summary(bh_fit)$summary %&gt;% head()</code></pre>
 <pre><code>##                 mean      se_mean           sd         2.5%          25%
-## h       6.122018e-01 1.878528e-03 8.149059e-02 4.686039e-01 5.545115e-01
-## alpha   1.346039e+07 2.532067e+04 1.357560e+06 1.079454e+07 1.254891e+07
-## sigma   1.239993e+00 3.606768e-03 1.533700e-01 9.815190e-01 1.133376e+00
-## rhat[1] 3.847066e+06 2.589706e+04 1.045757e+06 2.375588e+06 3.127361e+06
-## rhat[2] 2.438670e+06 2.078789e+04 8.110435e+05 1.404600e+06 1.901814e+06
-## rhat[3] 2.900012e+06 2.284724e+04 9.018045e+05 1.708167e+06 2.291389e+06
+## h       6.151189e-01 1.973710e-03 7.996867e-02 4.736735e-01 5.595725e-01
+## alpha   1.347951e+07 2.578966e+04 1.375038e+06 1.087532e+07 1.251470e+07
+## sigma   1.244766e+00 3.909254e-03 1.536794e-01 9.857448e-01 1.138360e+00
+## rhat[1] 3.878165e+06 2.606069e+04 1.019423e+06 2.424899e+06 3.176325e+06
+## rhat[2] 2.457963e+06 2.052924e+04 7.794184e+05 1.434101e+06 1.934075e+06
+## rhat[3] 2.923377e+06 2.273543e+04 8.714675e+05 1.745947e+06 2.331036e+06
 ##                  50%          75%        97.5%    n_eff      Rhat
-## h       6.057019e-01 6.621410e-01 7.904720e-01 1881.827 1.0003649
-## alpha   1.344675e+07 1.436423e+07 1.606685e+07 2874.535 0.9997094
-## sigma   1.224721e+00 1.330857e+00 1.589064e+00 1808.193 1.0005449
-## rhat[1] 3.651012e+06 4.327608e+06 6.444508e+06 1630.650 1.0002756
-## rhat[2] 2.272673e+06 2.763294e+06 4.495143e+06 1522.185 1.0001603
-## rhat[3] 2.722925e+06 3.285532e+06 5.197816e+06 1557.963 1.0001938</code></pre>
+## h       6.102183e-01 6.658881e-01 7.894732e-01 1641.622 0.9999249
+## alpha   1.347969e+07 1.441459e+07 1.619931e+07 2842.745 1.0000028
+## sigma   1.229409e+00 1.336666e+00 1.597634e+00 1545.410 0.9998845
+## rhat[1] 3.703839e+06 4.394955e+06 6.446219e+06 1530.159 1.0001951
+## rhat[2] 2.302245e+06 2.803361e+06 4.466444e+06 1441.437 1.0004840
+## rhat[3] 2.758271e+06 3.329831e+06 5.160948e+06 1469.252 1.0003802</code></pre>
 <p>The plot command is a great way to get a first glance at your fits</p>
 <pre class="r"><code>plot(bh_fit)</code></pre>
 <p><img src="/blog/2018-02-16-a-practical-introduction-to-stan_files/figure-html/unnamed-chunk-24-1.svg" width="960" /></p>
@@ -634,13 +637,13 @@ bh_summary %&gt;% head()</code></pre>
 <pre><code>## # A tibble: 6 x 11
 ##   variable    mean se_mean      sd  `2.5%`   `25%`   `50%`   `75%` `97.5%`
 ##   &lt;chr&gt;      &lt;dbl&gt;   &lt;dbl&gt;   &lt;dbl&gt;   &lt;dbl&gt;   &lt;dbl&gt;   &lt;dbl&gt;   &lt;dbl&gt;   &lt;dbl&gt;
-## 1 h        6.12e-1 1.88e-3 8.15e-2 4.69e-1 5.55e-1 6.06e-1 6.62e-1 7.90e-1
-## 2 alpha    1.35e+7 2.53e+4 1.36e+6 1.08e+7 1.25e+7 1.34e+7 1.44e+7 1.61e+7
-## 3 sigma    1.24e+0 3.61e-3 1.53e-1 9.82e-1 1.13e+0 1.22e+0 1.33e+0 1.59e+0
-## 4 rhat[1]  3.85e+6 2.59e+4 1.05e+6 2.38e+6 3.13e+6 3.65e+6 4.33e+6 6.44e+6
-## 5 rhat[2]  2.44e+6 2.08e+4 8.11e+5 1.40e+6 1.90e+6 2.27e+6 2.76e+6 4.50e+6
-## 6 rhat[3]  2.90e+6 2.28e+4 9.02e+5 1.71e+6 2.29e+6 2.72e+6 3.29e+6 5.20e+6
-## # ... with 2 more variables: n_eff &lt;dbl&gt;, Rhat &lt;dbl&gt;</code></pre>
+## 1 h        6.15e-1 1.97e-3 8.00e-2 4.74e-1 5.60e-1 6.10e-1 6.66e-1 7.89e-1
+## 2 alpha    1.35e+7 2.58e+4 1.38e+6 1.09e+7 1.25e+7 1.35e+7 1.44e+7 1.62e+7
+## 3 sigma    1.24e+0 3.91e-3 1.54e-1 9.86e-1 1.14e+0 1.23e+0 1.34e+0 1.60e+0
+## 4 rhat[1]  3.88e+6 2.61e+4 1.02e+6 2.42e+6 3.18e+6 3.70e+6 4.39e+6 6.45e+6
+## 5 rhat[2]  2.46e+6 2.05e+4 7.79e+5 1.43e+6 1.93e+6 2.30e+6 2.80e+6 4.47e+6
+## 6 rhat[3]  2.92e+6 2.27e+4 8.71e+5 1.75e+6 2.33e+6 2.76e+6 3.33e+6 5.16e+6
+## # … with 2 more variables: n_eff &lt;dbl&gt;, Rhat &lt;dbl&gt;</code></pre>
 <p>There are two really important diagnostic statistics hidden in this summary:</p>
 <ul>
 <li><p><code>n_eff</code>: the effective sample size</p></li>
@@ -1076,10 +1079,10 @@ compare(bh_loo, ricker_loo)</code></pre>
 <p>The output of compare is a big confusing, but basically, if <code>elpd_diff</code> is positive, that means that according to <code>loo</code>, the second model is preferred. If it’s negative, the first model is preferred. So, in this case, per the <code>loo</code> criteria, there is a bit more support for the Beverton-Holt model, at least as we parameterized it here. But we can also see that <code>elpd_diff</code> is on about the same scale as the standard error <code>se</code>, giving some indication that there isn’t a big difference between the models (if for example <code>elpd_diff</code> had been <code>-2000</code>, much bigger than the <code>se</code> of <code>0.5</code>, this would indicate more support for the difference). Biologically, we have reasons to think that the Ricker model might still be the better option.</p>
 <p>If you want to compare more than two models, you just pass more <code>loo</code> objects to compare! Compare conveniently orders the matrix in descending order of model performance.</p>
 <pre class="r"><code>compare(bh_loo, ricker_loo, ricker_loo)</code></pre>
-<pre><code>##            elpd_diff elpd_loo se_elpd_loo p_loo se_p_loo looic se_looic
-## bh_loo       0.0     -57.8      4.8         2.2   0.8    115.6   9.7   
-## ricker_loo  -0.7     -58.6      4.9         2.4   0.9    117.1   9.9   
-## ricker_loo  -0.7     -58.6      4.9         2.4   0.9    117.1   9.9</code></pre>
+<pre><code>##            elpd_diff se_diff elpd_loo p_loo looic
+## bh_loo       0.0       0.0   -57.8      2.2 115.7
+## ricker_loo  -0.7       0.5   -58.5      2.3 117.1
+## ricker_loo  -0.7       0.5   -58.5      2.3 117.1</code></pre>
 <p>And just like that, we have a solid sketch of going from raw data, to model fits, to model comparison, using Stan and R. There is clearly a lot more work that would have to go into doing this analysis properly (e.g. we haven’t done any testing of the effects of our choices for our prior distributions), but the tools we’ve gone over here should serve as a useful template to build off of for more complete analysis.</p>
 <p>Hopefully this helps you to start using Stan in your analyses, I’ll post some more complicated examples as time allows. Good luck!</p>
 </div>
@@ -1101,7 +1104,7 @@ plot(example_model)</code></pre>
 <h1>References</h1>
 <div id="refs" class="references">
 <div id="ref-Dorn2002">
-<p>Dorn, Martin W. 2002. “Advice on West Coast Rockfish Harvest Rates from Bayesian Meta-Analysis of Stock-Recruit Relationships.” <em>North American Journal of Fisheries Management</em> 22 (1): 280–300. doi:<a href="https://doi.org/10.1577/1548-8675(2002)022&lt;0280:AOWCRH&gt;2.0.CO;2">10.1577/1548-8675(2002)022&lt;0280:AOWCRH&gt;2.0.CO;2</a>.</p>
+<p>Dorn, Martin W. 2002. “Advice on West Coast Rockfish Harvest Rates from Bayesian Meta-Analysis of Stock-Recruit Relationships.” <em>North American Journal of Fisheries Management</em> 22 (1): 280–300. <a href="https://doi.org/10.1577/1548-8675(2002)022&lt;0280:AOWCRH&gt;2.0.CO;2">https://doi.org/10.1577/1548-8675(2002)022&lt;0280:AOWCRH&gt;2.0.CO;2</a>.</p>
 </div>
 <div id="ref-Gelman2013">
 <p>Gelman, Andrew, John B. Carlin, Hal S. Stern, David B. Dunson, Aki Vehtari, and Donald B. Rubin. 2013. <em>Bayesian Data Analysis</em>. CRC press.</p>
@@ -1113,7 +1116,7 @@ plot(example_model)</code></pre>
 <p>McElreath, Richard. 2016. <em>Statistical Rethinking: A Bayesian Course with Examples in R and Stan</em>. Chapman &amp; Hall/Crc Texts in Statistical Science Series 122. Boca Raton: CRC Press/Taylor &amp; Francis Group.</p>
 </div>
 <div id="ref-Monnahan2016">
-<p>Monnahan, Cole C., James T. Thorson, and Trevor A. Branch. 2016. “Faster Estimation of Bayesian Models in Ecology Using Hamiltonian Monte Carlo.” <em>Methods in Ecology and Evolution</em>, November, n/a–n/a. doi:<a href="https://doi.org/10.1111/2041-210X.12681">10.1111/2041-210X.12681</a>.</p>
+<p>Monnahan, Cole C., James T. Thorson, and Trevor A. Branch. 2016. “Faster Estimation of Bayesian Models in Ecology Using Hamiltonian Monte Carlo.” <em>Methods in Ecology and Evolution</em>, November, n/a–n/a. <a href="https://doi.org/10.1111/2041-210X.12681">https://doi.org/10.1111/2041-210X.12681</a>.</p>
 </div>
 </div>
 </div>
