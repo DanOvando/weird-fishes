@@ -1,0 +1,1138 @@
+---
+title: "Data Wrangling and Model Fitting using purrr"
+author: "Dan Ovando"
+date: '2018-02-20'
+slug: practical-purrr
+tags: [R, purrr]
+categories: [R, tidyverse]
+type: post
+---
+
+<script src="/rmarkdown-libs/header-attrs/header-attrs.js"></script>
+<script src="/rmarkdown-libs/htmlwidgets/htmlwidgets.js"></script>
+<link href="/rmarkdown-libs/jsoneditor/jsoneditor.min.css" rel="stylesheet" />
+<script src="/rmarkdown-libs/jsoneditor/jsoneditor.min.js"></script>
+<script src="/rmarkdown-libs/jsonedit-binding/jsonedit.js"></script>
+
+<div id="TOC">
+<ul>
+<li><a href="#what-is-purrr">What is <code>purrr</code>?</a></li>
+<li><a href="#the-basics-of-purrr">The Basics of <code>purrr</code></a>
+<ul>
+<li><a href="#key-purrr-verbs">Key <code>purrr</code> verbs</a></li>
+<li><a href="#multiple-lists-using-pmap">Multiple lists using <code>pmap</code></a></li>
+</ul></li>
+<li><a href="#wrangling-lists">Wrangling lists</a></li>
+<li><a href="#analysis-with-purrr-and-modelr">Analysis with <code>purrr</code> and <code>modelr</code></a></li>
+<li><a href="#parallel-purrr">Parallel <code>purrr</code></a></li>
+<li><a href="#miscellaneos-purrr">Miscellaneos <code>purrr</code></a>
+<ul>
+<li><a href="#debugging-using-safely">Debugging using <code>safely</code></a></li>
+<li><a href="#find-and-convert-factors">Find and Convert Factors</a></li>
+<li><a href="#print-all-plots-to-pdf">Print All Plots to PDF</a></li>
+<li><a href="#partial">Partial</a></li>
+</ul></li>
+</ul>
+</div>
+
+<p>These are materials from a workshop I taught for UC Santa Barbara’s <a href="https://eco-data-science.github.io/">eco-data-science</a> group to get people familiar with using <code>purrr</code> for their data-wrangling and modeling needs. This post covers</p>
+<ol style="list-style-type: decimal">
+<li><p>A general introduction to the workings of <code>purrr</code></p></li>
+<li><p>Using <code>purrr</code> to wrangle lists</p></li>
+<li><p>Using <code>purrr</code> and <code>modelr</code> for data analysis and modeling</p></li>
+</ol>
+<p>The <code>.Rmd</code> for this document can be found <a href="https://github.com/DanOvando/weird-fishes/blob/master/content/blog/2018-02-13-practical-purrr.Rmd">here</a></p>
+<p>Full credit to Jenny Bryan’s <a href="https://jennybc.github.io/purrr-tutorial/">excellent <code>purrr</code> tutorial</a> for helping me learn <code>purrr</code> and providing the basis for the list-wrangling examples here , along with Hadley Wickham &amp; Garret Grolemund’s <a href="http://r4ds.had.co.nz">R for Data Science</a>. My goal is to walk you through some of the concepts outlined in these (much better) resources, and expand on some particular applications that have been useful to me.</p>
+<div id="what-is-purrr" class="section level2">
+<h2>What is <code>purrr</code>?</h2>
+<p><code>purrr</code> is a part of the <code>tidyverse</code>, taking on the tasks accomplished by the <code>apply</code> suite of functions in base R (and a whole lot more). Its mail ability is applying operations across many dimensions of your data, improving your ability to keep even complex analyses “tidy”. At its simplest, it’s basically an alternative to using the <code>apply</code> suite of packages. At its most complex, it allows you to easily move around in and manipulate multi-dimensional (and multi-type) data, making for example running factorial combinations of models and data a tidy and easy task.</p>
+<p>There are a whole suite of functions involved with <code>purrr</code>, but the goal of this tutorial is to get the fundamentals down so that you can start incorporating <code>purrr</code> into your own code and explore higher-level abilities on your own.</p>
+</div>
+<div id="the-basics-of-purrr" class="section level2">
+<h2>The Basics of <code>purrr</code></h2>
+<p>To get started, <code>map</code> is the workhorse function of the <code>purrr</code> package. <code>map</code> and <code>apply</code> basically take on the tasks of a <code>for</code> loop. Suppose we wanted to accomplish the following task</p>
+<pre class="r"><code>shades &lt;- colors()[1:10]
+
+for (i in seq_along(shades)){
+  
+  print(shades[i])
+  
+}</code></pre>
+<pre><code>## [1] &quot;white&quot;
+## [1] &quot;aliceblue&quot;
+## [1] &quot;antiquewhite&quot;
+## [1] &quot;antiquewhite1&quot;
+## [1] &quot;antiquewhite2&quot;
+## [1] &quot;antiquewhite3&quot;
+## [1] &quot;antiquewhite4&quot;
+## [1] &quot;aquamarine&quot;
+## [1] &quot;aquamarine1&quot;
+## [1] &quot;aquamarine2&quot;</code></pre>
+<p>At its core, what we are doing here is applying the function <code>print</code> over each of the elements in <code>shades</code></p>
+<p>Rather than use a loop, we could accomplish the same task using <code>lapply</code></p>
+<pre class="r"><code>a &lt;-  lapply(shades, print)</code></pre>
+<pre><code>## [1] &quot;white&quot;
+## [1] &quot;aliceblue&quot;
+## [1] &quot;antiquewhite&quot;
+## [1] &quot;antiquewhite1&quot;
+## [1] &quot;antiquewhite2&quot;
+## [1] &quot;antiquewhite3&quot;
+## [1] &quot;antiquewhite4&quot;
+## [1] &quot;aquamarine&quot;
+## [1] &quot;aquamarine1&quot;
+## [1] &quot;aquamarine2&quot;</code></pre>
+<p>And lastly using <code>map</code> from <code>purrr</code></p>
+<pre class="r"><code>a &lt;-  map(shades, print)</code></pre>
+<pre><code>## [1] &quot;white&quot;
+## [1] &quot;aliceblue&quot;
+## [1] &quot;antiquewhite&quot;
+## [1] &quot;antiquewhite1&quot;
+## [1] &quot;antiquewhite2&quot;
+## [1] &quot;antiquewhite3&quot;
+## [1] &quot;antiquewhite4&quot;
+## [1] &quot;aquamarine&quot;
+## [1] &quot;aquamarine1&quot;
+## [1] &quot;aquamarine2&quot;</code></pre>
+<p>This is obviously a trivial example, but you get the idea: these are three ways applying a function to a vector/list of things.</p>
+<!-- The (main) advantages of using things like `apply` or `map` over a loop in my experience are that they -->
+<!-- 1. Allow you to easily escape writing nested for loops (it's much easier to ) -->
+<!-- 2. Don't require you to pre-allocate space  -->
+<!-- 3. Can be easily plugged into other more complex operations (e.g. in a pipe) -->
+<!-- 4. Can be easier to read -->
+<div id="key-purrr-verbs" class="section level3">
+<h3>Key <code>purrr</code> verbs</h3>
+<p>Now that you have an idea of what <code>map</code> does, let’s dig into it a bit more.</p>
+<p><code>map</code> is the workhorse of the <code>purrr</code> family. It is basically <code>apply</code></p>
+<ul>
+<li><p>The basic syntax works in the manner</p></li>
+<li><p><code>map("Lists to apply function to","Function to apply across lists","Additional parameters")</code></p></li>
+</ul>
+<p>Since a dataframe is basically a special case of a list in which all entries have the same number of rows, we can <code>map</code> through each element (column in this case) of say <code>mtcars</code></p>
+<pre class="r"><code>map(mtcars, mean, na.rm = T)</code></pre>
+<pre><code>## $mpg
+## [1] 20.09062
+## 
+## $cyl
+## [1] 6.1875
+## 
+## $disp
+## [1] 230.7219
+## 
+## $hp
+## [1] 146.6875
+## 
+## $drat
+## [1] 3.596563
+## 
+## $wt
+## [1] 3.21725
+## 
+## $qsec
+## [1] 17.84875
+## 
+## $vs
+## [1] 0.4375
+## 
+## $am
+## [1] 0.40625
+## 
+## $gear
+## [1] 3.6875
+## 
+## $carb
+## [1] 2.8125</code></pre>
+<p>So you see here we’re taking the mean of each element in the dataframe (list) <code>mtcars</code>, and passing the additional option <code>na.rm = T</code> to the function.</p>
+<p>If we save the output of the above run to an object, we see that it is now a list, instead of a dataframe.</p>
+<pre class="r"><code>mtcars_means &lt;- map(mtcars, mean, na.rm = T)
+
+class(mtcars_means)</code></pre>
+<pre><code>## [1] &quot;list&quot;</code></pre>
+<p><code>map</code> by default returns a list. One nice feature of <code>map</code> and <code>purrr</code> is that we can specify the kind of output we want.</p>
+<ul>
+<li><p><code>map_TYPE</code> returns an object of class TYPE, e.g.</p>
+<ul>
+<li><p><code>map_lgl</code> returns logical objects</p></li>
+<li><p><code>map_df</code> returns data frames, etc.</p></li>
+</ul></li>
+</ul>
+<p>Specifying type makes it easier to wrangle different types of outputs suppose that we want a dataframe of the mean of each column in <code>mtcars</code></p>
+<pre class="r"><code>map_df(mtcars, mean, na.rm = T)</code></pre>
+<pre><code>## # A tibble: 1 x 11
+##     mpg   cyl  disp    hp  drat    wt  qsec    vs    am  gear  carb
+##   &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt;
+## 1  20.1  6.19  231.  147.  3.60  3.22  17.8 0.438 0.406  3.69  2.81</code></pre>
+<p><code>map</code> can also be extended to deal with multiple input lists</p>
+<ul>
+<li><p><code>map</code> applies a function over one list.</p></li>
+<li><p><code>map2</code> applies a function over combinations of two lists in the form</p>
+<ul>
+<li><code>map2(list1, list2, ~function(.x,.y), ...)</code></li>
+</ul></li>
+</ul>
+<pre class="r"><code>map2_chr(c(&#39;one&#39;,&#39;two&#39;,&#39;red&#39;,&#39;blue&#39;), c(&#39;fish&#39;), paste)</code></pre>
+<pre><code>## [1] &quot;one fish&quot;  &quot;two fish&quot;  &quot;red fish&quot;  &quot;blue fish&quot;</code></pre>
+<p>In this case, we are mapping <code>paste</code> over each combination of these two lists.</p>
+<div id="programming-with-functions" class="section level4">
+<h4>Programming with Functions</h4>
+<p>Notice here that <code>purrr</code> guessed what I was trying to do here (paste the two elements together). That works for very simply functions, but a lot of the time that won’t work and you have to be more specific in specifying the function we are going to use and how the data we are passing to it are used. In those cases, we’ll want to specify our own functions for use in <code>purrr</code>.</p>
+<p><code>purrr</code> is designed to help with “functional programming”, which you can take broadly as trying to use functions (preferably “pure” ones) to accomplish most of your complex and repetitive tasks (don’t copy and paste more then 3 times - H. Wickham)</p>
+<p>As a very quick reintroduction to functions:</p>
+<p>Functions in R take any number of named inputs, do operations on them, and returns the last thing produced inside the function (or whatever you specify using <code>return</code>)</p>
+<pre class="r"><code>z &lt;- 10
+
+foo &lt;- function(x,y) {
+
+  z &lt;- x + y
+
+  return(z)
+}
+
+foo(x = 2,y = 3)</code></pre>
+<pre><code>## [1] 5</code></pre>
+<pre class="r"><code>z</code></pre>
+<pre><code>## [1] 10</code></pre>
+<p>Notice that <code>z</code> wasn’t affected by the <code>z</code> inside the function. Operations inside functions happen in the local environment of that function. “What happens in the function, stays in the function (except what you share via <code>return</code>)”</p>
+<p>Note though that functions can “see” objects in the global environment</p>
+<pre class="r"><code>a &lt;- 10
+
+foo &lt;- function(x,y) {
+
+z &lt;- x + y + a
+
+return(z)
+}
+
+foo(x = 2, y = 3)</code></pre>
+<pre><code>## [1] 15</code></pre>
+<p>I <strong>strongly</strong> recommend you avoid using global variables inside functions: it can very easily cause unintended and sneaky behavior (I’ve been burned before).</p>
+<p>Functions can be as complicated as you want them to be, but a good rule is to try and make sure each function is good at doing <em>one</em> thing. That doesn’t mean that that “one thing” can’t be a complex thing (e.g. a population model), but the objective of the function should be to do that one thing well (produce trajectories of biomass, not biomass, diagnostics, and a knitted report all in one function).</p>
+<p>You can also use “anonymous” functions in <code>purrr</code>. This is basically a shortcut for when you don’t want to take up the space of writing and saving a whole function somewhere. You make anonymous functions with <code>~</code></p>
+<p>Say we want to be more specific about our call to <code>paste</code> from the above example. We could use <code>~</code> to write</p>
+<pre class="r"><code>map2_chr(c(&#39;one&#39;,&#39;two&#39;,&#39;red&#39;,&#39;blue&#39;), c(&#39;fish&#39;), ~paste(.x,.y))</code></pre>
+<pre><code>## [1] &quot;one fish&quot;  &quot;two fish&quot;  &quot;red fish&quot;  &quot;blue fish&quot;</code></pre>
+<p>I’ve used <code>~</code> to define one-sided formula on the fly, which is handy for simple things like this. We’ll see later how to write and use longer functions here. Note that by default the first argument passed to <code>map</code> is identified by <code>.x</code>, and the second <code>.y</code>.</p>
+<p>We can also write custom functions for use. Say you want the coefficient of variation (standard deviation divided by the mean) of each of the variables in <code>mtcars</code></p>
+<pre class="r"><code>cvfoo &lt;- function(x){
+
+  sd(x) / mean(x)
+
+}
+
+map(mtcars, cvfoo)</code></pre>
+<pre><code>## $mpg
+## [1] 0.2999881
+## 
+## $cyl
+## [1] 0.2886338
+## 
+## $disp
+## [1] 0.5371779
+## 
+## $hp
+## [1] 0.4674077
+## 
+## $drat
+## [1] 0.1486638
+## 
+## $wt
+## [1] 0.3041285
+## 
+## $qsec
+## [1] 0.1001159
+## 
+## $vs
+## [1] 1.152037
+## 
+## $am
+## [1] 1.228285
+## 
+## $gear
+## [1] 0.2000825
+## 
+## $carb
+## [1] 0.5742933</code></pre>
+<p>Can be accomplished using</p>
+<pre class="r"><code>map(mtcars, cvfoo)</code></pre>
+<pre><code>## $mpg
+## [1] 0.2999881
+## 
+## $cyl
+## [1] 0.2886338
+## 
+## $disp
+## [1] 0.5371779
+## 
+## $hp
+## [1] 0.4674077
+## 
+## $drat
+## [1] 0.1486638
+## 
+## $wt
+## [1] 0.3041285
+## 
+## $qsec
+## [1] 0.1001159
+## 
+## $vs
+## [1] 1.152037
+## 
+## $am
+## [1] 1.228285
+## 
+## $gear
+## [1] 0.2000825
+## 
+## $carb
+## [1] 0.5742933</code></pre>
+</div>
+</div>
+<div id="multiple-lists-using-pmap" class="section level3">
+<h3>Multiple lists using <code>pmap</code></h3>
+<p>Anything above two lists is handled by <code>pmap</code>. <code>pmap</code> allows you to pass an arbitrary number of objects to <code>map</code>, where each object is a named element in a list, and the function takes matching elements of those lists as entries</p>
+<pre><code>pmap(list(list1,list2,list3), function(list1, list2, list3),...)
+</code></pre>
+<pre class="r"><code>dmonds &lt;- diamonds %&gt;% 
+  slice(1:4)
+
+pmap_foo &lt;- function(list1, list2 , list3){
+  
+  paste0(&quot;Diamond #&quot;, list1, &quot; sold for $&quot;, list2,&quot; and was &quot;, list3, &quot; carats&quot;)
+  
+}
+
+pmap(list(list1 = 1:nrow(dmonds), list2 = dmonds$price, list3 = dmonds$carat), pmap_foo)</code></pre>
+<pre><code>## [[1]]
+## [1] &quot;Diamond #1 sold for $326 and was 0.23 carats&quot;
+## 
+## [[2]]
+## [1] &quot;Diamond #2 sold for $326 and was 0.21 carats&quot;
+## 
+## [[3]]
+## [1] &quot;Diamond #3 sold for $327 and was 0.23 carats&quot;
+## 
+## [[4]]
+## [1] &quot;Diamond #4 sold for $334 and was 0.29 carats&quot;</code></pre>
+<p>To bring all this together together, here are three ways of doing the exact same thing; checking to see if both of the columns in a row are NA (note this is not the most efficient way to do this task, this is just to show how to use <code>map2</code> and <code>pmap</code>, anonymous functions, and custom functions)</p>
+<pre class="r"><code>x &lt;- c(1,1,NA,NA)
+
+y &lt;-  c(1, NA, 1, NA)
+
+z &lt;-  data_frame(x = x, y = y)</code></pre>
+<pre><code>## Warning: `data_frame()` is deprecated as of tibble 1.1.0.
+## Please use `tibble()` instead.
+## This warning is displayed once every 8 hours.
+## Call `lifecycle::last_warnings()` to see where this warning was generated.</code></pre>
+<pre class="r"><code>z %&gt;%
+mutate(both_na = map2_lgl(x,y, ~ is.na(.x) &amp; is.na(.y)))</code></pre>
+<pre><code>## # A tibble: 4 x 3
+##       x     y both_na
+##   &lt;dbl&gt; &lt;dbl&gt; &lt;lgl&gt;  
+## 1     1     1 FALSE  
+## 2     1    NA FALSE  
+## 3    NA     1 FALSE  
+## 4    NA    NA TRUE</code></pre>
+<pre class="r"><code>nafoo &lt;- function(x,y){
+  
+out &lt;- (is.na(x) &amp; is.na(y))
+
+}
+
+z %&gt;%
+mutate(both_na = map2_lgl(x,y,nafoo))</code></pre>
+<pre><code>## # A tibble: 4 x 3
+##       x     y both_na
+##   &lt;dbl&gt; &lt;dbl&gt; &lt;lgl&gt;  
+## 1     1     1 FALSE  
+## 2     1    NA FALSE  
+## 3    NA     1 FALSE  
+## 4    NA    NA TRUE</code></pre>
+<pre class="r"><code>z %&gt;%
+mutate(both_na = pmap_lgl(list(x = x,y = y), nafoo))</code></pre>
+<pre><code>## # A tibble: 4 x 3
+##       x     y both_na
+##   &lt;dbl&gt; &lt;dbl&gt; &lt;lgl&gt;  
+## 1     1     1 FALSE  
+## 2     1    NA FALSE  
+## 3    NA     1 FALSE  
+## 4    NA    NA TRUE</code></pre>
+</div>
+</div>
+<div id="wrangling-lists" class="section level2">
+<h2>Wrangling lists</h2>
+<p>Now that we have an idea of how we can use <code>purrr</code>, let’s get back to actually using <code>purrr</code> in practice.</p>
+<p>Lists are powerful objects that allow you to store all kinds of information in one place.</p>
+<p>They can also be a pain to deal with, since we are no longer in the nice 2-D structure of a traditional dataframe, which is much closer to how most of us probably learned to deal with data.</p>
+<p><code>purrr</code> has lots of useful tools for helping you quickly and efficiently poke around inside lists. Let’s start with the Game of Thrones database in the <code>repurrrsive</code> package (thanks again to <a href="https://github.com/jennybc/repurrrsive">Jenny Bryan</a>). <code>got_chars</code> is a list containing a bunch of information on GoT characters with a “point of view” chapter in the first few books.</p>
+<p>The <code>str</code> function is a great way to get a first glimpse at a list’s structure</p>
+<pre class="r"><code>str(got_chars, list.len =  3)</code></pre>
+<pre><code>## List of 30
+##  $ :List of 18
+##   ..$ url        : chr &quot;https://www.anapioficeandfire.com/api/characters/1022&quot;
+##   ..$ id         : int 1022
+##   ..$ name       : chr &quot;Theon Greyjoy&quot;
+##   .. [list output truncated]
+##  $ :List of 18
+##   ..$ url        : chr &quot;https://www.anapioficeandfire.com/api/characters/1052&quot;
+##   ..$ id         : int 1052
+##   ..$ name       : chr &quot;Tyrion Lannister&quot;
+##   .. [list output truncated]
+##  $ :List of 18
+##   ..$ url        : chr &quot;https://www.anapioficeandfire.com/api/characters/1074&quot;
+##   ..$ id         : int 1074
+##   ..$ name       : chr &quot;Victarion Greyjoy&quot;
+##   .. [list output truncated]
+##   [list output truncated]</code></pre>
+<p>For those of you who prefer a more interactive approach, you can also use the <code>jsonedit</code> function in the <code>listviewer</code> package if you’re working in a notebook or an html document</p>
+<pre class="r"><code>listviewer::jsonedit(got_chars)</code></pre>
+<div id="htmlwidget-1" style="width:960px;height:480px;" class="jsonedit html-widget"></div>
+<script type="application/json" data-for="htmlwidget-1">{"x":{"data":[{"url":"https://www.anapioficeandfire.com/api/characters/1022","id":1022,"name":"Theon Greyjoy","gender":"Male","culture":"Ironborn","born":"In 278 AC or 279 AC, at Pyke","died":"","alive":true,"titles":["Prince of Winterfell","Captain of Sea Bitch","Lord of the Iron Islands (by law of the green lands)"],"aliases":["Prince of Fools","Theon Turncloak","Reek","Theon Kinslayer"],"father":"","mother":"","spouse":"","allegiances":"House Greyjoy of Pyke","books":["A Game of Thrones","A Storm of Swords","A Feast for Crows"],"povBooks":["A Clash of Kings","A Dance with Dragons"],"tvSeries":["Season 1","Season 2","Season 3","Season 4","Season 5","Season 6"],"playedBy":"Alfie Allen"},{"url":"https://www.anapioficeandfire.com/api/characters/1052","id":1052,"name":"Tyrion Lannister","gender":"Male","culture":"","born":"In 273 AC, at Casterly Rock","died":"","alive":true,"titles":["Acting Hand of the King (former)","Master of Coin (former)"],"aliases":["The Imp","Halfman","The boyman","Giant of Lannister","Lord Tywin's Doom","Lord Tywin's Bane","Yollo","Hugor Hill","No-Nose","Freak","Dwarf"],"father":"","mother":"","spouse":"https://www.anapioficeandfire.com/api/characters/2044","allegiances":"House Lannister of Casterly Rock","books":["A Feast for Crows","The World of Ice and Fire"],"povBooks":["A Game of Thrones","A Clash of Kings","A Storm of Swords","A Dance with Dragons"],"tvSeries":["Season 1","Season 2","Season 3","Season 4","Season 5","Season 6"],"playedBy":"Peter Dinklage"},{"url":"https://www.anapioficeandfire.com/api/characters/1074","id":1074,"name":"Victarion Greyjoy","gender":"Male","culture":"Ironborn","born":"In 268 AC or before, at Pyke","died":"","alive":true,"titles":["Lord Captain of the Iron Fleet","Master of the Iron Victory"],"aliases":"The Iron Captain","father":"","mother":"","spouse":"","allegiances":"House Greyjoy of Pyke","books":["A Game of Thrones","A Clash of Kings","A Storm of Swords"],"povBooks":["A Feast for Crows","A Dance with Dragons"],"tvSeries":"","playedBy":""},{"url":"https://www.anapioficeandfire.com/api/characters/1109","id":1109,"name":"Will","gender":"Male","culture":"","born":"","died":"In 297 AC, at Haunted Forest","alive":false,"titles":"","aliases":"","father":"","mother":"","spouse":"","allegiances":[],"books":"A Clash of Kings","povBooks":"A Game of Thrones","tvSeries":"","playedBy":"Bronson Webb"},{"url":"https://www.anapioficeandfire.com/api/characters/1166","id":1166,"name":"Areo Hotah","gender":"Male","culture":"Norvoshi","born":"In 257 AC or before, at Norvos","died":"","alive":true,"titles":"Captain of the Guard at Sunspear","aliases":"","father":"","mother":"","spouse":"","allegiances":"House Nymeros Martell of Sunspear","books":["A Game of Thrones","A Clash of Kings","A Storm of Swords"],"povBooks":["A Feast for Crows","A Dance with Dragons"],"tvSeries":["Season 5","Season 6"],"playedBy":"DeObia Oparei"},{"url":"https://www.anapioficeandfire.com/api/characters/1267","id":1267,"name":"Chett","gender":"Male","culture":"","born":"At Hag's Mire","died":"In 299 AC, at Fist of the First Men","alive":false,"titles":"","aliases":"","father":"","mother":"","spouse":"","allegiances":[],"books":["A Game of Thrones","A Clash of Kings"],"povBooks":"A Storm of Swords","tvSeries":"","playedBy":""},{"url":"https://www.anapioficeandfire.com/api/characters/1295","id":1295,"name":"Cressen","gender":"Male","culture":"","born":"In 219 AC or 220 AC","died":"In 299 AC, at Dragonstone","alive":false,"titles":"Maester","aliases":"","father":"","mother":"","spouse":"","allegiances":[],"books":["A Storm of Swords","A Feast for Crows"],"povBooks":"A Clash of Kings","tvSeries":"Season 2","playedBy":"Oliver Ford"},{"url":"https://www.anapioficeandfire.com/api/characters/130","id":130,"name":"Arianne Martell","gender":"Female","culture":"Dornish","born":"In 276 AC, at Sunspear","died":"","alive":true,"titles":"Princess of Dorne","aliases":"","father":"","mother":"","spouse":"","allegiances":"House Nymeros Martell of Sunspear","books":["A Game of Thrones","A Clash of Kings","A Storm of Swords","A Dance with Dragons"],"povBooks":"A Feast for Crows","tvSeries":"","playedBy":""},{"url":"https://www.anapioficeandfire.com/api/characters/1303","id":1303,"name":"Daenerys Targaryen","gender":"Female","culture":"Valyrian","born":"In 284 AC, at Dragonstone","died":"","alive":true,"titles":["Queen of the Andals and the Rhoynar and the First Men, Lord of the Seven Kingdoms","Khaleesi of the Great Grass Sea","Breaker of Shackles/Chains","Queen of Meereen","Princess of Dragonstone"],"aliases":["Dany","Daenerys Stormborn","The Unburnt","Mother of Dragons","Mother","Mhysa","The Silver Queen","Silver Lady","Dragonmother","The Dragon Queen","The Mad King's daughter"],"father":"","mother":"","spouse":"https://www.anapioficeandfire.com/api/characters/1346","allegiances":"House Targaryen of King's Landing","books":"A Feast for Crows","povBooks":["A Game of Thrones","A Clash of Kings","A Storm of Swords","A Dance with Dragons"],"tvSeries":["Season 1","Season 2","Season 3","Season 4","Season 5","Season 6"],"playedBy":"Emilia Clarke"},{"url":"https://www.anapioficeandfire.com/api/characters/1319","id":1319,"name":"Davos Seaworth","gender":"Male","culture":"Westeros","born":"In 260 AC or before, at King's Landing","died":"","alive":true,"titles":["Ser","Lord of the Rainwood","Admiral of the Narrow Sea","Hand of the King"],"aliases":["Onion Knight","Davos Shorthand","Ser Onions","Onion Lord","Smuggler"],"father":"","mother":"","spouse":"https://www.anapioficeandfire.com/api/characters/1676","allegiances":["House Baratheon of Dragonstone","House Seaworth of Cape Wrath"],"books":"A Feast for Crows","povBooks":["A Clash of Kings","A Storm of Swords","A Dance with Dragons"],"tvSeries":["Season 2","Season 3","Season 4","Season 5","Season 6"],"playedBy":"Liam Cunningham"},{"url":"https://www.anapioficeandfire.com/api/characters/148","id":148,"name":"Arya Stark","gender":"Female","culture":"Northmen","born":"In 289 AC, at Winterfell","died":"","alive":true,"titles":"Princess","aliases":["Arya Horseface","Arya Underfoot","Arry","Lumpyface","Lumpyhead","Stickboy","Weasel","Nymeria","Squan","Saltb","Cat of the Canaly","Bets","The Blind Girh","The Ugly Little Girl","Mercedenl","Mercye"],"father":"","mother":"","spouse":"","allegiances":"House Stark of Winterfell","books":[],"povBooks":["A Game of Thrones","A Clash of Kings","A Storm of Swords","A Feast for Crows","A Dance with Dragons"],"tvSeries":["Season 1","Season 2","Season 3","Season 4","Season 5","Season 6"],"playedBy":"Maisie Williams"},{"url":"https://www.anapioficeandfire.com/api/characters/149","id":149,"name":"Arys Oakheart","gender":"Male","culture":"Reach","born":"At Old Oak","died":"In 300 AC, at the Greenblood","alive":false,"titles":"Ser","aliases":"","father":"","mother":"","spouse":"","allegiances":"House Oakheart of Old Oak","books":["A Game of Thrones","A Clash of Kings","A Storm of Swords","A Dance with Dragons"],"povBooks":"A Feast for Crows","tvSeries":"","playedBy":""},{"url":"https://www.anapioficeandfire.com/api/characters/150","id":150,"name":"Asha Greyjoy","gender":"Female","culture":"Ironborn","born":"In 275 AC or 276 AC, at Pyke","died":"","alive":true,"titles":["Princess","Captain of the Black Wind","Conqueror of Deepwood Motte"],"aliases":["Esgred","The Kraken's Daughter"],"father":"","mother":"","spouse":"https://www.anapioficeandfire.com/api/characters/1372","allegiances":["House Greyjoy of Pyke","House Ironmaker"],"books":["A Game of Thrones","A Clash of Kings"],"povBooks":["A Feast for Crows","A Dance with Dragons"],"tvSeries":["Season 2","Season 3","Season 4"],"playedBy":"Gemma Whelan"},{"url":"https://www.anapioficeandfire.com/api/characters/168","id":168,"name":"Barristan Selmy","gender":"Male","culture":"Westeros","born":"In 237 AC","died":"","alive":true,"titles":["Ser","Hand of the Queen"],"aliases":["Barristan the Bold","Arstan Whitebeard","Ser Grandfather","Barristan the Old","Old Ser"],"father":"","mother":"","spouse":"","allegiances":["House Selmy of Harvest Hall","House Targaryen of King's Landing"],"books":["A Game of Thrones","A Clash of Kings","A Storm of Swords","A Feast for Crows","The World of Ice and Fire"],"povBooks":"A Dance with Dragons","tvSeries":["Season 1","Season 3","Season 4","Season 5"],"playedBy":"Ian McElhinney"},{"url":"https://www.anapioficeandfire.com/api/characters/2066","id":2066,"name":"Varamyr","gender":"Male","culture":"Free Folk","born":"At a village Beyond the Wall","died":"In 300 AC, at a village Beyond the Wall","alive":false,"titles":"","aliases":["Varamyr Sixskins","Haggon","Lump"],"father":"","mother":"","spouse":"","allegiances":[],"books":"A Storm of Swords","povBooks":"A Dance with Dragons","tvSeries":"","playedBy":""},{"url":"https://www.anapioficeandfire.com/api/characters/208","id":208,"name":"Brandon Stark","gender":"Male","culture":"Northmen","born":"In 290 AC, at Winterfell","died":"","alive":true,"titles":"Prince of Winterfell","aliases":["Bran","Bran the Broken","The Winged Wolf"],"father":"","mother":"","spouse":"","allegiances":"House Stark of Winterfell","books":"A Feast for Crows","povBooks":["A Game of Thrones","A Clash of Kings","A Storm of Swords","A Dance with Dragons"],"tvSeries":["Season 1","Season 2","Season 3","Season 4","Season 6"],"playedBy":"Isaac Hempstead-Wright"},{"url":"https://www.anapioficeandfire.com/api/characters/216","id":216,"name":"Brienne of Tarth","gender":"Female","culture":"","born":"In 280 AC","died":"","alive":true,"titles":"","aliases":["The Maid of Tarth","Brienne the Beauty","Brienne the Blue"],"father":"","mother":"","spouse":"","allegiances":["House Baratheon of Storm's End","House Stark of Winterfell","House Tarth of Evenfall Hall"],"books":["A Clash of Kings","A Storm of Swords","A Dance with Dragons"],"povBooks":"A Feast for Crows","tvSeries":["Season 2","Season 3","Season 4","Season 5","Season 6"],"playedBy":"Gwendoline Christie"},{"url":"https://www.anapioficeandfire.com/api/characters/232","id":232,"name":"Catelyn Stark","gender":"Female","culture":"Rivermen","born":"In 264 AC, at Riverrun","died":"In 299 AC, at the Twins","alive":false,"titles":"Lady of Winterfell","aliases":["Catelyn Tully","Lady Stoneheart","The Silent Sistet","Mother Mercilesr","The Hangwomans"],"father":"","mother":"","spouse":"https://www.anapioficeandfire.com/api/characters/339","allegiances":["House Stark of Winterfell","House Tully of Riverrun"],"books":["A Feast for Crows","A Dance with Dragons"],"povBooks":["A Game of Thrones","A Clash of Kings","A Storm of Swords"],"tvSeries":["Season 1","Season 2","Season 3"],"playedBy":"Michelle Fairley"},{"url":"https://www.anapioficeandfire.com/api/characters/238","id":238,"name":"Cersei Lannister","gender":"Female","culture":"Westerman","born":"In 266 AC, at Casterly Rock","died":"","alive":true,"titles":["Light of the West","Queen Dowager","Protector of the Realm","Lady of Casterly Rock","Queen Regent"],"aliases":[],"father":"","mother":"","spouse":"https://www.anapioficeandfire.com/api/characters/901","allegiances":"House Lannister of Casterly Rock","books":["A Game of Thrones","A Clash of Kings","A Storm of Swords"],"povBooks":["A Feast for Crows","A Dance with Dragons"],"tvSeries":["Season 1","Season 2","Season 3","Season 4","Season 5","Season 6"],"playedBy":"Lena Headey"},{"url":"https://www.anapioficeandfire.com/api/characters/339","id":339,"name":"Eddard Stark","gender":"Male","culture":"Northmen","born":"In 263 AC, at Winterfell","died":"In 299 AC, at Great Sept of Baelor in King's Landing","alive":false,"titles":["Lord of Winterfell","Warden of the North","Hand of the King","Protector of the Realm","Regent"],"aliases":["Ned","The Ned","The Quiet Wolf"],"father":"","mother":"","spouse":"https://www.anapioficeandfire.com/api/characters/232","allegiances":"House Stark of Winterfell","books":["A Clash of Kings","A Storm of Swords","A Feast for Crows","A Dance with Dragons","The World of Ice and Fire"],"povBooks":"A Game of Thrones","tvSeries":["Season 1","Season 6"],"playedBy":["Sean Bean","Sebastian Croft","Robert Aramayo"]},{"url":"https://www.anapioficeandfire.com/api/characters/529","id":529,"name":"Jaime Lannister","gender":"Male","culture":"Westerlands","born":"In 266 AC, at Casterly Rock","died":"","alive":true,"titles":["Ser","Lord Commander of the Kingsguard","Warden of the East (formerly)"],"aliases":["The Kingslayer","The Lion of Lannister","The Young Lion","Cripple"],"father":"","mother":"","spouse":"","allegiances":"House Lannister of Casterly Rock","books":["A Game of Thrones","A Clash of Kings"],"povBooks":["A Storm of Swords","A Feast for Crows","A Dance with Dragons"],"tvSeries":["Season 1","Season 2","Season 3","Season 4","Season 5"],"playedBy":"Nikolaj Coster-Waldau"},{"url":"https://www.anapioficeandfire.com/api/characters/576","id":576,"name":"Jon Connington","gender":"Male","culture":"Stormlands","born":"In or between 263 AC and 265 AC","died":"","alive":true,"titles":["Lord of Griffin's Roost","Hand of the King","Hand of the True King"],"aliases":"Griffthe Mad King's Hand","father":"","mother":"","spouse":"","allegiances":["House Connington of Griffin's Roost","House Targaryen of King's Landing"],"books":["A Storm of Swords","A Feast for Crows","The World of Ice and Fire"],"povBooks":"A Dance with Dragons","tvSeries":"","playedBy":""},{"url":"https://www.anapioficeandfire.com/api/characters/583","id":583,"name":"Jon Snow","gender":"Male","culture":"Northmen","born":"In 283 AC","died":"","alive":true,"titles":"Lord Commander of the Night's Watch","aliases":["Lord Snow","Ned Stark's Bastard","The Snow of Winterfell","The Crow-Come-Over","The 998th Lord Commander of the Night's Watch","The Bastard of Winterfell","The Black Bastard of the Wall","Lord Crow"],"father":"","mother":"","spouse":"","allegiances":"House Stark of Winterfell","books":"A Feast for Crows","povBooks":["A Game of Thrones","A Clash of Kings","A Storm of Swords","A Dance with Dragons"],"tvSeries":["Season 1","Season 2","Season 3","Season 4","Season 5","Season 6"],"playedBy":"Kit Harington"},{"url":"https://www.anapioficeandfire.com/api/characters/60","id":60,"name":"Aeron Greyjoy","gender":"Male","culture":"Ironborn","born":"In or between 269 AC and 273 AC, at Pyke","died":"","alive":true,"titles":["Priest of the Drowned God","Captain of the Golden Storm (formerly)"],"aliases":["The Damphair","Aeron Damphair"],"father":"","mother":"","spouse":"","allegiances":"House Greyjoy of Pyke","books":["A Game of Thrones","A Clash of Kings","A Storm of Swords","A Dance with Dragons"],"povBooks":"A Feast for Crows","tvSeries":"Season 6","playedBy":"Michael Feast"},{"url":"https://www.anapioficeandfire.com/api/characters/605","id":605,"name":"Kevan Lannister","gender":"Male","culture":"","born":"In 244 AC","died":"In 300 AC, at King's Landing","alive":false,"titles":["Ser","Master of laws","Lord Regent","Protector of the Realm"],"aliases":"","father":"","mother":"","spouse":"https://www.anapioficeandfire.com/api/characters/327","allegiances":"House Lannister of Casterly Rock","books":["A Game of Thrones","A Clash of Kings","A Storm of Swords","A Feast for Crows"],"povBooks":"A Dance with Dragons","tvSeries":["Season 1","Season 2","Season 5","Season 6"],"playedBy":"Ian Gelder"},{"url":"https://www.anapioficeandfire.com/api/characters/743","id":743,"name":"Melisandre","gender":"Female","culture":"Asshai","born":"At Unknown","died":"","alive":true,"titles":"","aliases":["The Red Priestess","The Red Woman","The King's Red Shadow","Lady Red","Lot Seven"],"father":"","mother":"","spouse":"","allegiances":[],"books":["A Clash of Kings","A Storm of Swords","A Feast for Crows"],"povBooks":"A Dance with Dragons","tvSeries":["Season 2","Season 3","Season 4","Season 5","Season 6"],"playedBy":"Carice van Houten"},{"url":"https://www.anapioficeandfire.com/api/characters/751","id":751,"name":"Merrett Frey","gender":"Male","culture":"Rivermen","born":"In 262 AC","died":"In 300 AC, at Near Oldstones","alive":false,"titles":"","aliases":"Merrett Muttonhead","father":"","mother":"","spouse":"https://www.anapioficeandfire.com/api/characters/712","allegiances":"House Frey of the Crossing","books":["A Game of Thrones","A Clash of Kings","A Feast for Crows","A Dance with Dragons"],"povBooks":"A Storm of Swords","tvSeries":"","playedBy":""},{"url":"https://www.anapioficeandfire.com/api/characters/844","id":844,"name":"Quentyn Martell","gender":"Male","culture":"Dornish","born":"In 281 AC, at Sunspear, Dorne","died":"In 300 AC, at Meereen","alive":false,"titles":"Prince","aliases":["Frog","Prince Frog","The prince who came too late","The Dragonrider"],"father":"","mother":"","spouse":"","allegiances":"House Nymeros Martell of Sunspear","books":["A Game of Thrones","A Clash of Kings","A Storm of Swords","A Feast for Crows"],"povBooks":"A Dance with Dragons","tvSeries":"","playedBy":""},{"url":"https://www.anapioficeandfire.com/api/characters/954","id":954,"name":"Samwell Tarly","gender":"Male","culture":"Andal","born":"In 283 AC, at Horn Hill","died":"","alive":true,"titles":"","aliases":["Sam","Ser Piggy","Prince Pork-chop","Lady Piggy","Sam the Slayer","Black Sam","Lord of Ham"],"father":"","mother":"","spouse":"","allegiances":"House Tarly of Horn Hill","books":["A Game of Thrones","A Clash of Kings","A Dance with Dragons"],"povBooks":["A Storm of Swords","A Feast for Crows"],"tvSeries":["Season 1","Season 2","Season 3","Season 4","Season 5","Season 6"],"playedBy":"John Bradley-West"},{"url":"https://www.anapioficeandfire.com/api/characters/957","id":957,"name":"Sansa Stark","gender":"Female","culture":"Northmen","born":"In 286 AC, at Winterfell","died":"","alive":true,"titles":"Princess","aliases":["Little bird","Alayne Stone","Jonquil"],"father":"","mother":"","spouse":"https://www.anapioficeandfire.com/api/characters/1052","allegiances":["House Baelish of Harrenhal","House Stark of Winterfell"],"books":"A Dance with Dragons","povBooks":["A Game of Thrones","A Clash of Kings","A Storm of Swords","A Feast for Crows"],"tvSeries":["Season 1","Season 2","Season 3","Season 4","Season 5","Season 6"],"playedBy":"Sophie Turner"}],"options":{"mode":"tree","modes":["code","form","text","tree","view"]}},"evals":[],"jsHooks":[]}</script>
+<p>So, how do we start poking around in this database?</p>
+<p>Suppose we wanted only the first 5 characters in the list</p>
+<pre class="r"><code>got_chars[1:5] %&gt;% 
+  str(max.level = 1)</code></pre>
+<pre><code>## List of 5
+##  $ :List of 18
+##  $ :List of 18
+##  $ :List of 18
+##  $ :List of 18
+##  $ :List of 18</code></pre>
+<p>Now, suppose that we jut want to look at the name of the first 5 characters. Who remembers how to do this in base R?</p>
+<p>You might think that <code>got_chars[[1:5]]$name</code> would do the trick…</p>
+<pre class="r"><code>got_chars[[1:5]]$name</code></pre>
+<pre><code>## Error in got_chars[[1:5]]: recursive indexing failed at level 3</code></pre>
+<p>Nope.</p>
+<p>So we could do</p>
+<pre class="r"><code>names &lt;- vector(mode = &quot;character&quot;,5)
+
+for (i in 1:5){
+  
+  names[i] &lt;- got_chars[[i]]$name
+}
+
+names</code></pre>
+<pre><code>## [1] &quot;Theon Greyjoy&quot;     &quot;Tyrion Lannister&quot;  &quot;Victarion Greyjoy&quot;
+## [4] &quot;Will&quot;              &quot;Areo Hotah&quot;</code></pre>
+<p>That works, but certainly not ideal.</p>
+<p>Enter <code>purrr</code></p>
+<pre class="r"><code>got_chars[1:5] %&gt;%
+  map_chr(&#39;name&#39;)</code></pre>
+<pre><code>## [1] &quot;Theon Greyjoy&quot;     &quot;Tyrion Lannister&quot;  &quot;Victarion Greyjoy&quot;
+## [4] &quot;Will&quot;              &quot;Areo Hotah&quot;</code></pre>
+<p>Nice! <code>map</code> figures that when you do this, you’re looking for that list entry. I actually find some of the “helps” a bit confusing when you’re learning, since they play by slightly different rules than the <code>purrr</code> functions usually do. Case in point, given the above example, how do we think we might get the ‘name’ and ‘allegiances’ columns?</p>
+<pre class="r"><code>got_chars[1:5] %&gt;%
+  map(c(&#39;name&#39;,&#39;allegiances&#39;)) </code></pre>
+<pre><code>## [[1]]
+## NULL
+## 
+## [[2]]
+## NULL
+## 
+## [[3]]
+## NULL
+## 
+## [[4]]
+## NULL
+## 
+## [[5]]
+## NULL</code></pre>
+<p>Huh, why didn’t that work? Passing a string to map actually tells <code>purrr</code> to dive down into recursive layers of a list (we’ll see this next) In this case, if I want to extract the “name” and “allegiances” variables, I can use <code>[</code></p>
+<pre class="r"><code>got_chars[1:5] %&gt;%
+  map(`[`, c(&#39;name&#39;, &#39;allegiances&#39;))</code></pre>
+<pre><code>## [[1]]
+## [[1]]$name
+## [1] &quot;Theon Greyjoy&quot;
+## 
+## [[1]]$allegiances
+## [1] &quot;House Greyjoy of Pyke&quot;
+## 
+## 
+## [[2]]
+## [[2]]$name
+## [1] &quot;Tyrion Lannister&quot;
+## 
+## [[2]]$allegiances
+## [1] &quot;House Lannister of Casterly Rock&quot;
+## 
+## 
+## [[3]]
+## [[3]]$name
+## [1] &quot;Victarion Greyjoy&quot;
+## 
+## [[3]]$allegiances
+## [1] &quot;House Greyjoy of Pyke&quot;
+## 
+## 
+## [[4]]
+## [[4]]$name
+## [1] &quot;Will&quot;
+## 
+## [[4]]$allegiances
+## list()
+## 
+## 
+## [[5]]
+## [[5]]$name
+## [1] &quot;Areo Hotah&quot;
+## 
+## [[5]]$allegiances
+## [1] &quot;House Nymeros Martell of Sunspear&quot;</code></pre>
+<p>In this case, <code>[</code> is saying use <code>[]</code> as a function.</p>
+<p>Let’s say you’ve got a list that goes a little deeper. Suppose that we want to extract element <code>w</code> from the list <code>thing</code> as characters. We can spell out the path that we want <code>purrr</code> to go through using <code>c("z","w")</code>, which tells <code>purrr</code> to first to to <code>z</code>, then element <code>w</code> (which is inside <code>z</code>), and return <code>w</code>.</p>
+<pre class="r"><code>thing &lt;- list(list(y = 2, z = list(w = &#39;hello&#39;)),
+              list(y = 2, z = list(w = &#39;world&#39;)))
+
+map_chr(thing, c(&#39;z&#39;,&#39;w&#39;))</code></pre>
+<pre><code>## [1] &quot;hello&quot; &quot;world&quot;</code></pre>
+<p>If you’re like me, the numeric indexing of each of the entries is currently driving you nuts: I’d rather have each element in the list be named by the character it refers to. You can use <code>set_names</code> to accomplish this</p>
+<pre class="r"><code>got_chars[1:5] %&gt;%
+  rlang::set_names(map_chr(.,&#39;name&#39;)) %&gt;%
+  listviewer::jsonedit()</code></pre>
+<div id="htmlwidget-2" style="width:960px;height:480px;" class="jsonedit html-widget"></div>
+<script type="application/json" data-for="htmlwidget-2">{"x":{"data":{"Theon Greyjoy":{"url":"https://www.anapioficeandfire.com/api/characters/1022","id":1022,"name":"Theon Greyjoy","gender":"Male","culture":"Ironborn","born":"In 278 AC or 279 AC, at Pyke","died":"","alive":true,"titles":["Prince of Winterfell","Captain of Sea Bitch","Lord of the Iron Islands (by law of the green lands)"],"aliases":["Prince of Fools","Theon Turncloak","Reek","Theon Kinslayer"],"father":"","mother":"","spouse":"","allegiances":"House Greyjoy of Pyke","books":["A Game of Thrones","A Storm of Swords","A Feast for Crows"],"povBooks":["A Clash of Kings","A Dance with Dragons"],"tvSeries":["Season 1","Season 2","Season 3","Season 4","Season 5","Season 6"],"playedBy":"Alfie Allen"},"Tyrion Lannister":{"url":"https://www.anapioficeandfire.com/api/characters/1052","id":1052,"name":"Tyrion Lannister","gender":"Male","culture":"","born":"In 273 AC, at Casterly Rock","died":"","alive":true,"titles":["Acting Hand of the King (former)","Master of Coin (former)"],"aliases":["The Imp","Halfman","The boyman","Giant of Lannister","Lord Tywin's Doom","Lord Tywin's Bane","Yollo","Hugor Hill","No-Nose","Freak","Dwarf"],"father":"","mother":"","spouse":"https://www.anapioficeandfire.com/api/characters/2044","allegiances":"House Lannister of Casterly Rock","books":["A Feast for Crows","The World of Ice and Fire"],"povBooks":["A Game of Thrones","A Clash of Kings","A Storm of Swords","A Dance with Dragons"],"tvSeries":["Season 1","Season 2","Season 3","Season 4","Season 5","Season 6"],"playedBy":"Peter Dinklage"},"Victarion Greyjoy":{"url":"https://www.anapioficeandfire.com/api/characters/1074","id":1074,"name":"Victarion Greyjoy","gender":"Male","culture":"Ironborn","born":"In 268 AC or before, at Pyke","died":"","alive":true,"titles":["Lord Captain of the Iron Fleet","Master of the Iron Victory"],"aliases":"The Iron Captain","father":"","mother":"","spouse":"","allegiances":"House Greyjoy of Pyke","books":["A Game of Thrones","A Clash of Kings","A Storm of Swords"],"povBooks":["A Feast for Crows","A Dance with Dragons"],"tvSeries":"","playedBy":""},"Will":{"url":"https://www.anapioficeandfire.com/api/characters/1109","id":1109,"name":"Will","gender":"Male","culture":"","born":"","died":"In 297 AC, at Haunted Forest","alive":false,"titles":"","aliases":"","father":"","mother":"","spouse":"","allegiances":[],"books":"A Clash of Kings","povBooks":"A Game of Thrones","tvSeries":"","playedBy":"Bronson Webb"},"Areo Hotah":{"url":"https://www.anapioficeandfire.com/api/characters/1166","id":1166,"name":"Areo Hotah","gender":"Male","culture":"Norvoshi","born":"In 257 AC or before, at Norvos","died":"","alive":true,"titles":"Captain of the Guard at Sunspear","aliases":"","father":"","mother":"","spouse":"","allegiances":"House Nymeros Martell of Sunspear","books":["A Game of Thrones","A Clash of Kings","A Storm of Swords"],"povBooks":["A Feast for Crows","A Dance with Dragons"],"tvSeries":["Season 5","Season 6"],"playedBy":"DeObia Oparei"}},"options":{"mode":"tree","modes":["code","form","text","tree","view"]}},"evals":[],"jsHooks":[]}</script>
+<p>Much better (remember that <code>.</code> refers to the objected passed to function through the pipe)!</p>
+<p>Now, let’s say that I want to get all the Lanisters, so I can see which people to root against (or for if that’s your jam).</p>
+<p>This is where a lot of the power of <code>purrr</code> starts to come in, allowing you to easily apply functions across nested layers of a list</p>
+<pre class="r"><code>got_chars %&gt;%
+  set_names(map_chr(.,&#39;name&#39;)) %&gt;%
+  map(`[`,c(&#39;name&#39;,&#39;allegiances&#39;)) %&gt;%
+  purrr::keep(~stringr::str_detect(.$name, &#39;Lannister&#39;)) %&gt;%
+  listviewer::jsonedit()</code></pre>
+<div id="htmlwidget-3" style="width:960px;height:480px;" class="jsonedit html-widget"></div>
+<script type="application/json" data-for="htmlwidget-3">{"x":{"data":{"Tyrion Lannister":{"name":"Tyrion Lannister","allegiances":"House Lannister of Casterly Rock"},"Cersei Lannister":{"name":"Cersei Lannister","allegiances":"House Lannister of Casterly Rock"},"Jaime Lannister":{"name":"Jaime Lannister","allegiances":"House Lannister of Casterly Rock"},"Kevan Lannister":{"name":"Kevan Lannister","allegiances":"House Lannister of Casterly Rock"}},"options":{"mode":"tree","modes":["code","form","text","tree","view"]}},"evals":[],"jsHooks":[]}</script>
+<p>Now, suppose that we want anyone who’s allied with the Starks</p>
+<pre class="r"><code>got_chars[1:4] %&gt;%
+set_names(map_chr(.,&#39;name&#39;)) %&gt;%
+map(`[`,c(&#39;name&#39;,&#39;allegiances&#39;)) %&gt;% 
+map(~str_detect(.$allegiances, &#39;Stark&#39;))</code></pre>
+<pre><code>## $`Theon Greyjoy`
+## [1] FALSE
+## 
+## $`Tyrion Lannister`
+## [1] FALSE
+## 
+## $`Victarion Greyjoy`
+## [1] FALSE
+## 
+## $Will
+## logical(0)</code></pre>
+<p>Hmmm, that doesn’t look good, what’s up with Will? What happens if I try and use <code>keep</code> (list <code>filter</code>) here?</p>
+<pre class="r"><code>got_chars %&gt;%
+set_names(map_chr(.,&#39;name&#39;)) %&gt;%
+map(`[`,c(&#39;name&#39;,&#39;allegiances&#39;)) %&gt;%
+keep(~str_detect(.$allegiances, &#39;Stark&#39;))</code></pre>
+<p>Nope that still doesn’t work. What’s going on? The problem here is that our friend Will has no allegiances, and worse yet, the allegiances entry doesn’t say “none”, it’s just an empty array. Here’s one way to solve this</p>
+<pre class="r"><code>got_chars %&gt;%
+set_names(map_chr(.,&#39;name&#39;)) %&gt;%
+map(`[`,c(&#39;name&#39;,&#39;allegiances&#39;)) %&gt;%
+keep(~ifelse(length(.$allegiances) &gt; 0, str_detect(.$allegiances, &#39;Stark&#39;),FALSE)) %&gt;%
+listviewer::jsonedit()</code></pre>
+<div id="htmlwidget-4" style="width:960px;height:480px;" class="jsonedit html-widget"></div>
+<script type="application/json" data-for="htmlwidget-4">{"x":{"data":{"Arya Stark":{"name":"Arya Stark","allegiances":"House Stark of Winterfell"},"Brandon Stark":{"name":"Brandon Stark","allegiances":"House Stark of Winterfell"},"Catelyn Stark":{"name":"Catelyn Stark","allegiances":["House Stark of Winterfell","House Tully of Riverrun"]},"Eddard Stark":{"name":"Eddard Stark","allegiances":"House Stark of Winterfell"},"Jon Snow":{"name":"Jon Snow","allegiances":"House Stark of Winterfell"}},"options":{"mode":"tree","modes":["code","form","text","tree","view"]}},"evals":[],"jsHooks":[]}</script>
+<p>There’s almost certainly a better way, but this just shows that things get a little more complicated when you’re trying to apply functions across list objects; things like dimensions, types, NULLs, can cause problems. If I’m trying something new, I’ll usually try and develop the methods on a subset of the list that I know is “ideal”, make sure it works there, and then try the operation on progressively more complicated lists. That allows me to separate errors in my functions vs. problems reading in “odd” data types.</p>
+<p>As Cersei likes to remind us, anyone who’s not a Lannister is an enemy to the Lannisters. Let’s look at all the POV characters that aren’t allied to the Lannisters</p>
+<pre class="r"><code>got_chars %&gt;%
+  set_names(map_chr(.,&#39;name&#39;))  %&gt;%
+  map(`[`,c(&#39;name&#39;,&#39;allegiances&#39;)) %&gt;%
+  discard(~ifelse(length(.$allegiances) &gt; 0, str_detect(.$allegiances, &#39;Lannister&#39;),FALSE)) %&gt;%
+  listviewer::jsonedit()</code></pre>
+<div id="htmlwidget-5" style="width:960px;height:480px;" class="jsonedit html-widget"></div>
+<script type="application/json" data-for="htmlwidget-5">{"x":{"data":{"Theon Greyjoy":{"name":"Theon Greyjoy","allegiances":"House Greyjoy of Pyke"},"Victarion Greyjoy":{"name":"Victarion Greyjoy","allegiances":"House Greyjoy of Pyke"},"Will":{"name":"Will","allegiances":[]},"Areo Hotah":{"name":"Areo Hotah","allegiances":"House Nymeros Martell of Sunspear"},"Chett":{"name":"Chett","allegiances":[]},"Cressen":{"name":"Cressen","allegiances":[]},"Arianne Martell":{"name":"Arianne Martell","allegiances":"House Nymeros Martell of Sunspear"},"Daenerys Targaryen":{"name":"Daenerys Targaryen","allegiances":"House Targaryen of King's Landing"},"Davos Seaworth":{"name":"Davos Seaworth","allegiances":["House Baratheon of Dragonstone","House Seaworth of Cape Wrath"]},"Arya Stark":{"name":"Arya Stark","allegiances":"House Stark of Winterfell"},"Arys Oakheart":{"name":"Arys Oakheart","allegiances":"House Oakheart of Old Oak"},"Asha Greyjoy":{"name":"Asha Greyjoy","allegiances":["House Greyjoy of Pyke","House Ironmaker"]},"Barristan Selmy":{"name":"Barristan Selmy","allegiances":["House Selmy of Harvest Hall","House Targaryen of King's Landing"]},"Varamyr":{"name":"Varamyr","allegiances":[]},"Brandon Stark":{"name":"Brandon Stark","allegiances":"House Stark of Winterfell"},"Brienne of Tarth":{"name":"Brienne of Tarth","allegiances":["House Baratheon of Storm's End","House Stark of Winterfell","House Tarth of Evenfall Hall"]},"Catelyn Stark":{"name":"Catelyn Stark","allegiances":["House Stark of Winterfell","House Tully of Riverrun"]},"Eddard Stark":{"name":"Eddard Stark","allegiances":"House Stark of Winterfell"},"Jon Connington":{"name":"Jon Connington","allegiances":["House Connington of Griffin's Roost","House Targaryen of King's Landing"]},"Jon Snow":{"name":"Jon Snow","allegiances":"House Stark of Winterfell"},"Aeron Greyjoy":{"name":"Aeron Greyjoy","allegiances":"House Greyjoy of Pyke"},"Melisandre":{"name":"Melisandre","allegiances":[]},"Merrett Frey":{"name":"Merrett Frey","allegiances":"House Frey of the Crossing"},"Quentyn Martell":{"name":"Quentyn Martell","allegiances":"House Nymeros Martell of Sunspear"},"Samwell Tarly":{"name":"Samwell Tarly","allegiances":"House Tarly of Horn Hill"},"Sansa Stark":{"name":"Sansa Stark","allegiances":["House Baelish of Harrenhal","House Stark of Winterfell"]}},"options":{"mode":"tree","modes":["code","form","text","tree","view"]}},"evals":[],"jsHooks":[]}</script>
+<p>You can also use <code>map</code> together with your own custom functions. Suppose we wanted to figure out how many aliases and alliances each character has, as well as where they were born. We can use <code>pmap</code> to apply a function over each of these attributes</p>
+<pre class="r"><code>got_list &lt;- got_chars %&gt;%
+  map(`[`, c(&#39;name&#39;,&#39;aliases&#39;,&#39;allegiances&#39;,&#39;born&#39;))
+
+got_list &lt;-  got_chars %&gt;% {
+  list(
+    name = map_chr(.,&#39;name&#39;),
+    aliases = map(.,&#39;aliases&#39;),
+    allegiances = map(.,&#39;allegiances&#39;),
+    born = map_chr(.,&#39;born&#39;)
+  )
+}
+
+str(got_list, list.len = 3)</code></pre>
+<pre><code>## List of 4
+##  $ name       : chr [1:30] &quot;Theon Greyjoy&quot; &quot;Tyrion Lannister&quot; &quot;Victarion Greyjoy&quot; &quot;Will&quot; ...
+##  $ aliases    :List of 30
+##   ..$ : chr [1:4] &quot;Prince of Fools&quot; &quot;Theon Turncloak&quot; &quot;Reek&quot; &quot;Theon Kinslayer&quot;
+##   ..$ : chr [1:11] &quot;The Imp&quot; &quot;Halfman&quot; &quot;The boyman&quot; &quot;Giant of Lannister&quot; ...
+##   ..$ : chr &quot;The Iron Captain&quot;
+##   .. [list output truncated]
+##  $ allegiances:List of 30
+##   ..$ : chr &quot;House Greyjoy of Pyke&quot;
+##   ..$ : chr &quot;House Lannister of Casterly Rock&quot;
+##   ..$ : chr &quot;House Greyjoy of Pyke&quot;
+##   .. [list output truncated]
+##   [list output truncated]</code></pre>
+<pre class="r"><code>got_foo &lt;- function(name, aliases, allegiances,born){
+
+  paste(name, &#39;has&#39;, length(aliases), &#39;aliases and&#39;, length(allegiances),
+        &#39;allegiances, and was born in&#39;, born)
+
+}
+
+got_list %&gt;%
+  pmap_chr(got_foo) %&gt;%
+  head()</code></pre>
+<pre><code>## [1] &quot;Theon Greyjoy has 4 aliases and 1 allegiances, and was born in In 278 AC or 279 AC, at Pyke&quot;    
+## [2] &quot;Tyrion Lannister has 11 aliases and 1 allegiances, and was born in In 273 AC, at Casterly Rock&quot; 
+## [3] &quot;Victarion Greyjoy has 1 aliases and 1 allegiances, and was born in In 268 AC or before, at Pyke&quot;
+## [4] &quot;Will has 1 aliases and 0 allegiances, and was born in &quot;                                         
+## [5] &quot;Areo Hotah has 1 aliases and 1 allegiances, and was born in In 257 AC or before, at Norvos&quot;     
+## [6] &quot;Chett has 1 aliases and 0 allegiances, and was born in At Hag&#39;s Mire&quot;</code></pre>
+<p>Things obviously get a lot more complicated than this, but hopefully that gives you an idea of how to manipulate lists using <code>purrr</code></p>
+<pre class="r"><code>got_chars %&gt;%
+  set_names(map_chr(.,&#39;name&#39;))  %&gt;%
+  map(`[`,c(&#39;name&#39;,&#39;allegiances&#39;)) %&gt;%
+  listviewer::jsonedit()</code></pre>
+<div id="htmlwidget-6" style="width:960px;height:480px;" class="jsonedit html-widget"></div>
+<script type="application/json" data-for="htmlwidget-6">{"x":{"data":{"Theon Greyjoy":{"name":"Theon Greyjoy","allegiances":"House Greyjoy of Pyke"},"Tyrion Lannister":{"name":"Tyrion Lannister","allegiances":"House Lannister of Casterly Rock"},"Victarion Greyjoy":{"name":"Victarion Greyjoy","allegiances":"House Greyjoy of Pyke"},"Will":{"name":"Will","allegiances":[]},"Areo Hotah":{"name":"Areo Hotah","allegiances":"House Nymeros Martell of Sunspear"},"Chett":{"name":"Chett","allegiances":[]},"Cressen":{"name":"Cressen","allegiances":[]},"Arianne Martell":{"name":"Arianne Martell","allegiances":"House Nymeros Martell of Sunspear"},"Daenerys Targaryen":{"name":"Daenerys Targaryen","allegiances":"House Targaryen of King's Landing"},"Davos Seaworth":{"name":"Davos Seaworth","allegiances":["House Baratheon of Dragonstone","House Seaworth of Cape Wrath"]},"Arya Stark":{"name":"Arya Stark","allegiances":"House Stark of Winterfell"},"Arys Oakheart":{"name":"Arys Oakheart","allegiances":"House Oakheart of Old Oak"},"Asha Greyjoy":{"name":"Asha Greyjoy","allegiances":["House Greyjoy of Pyke","House Ironmaker"]},"Barristan Selmy":{"name":"Barristan Selmy","allegiances":["House Selmy of Harvest Hall","House Targaryen of King's Landing"]},"Varamyr":{"name":"Varamyr","allegiances":[]},"Brandon Stark":{"name":"Brandon Stark","allegiances":"House Stark of Winterfell"},"Brienne of Tarth":{"name":"Brienne of Tarth","allegiances":["House Baratheon of Storm's End","House Stark of Winterfell","House Tarth of Evenfall Hall"]},"Catelyn Stark":{"name":"Catelyn Stark","allegiances":["House Stark of Winterfell","House Tully of Riverrun"]},"Cersei Lannister":{"name":"Cersei Lannister","allegiances":"House Lannister of Casterly Rock"},"Eddard Stark":{"name":"Eddard Stark","allegiances":"House Stark of Winterfell"},"Jaime Lannister":{"name":"Jaime Lannister","allegiances":"House Lannister of Casterly Rock"},"Jon Connington":{"name":"Jon Connington","allegiances":["House Connington of Griffin's Roost","House Targaryen of King's Landing"]},"Jon Snow":{"name":"Jon Snow","allegiances":"House Stark of Winterfell"},"Aeron Greyjoy":{"name":"Aeron Greyjoy","allegiances":"House Greyjoy of Pyke"},"Kevan Lannister":{"name":"Kevan Lannister","allegiances":"House Lannister of Casterly Rock"},"Melisandre":{"name":"Melisandre","allegiances":[]},"Merrett Frey":{"name":"Merrett Frey","allegiances":"House Frey of the Crossing"},"Quentyn Martell":{"name":"Quentyn Martell","allegiances":"House Nymeros Martell of Sunspear"},"Samwell Tarly":{"name":"Samwell Tarly","allegiances":"House Tarly of Horn Hill"},"Sansa Stark":{"name":"Sansa Stark","allegiances":["House Baelish of Harrenhal","House Stark of Winterfell"]}},"options":{"mode":"tree","modes":["code","form","text","tree","view"]}},"evals":[],"jsHooks":[]}</script>
+</div>
+<div id="analysis-with-purrr-and-modelr" class="section level2">
+<h2>Analysis with <code>purrr</code> and <code>modelr</code></h2>
+<p>So far, <code>purrr</code> has basically helped us apply functions across and poke around in lists. That’s nice, but its real power comes in helping with analysis. Let’s look at the <code>gapminder</code> data set</p>
+<pre class="r"><code>head(gapminder)</code></pre>
+<pre><code>## # A tibble: 6 x 6
+##   country     continent  year lifeExp      pop gdpPercap
+##   &lt;fct&gt;       &lt;fct&gt;     &lt;int&gt;   &lt;dbl&gt;    &lt;int&gt;     &lt;dbl&gt;
+## 1 Afghanistan Asia       1952    28.8  8425333      779.
+## 2 Afghanistan Asia       1957    30.3  9240934      821.
+## 3 Afghanistan Asia       1962    32.0 10267083      853.
+## 4 Afghanistan Asia       1967    34.0 11537966      836.
+## 5 Afghanistan Asia       1972    36.1 13079460      740.
+## 6 Afghanistan Asia       1977    38.4 14880372      786.</code></pre>
+<p><code>gapminder</code> provides data on life expectancy, economics, and population for countries across the world.</p>
+<p><img src="/blog/2018-02-13-practical-purrr_files/figure-html/unnamed-chunk-36-1.svg" width="960" /></p>
+<p>Now, suppose we want to build up a model trying to predict life expectancy as a function of covariates, starting with a simple one: life expectancy as a function of population and per capita GDP</p>
+<pre class="r"><code>gapminder &lt;- gapminder %&gt;%
+  set_names(colnames(.) %&gt;% tolower())
+
+life_mod &lt;- lm(lifeexp ~ pop + gdppercap, data = gapminder)</code></pre>
+<table style="text-align:center">
+<tr>
+<td colspan="2" style="border-bottom: 1px solid black">
+</td>
+</tr>
+<tr>
+<td style="text-align:left">
+</td>
+<td>
+<em>Dependent variable:</em>
+</td>
+</tr>
+<tr>
+<td>
+</td>
+<td colspan="1" style="border-bottom: 1px solid black">
+</td>
+</tr>
+<tr>
+<td style="text-align:left">
+</td>
+<td>
+lifeexp
+</td>
+</tr>
+<tr>
+<td colspan="2" style="border-bottom: 1px solid black">
+</td>
+</tr>
+<tr>
+<td style="text-align:left">
+pop
+</td>
+<td>
+0.000<sup>***</sup>
+</td>
+</tr>
+<tr>
+<td style="text-align:left">
+</td>
+<td>
+(0.000)
+</td>
+</tr>
+<tr>
+<td style="text-align:left">
+</td>
+<td>
+</td>
+</tr>
+<tr>
+<td style="text-align:left">
+gdppercap
+</td>
+<td>
+0.001<sup>***</sup>
+</td>
+</tr>
+<tr>
+<td style="text-align:left">
+</td>
+<td>
+(0.00003)
+</td>
+</tr>
+<tr>
+<td style="text-align:left">
+</td>
+<td>
+</td>
+</tr>
+<tr>
+<td style="text-align:left">
+Constant
+</td>
+<td>
+53.648<sup>***</sup>
+</td>
+</tr>
+<tr>
+<td style="text-align:left">
+</td>
+<td>
+(0.322)
+</td>
+</tr>
+<tr>
+<td style="text-align:left">
+</td>
+<td>
+</td>
+</tr>
+<tr>
+<td colspan="2" style="border-bottom: 1px solid black">
+</td>
+</tr>
+<tr>
+<td style="text-align:left">
+Observations
+</td>
+<td>
+1,704
+</td>
+</tr>
+<tr>
+<td style="text-align:left">
+R<sup>2</sup>
+</td>
+<td>
+0.347
+</td>
+</tr>
+<tr>
+<td style="text-align:left">
+Adjusted R<sup>2</sup>
+</td>
+<td>
+0.346
+</td>
+</tr>
+<tr>
+<td style="text-align:left">
+Residual Std. Error
+</td>
+<td>
+10.443 (df = 1701)
+</td>
+</tr>
+<tr>
+<td style="text-align:left">
+F Statistic
+</td>
+<td>
+452.151<sup>***</sup> (df = 2; 1701)
+</td>
+</tr>
+<tr>
+<td colspan="2" style="border-bottom: 1px solid black">
+</td>
+</tr>
+<tr>
+<td style="text-align:left">
+<em>Note:</em>
+</td>
+<td style="text-align:right">
+<sup><em></sup>p&lt;0.1; <sup><strong></sup>p&lt;0.05; <sup></strong></em></sup>p&lt;0.01
+</td>
+</tr>
+</table>
+<p>So now we have a <em>very</em> simple model, but how do we know if this is the model we want to use? Let’s use AIC to compare a few different model structures (note, this is not an endorsement for AIC mining!)</p>
+<pre class="r"><code>models &lt;- list(
+  simple = &#39;lifeexp ~ pop + gdppercap&#39;,
+
+medium = &#39;lifeexp ~ pop + gdppercap + continent + year&#39;,
+
+more = &#39;lifeexp ~ pop + gdppercap + country + year&#39;,
+
+woah = &#39;lifeexp ~ pop + gdppercap + year*country&#39;
+)</code></pre>
+<p>Now, since this is a simple three model example, we could just use a loop, or even copy and paste a few times. But, let’s see how we can use <code>purrr</code> to help us do some diagnostics on these models.</p>
+<p>Let’s start by getting our models and data into a data frame, using list-columns</p>
+<pre class="r"><code>model_frame &lt;- data_frame(model = models) %&gt;%
+  mutate(model_name = names(model)) </code></pre>
+<p>Now, let’s use purrr to convert each of these character strings into a model</p>
+<pre class="r"><code>model_frame &lt;- model_frame %&gt;% 
+    mutate(model = map(model, as.formula))
+
+model_frame</code></pre>
+<pre><code>## # A tibble: 4 x 2
+##   model        model_name
+##   &lt;named list&gt; &lt;chr&gt;     
+## 1 &lt;formula&gt;    simple    
+## 2 &lt;formula&gt;    medium    
+## 3 &lt;formula&gt;    more      
+## 4 &lt;formula&gt;    woah</code></pre>
+<pre class="r"><code>model_frame &lt;- model_frame %&gt;%
+  mutate(fit = lm(model, data = gapminder))</code></pre>
+<p>Hmmm, why didn’t that work? <code>mutate</code> by itself doesn’t know how to evaluate this, but <code>map</code> can help us out</p>
+<pre class="r"><code>model_frame &lt;- model_frame %&gt;%
+  mutate(fit = map(model, ~lm(., data = gapminder), gapminder = gapminder))
+
+model_frame</code></pre>
+<pre><code>## # A tibble: 4 x 3
+##   model        model_name fit         
+##   &lt;named list&gt; &lt;chr&gt;      &lt;named list&gt;
+## 1 &lt;formula&gt;    simple     &lt;lm&gt;        
+## 2 &lt;formula&gt;    medium     &lt;lm&gt;        
+## 3 &lt;formula&gt;    more       &lt;lm&gt;        
+## 4 &lt;formula&gt;    woah       &lt;lm&gt;</code></pre>
+<p>We’re now going to start integrating some methods from the <code>modelr</code> package to diagnose our regression</p>
+<pre class="r"><code>model_frame &lt;- model_frame %&gt;%
+mutate(r2 = map_dbl(fit, ~modelr::rsquare(., data = gapminder)),
+aic = map_dbl(fit, ~AIC(.))) %&gt;% 
+  arrange(aic)
+
+model_frame</code></pre>
+<pre><code>## # A tibble: 4 x 5
+##   model        model_name fit             r2    aic
+##   &lt;named list&gt; &lt;chr&gt;      &lt;named list&gt; &lt;dbl&gt;  &lt;dbl&gt;
+## 1 &lt;formula&gt;    woah       &lt;lm&gt;         0.976  7752.
+## 2 &lt;formula&gt;    more       &lt;lm&gt;         0.932  9268.
+## 3 &lt;formula&gt;    medium     &lt;lm&gt;         0.717 11420.
+## 4 &lt;formula&gt;    simple     &lt;lm&gt;         0.347 12836.</code></pre>
+<p>So, AIC tells us that our most complext model is still the most parsimonious (of the ones we’ve explored here). Let’s dig into this a bit further, by explicitly testing the out of sample predictive ability of each of the models. “Overfit” models are commonly really good at describing the data that they are fit to, but perform poorly out of sample.</p>
+<p>We’ll start by using the <code>modelr</code> package to create a bunch of training-test combination data sets using 10-fold cross validation.</p>
+<pre class="r"><code>validate &lt;- gapminder %&gt;%
+ rsample::vfold_cv(10)
+
+test_data &lt;- list(test_training = list(validate), model_name = model_frame$model_name)  
+  
+test_data &lt;- cross_df(test_data) %&gt;%
+  unnest(.id = &quot;model_number&quot;) %&gt;% 
+  left_join(model_frame %&gt;% select(model_name, model, fit), by = &quot;model_name&quot;)</code></pre>
+<pre><code>## Warning: `cols` is now required when using unnest().
+## Please use `cols = c(test_training)`</code></pre>
+<pre><code>## Warning: The `.id` argument of `unnest()` is deprecated as of tidyr 1.0.0.
+## Manually create column of names instead.
+## This warning is displayed once every 8 hours.
+## Call `lifecycle::last_warnings()` to see where this warning was generated.</code></pre>
+<pre class="r"><code>test_data</code></pre>
+<pre><code>## # A tibble: 40 x 5
+##    splits             id     model_name model        fit         
+##    &lt;list&gt;             &lt;chr&gt;  &lt;chr&gt;      &lt;named list&gt; &lt;named list&gt;
+##  1 &lt;split [1.5K/171]&gt; Fold01 woah       &lt;formula&gt;    &lt;lm&gt;        
+##  2 &lt;split [1.5K/171]&gt; Fold02 woah       &lt;formula&gt;    &lt;lm&gt;        
+##  3 &lt;split [1.5K/171]&gt; Fold03 woah       &lt;formula&gt;    &lt;lm&gt;        
+##  4 &lt;split [1.5K/171]&gt; Fold04 woah       &lt;formula&gt;    &lt;lm&gt;        
+##  5 &lt;split [1.5K/170]&gt; Fold05 woah       &lt;formula&gt;    &lt;lm&gt;        
+##  6 &lt;split [1.5K/170]&gt; Fold06 woah       &lt;formula&gt;    &lt;lm&gt;        
+##  7 &lt;split [1.5K/170]&gt; Fold07 woah       &lt;formula&gt;    &lt;lm&gt;        
+##  8 &lt;split [1.5K/170]&gt; Fold08 woah       &lt;formula&gt;    &lt;lm&gt;        
+##  9 &lt;split [1.5K/170]&gt; Fold09 woah       &lt;formula&gt;    &lt;lm&gt;        
+## 10 &lt;split [1.5K/170]&gt; Fold10 woah       &lt;formula&gt;    &lt;lm&gt;        
+## # … with 30 more rows</code></pre>
+<p>In a few lines of code, we now have “tidy” cross validation routine across multiple models, not bad.</p>
+<pre class="r"><code>test_data &lt;- test_data %&gt;%
+mutate(fit = map2(model, splits, ~lm(.x, data = rsample::analysis(.y)))) %&gt;%
+mutate(root_mean_sq_error = map2_dbl(fit, splits, ~modelr::rmse(.x,rsample::assessment(.y))))</code></pre>
+<pre class="r"><code>test_data %&gt;%
+  ggplot(aes(root_mean_sq_error, fill = model_name)) +
+  geom_density(alpha = 0.75) +
+  labs(x = &quot;Root Mean Squared Error&quot;, title = &quot;Cross-validated distribution of RMSE&quot;)</code></pre>
+<p><img src="/blog/2018-02-13-practical-purrr_files/figure-html/unnamed-chunk-47-1.svg" width="960" /></p>
+<p>Judging by out of sample RMSE, the most complicated model (<code>woah</code>) is still our best choice. And just like that in a few lines of code we’ve used <code>modelr</code> and <code>purrr</code> to easily compare a number of different model structures.</p>
+<p>Out-of-sample RMSE is a useful metric, but there are lots of other diagnostics we might want to run. Suppose that we want to examine the fitted vs. residuals plots for each model</p>
+<pre class="r"><code>gen_fit_v_resid &lt;- function(model){
+  
+  aug_model &lt;- broom::augment()
+  
+}
+
+
+test_data &lt;- test_data %&gt;% 
+  mutate(aug_model = map(fit, broom::augment))
+
+fit_plot &lt;- test_data %&gt;% 
+  select(model_name,aug_model) %&gt;% 
+  unnest() %&gt;% 
+  ggplot(aes(.fitted, .resid)) + 
+  geom_hline(aes(yintercept = 0), linetype = 2, color = &quot;red&quot;) +
+  geom_point(alpha = 0.5) + 
+  facet_wrap(~model_name, scales = &quot;free_y&quot;)</code></pre>
+<pre><code>## Warning: `cols` is now required when using unnest().
+## Please use `cols = c(aug_model)`</code></pre>
+<pre class="r"><code>fit_plot</code></pre>
+<p><img src="/blog/2018-02-13-practical-purrr_files/figure-html/unnamed-chunk-48-1.svg" width="960" /></p>
+<!-- Examining our "best" model more carefully though, we see we have some problems -->
+<!-- ```{r} -->
+<!-- qq_plot <- test_data %>% -->
+<!--   filter(model_name == "woah") %>% -->
+<!--   slice(1) %>% -->
+<!--   { -->
+<!--     .$fit[[1]] -->
+<!--   } %>% -->
+<!--   broom::augment(.) %>% -->
+<!--   ggplot(aes(sample = .resid)) + -->
+<!--   stat_qq() + -->
+<!--   stat_qq_line(color = "red", linetype =  2) + -->
+<!--   labs(y = "Deviance Residuals", title = "Normal QQ plot") -->
+<!-- qq_plot -->
+<!-- ``` -->
+<p>Hmmm that doesn’t look good (we want the black points to fall more of less on the red dashed 1:1 line), we clearly need to spend more time with model specification (AKA this very simple model is, surprise surprise, not a good way to model life expectancy). But now, we see how we can use <code>purrr</code> and <code>modelr</code> to easily construct and compare numerous new model hypotheses in our hunt for the best one.</p>
+</div>
+<div id="parallel-purrr" class="section level2">
+<h2>Parallel <code>purrr</code></h2>
+<p>The nature of <code>purrr</code> really lends itself to parallel processing. At it’s core, <code>purrr</code> is doing a “split-apply-combine” routine, meaning that for must use cases you have a bunch of independent operations that you need your computer to run (i.e., the results of one step in <code>map</code> call do not affect the next step). This means that if you want to speed things up, you could farm those processes out to different cores on your computer. For example, if you ran an operation in parallel on four cores, you could in theory run four tasks in about the time it takes to run one task normally (it’s not quite as linear as that due to startup and maintanance costs).</p>
+<p><strong>WARNING</strong>: running things in parallel can get complicated across different platforms (especially moving from Linux/OS X to Windows). Be preparred to do some work on this.</p>
+<p>As of now, <code>purrr</code> does not have built in parallel functionality (though it may be <a href="https://github.com/tidyverse/purrr/issues/121">in the works</a>). There are a few options out there though.</p>
+<p>One is to simply step outside of <code>purrr</code> for a moment: one of the great things about the open-source world is finding the right package for the right problem, and in this case there are other options that work great.</p>
+<p>My preferred solution to date has been the <code>foreach</code> and <code>doParallel</code> packages. The nice thing is that once you’ve formatted your data and model to be run through <code>purrr</code> (i.e. made things tidy), you’re already set up to use tools</p>
+<pre class="r"><code>  n_cores &lt;- floor(parallel::detectCores()/2)
+
+  doParallel::registerDoParallel(cores = n_cores)
+
+fits &lt;-  foreach::foreach(i = 1:nrow(test_data)) %dopar% {
+  
+  lm(test_data$model[[i]], data = analysis(test_data$splits[[i]]))
+  
+}
+
+test_data$fit &lt;- fits</code></pre>
+<p>There is also a new package called <a href="https://davisvaughan.github.io/furrr/"><code>furrr</code></a> which looks really promising. This allows you to run things in parallel by simply setting up a cluster and appending <code>future_</code> to your <code>map</code> call (leveraging the <a href="https://github.com/HenrikBengtsson/future"><code>future</code></a> package).</p>
+<pre class="r"><code>library(furrr)</code></pre>
+<pre><code>## Loading required package: future</code></pre>
+<pre class="r"><code>future::plan(multiprocess(workers = 1))</code></pre>
+<pre><code>## Warning: [ONE-TIME WARNING] Forked processing (&#39;multicore&#39;) is disabled
+## in future (&gt;= 1.13.0) when running R from RStudio, because it is
+## considered unstable. Because of this, plan(&quot;multicore&quot;) will fall
+## back to plan(&quot;sequential&quot;), and plan(&quot;multiprocess&quot;) will fall back to
+## plan(&quot;multisession&quot;) - not plan(&quot;multicore&quot;) as in the past. For more details,
+## how to control forked processing or not, and how to silence this warning in
+## future R sessions, see ?future::supportsMulticore</code></pre>
+<pre class="r"><code>start &lt;- Sys.time()
+
+test_data &lt;- test_data %&gt;% 
+  mutate(par_fits = future_map2(model, splits, ~lm(.x, data = rsample::analysis(.y)),.progress = T)
+)
+
+
+Sys.time() - start</code></pre>
+<pre><code>## Time difference of 1.218323 secs</code></pre>
+</div>
+<div id="miscellaneos-purrr" class="section level2">
+<h2>Miscellaneos <code>purrr</code></h2>
+<p>That’s a broad tour of the key features of <code>purrr</code>. Here’s a few more examples of miscellaneous things you can do with <code>purrr</code></p>
+<div id="debugging-using-safely" class="section level3">
+<h3>Debugging using <code>safely</code></h3>
+<p>One annoying thing about using <code>map</code> (or <code>apply</code>) in place of loops is that it can make debugging much harder to deal with. With a loop, it’s easy to see where exactly an error occurred and your loop failed (e.g. look at the index of the loop when the error occurred). With <code>map</code>, it can be much harder to figure out where the problem is, especially if you have a very large list that you’re mapping over.</p>
+<p>The <code>safely</code> function lets us solve this problem.</p>
+<p>Suppose that you’ve got a bunch of csv’s of fish lengths from a field site. The field techs are supposed to enter the length in one column, and the units in a second column. As tends to happen though, some techs put the units next to the length (e.g. 26cm), instead of in separate <code>lengths</code> and <code>units</code> columns. Suppose then that we want to pull in our lengths and log transform them, since we suspect that the lengths are log-normally distributed and we’d like to run an OLS regression on them.</p>
+<p>To simulate our data…</p>
+<pre class="r"><code>fish_foo &lt;- function() {
+  bad_tech &lt;- ifelse(runif(1, 0, 10) &gt; 2, FALSE, TRUE)
+
+  if (bad_tech == F) {
+    lengths &lt;- rnorm(10, 25, 5) %&gt;% signif(3)
+
+    units &lt;- &quot;cm&quot;
+  } else {
+    lengths &lt;- paste0(rnorm(10, 25, 5) %&gt;% signif(3), &quot;cm&quot;)
+
+    units &lt;- &quot;what&#39;s this column for?&quot;
+  }
+
+  out &lt;- data_frame(lengths = lengths, units = units)
+  return(out)
+}
+
+length_data &lt;- rerun(100, fish_foo()) %&gt;%
+  set_names(paste0(&quot;tech&quot;, 1:100))
+
+listviewer::jsonedit(length_data)</code></pre>
+<div id="htmlwidget-7" style="width:960px;height:480px;" class="jsonedit html-widget"></div>
+<script type="application/json" data-for="htmlwidget-7">{"x":{"data":{"tech1":{"lengths":["30cm","21.4cm","29cm","32.1cm","21.1cm","21.7cm","28.3cm","25.9cm","27.7cm","32cm"],"units":["what's this column for?","what's this column for?","what's this column for?","what's this column for?","what's this column for?","what's this column for?","what's this column for?","what's this column for?","what's this column for?","what's this column for?"]},"tech2":{"lengths":[19.6,27.1,22.6,24.5,29,25.3,21.9,21.4,26.6,26.7],"units":["cm","cm","cm","cm","cm","cm","cm","cm","cm","cm"]},"tech3":{"lengths":[28.7,28.8,23.7,23.4,25.4,30.3,27.1,32.2,25,30.6],"units":["cm","cm","cm","cm","cm","cm","cm","cm","cm","cm"]},"tech4":{"lengths":[19.9,28.5,31.6,33.6,20.7,19.9,23.9,25.8,20.7,21.3],"units":["cm","cm","cm","cm","cm","cm","cm","cm","cm","cm"]},"tech5":{"lengths":[24.3,24.7,13.4,18.2,24.6,23.7,19,15,23.2,28.3],"units":["cm","cm","cm","cm","cm","cm","cm","cm","cm","cm"]},"tech6":{"lengths":[19.7,25.8,29.6,23.5,29.1,18.7,30,28.8,22.3,26.5],"units":["cm","cm","cm","cm","cm","cm","cm","cm","cm","cm"]},"tech7":{"lengths":[19.3,26.8,27.1,28.2,18.9,25.5,20.3,25,31.7,22.5],"units":["cm","cm","cm","cm","cm","cm","cm","cm","cm","cm"]},"tech8":{"lengths":[25.1,20.1,16.5,28.3,24.6,18.5,26.5,24.5,33,20.4],"units":["cm","cm","cm","cm","cm","cm","cm","cm","cm","cm"]},"tech9":{"lengths":[42,26,29.2,31.1,21.5,23.2,16.4,21.3,28.1,23.5],"units":["cm","cm","cm","cm","cm","cm","cm","cm","cm","cm"]},"tech10":{"lengths":[25.5,19.3,20.1,19.7,15.5,30.3,24.3,23.1,32.4,28.1],"units":["cm","cm","cm","cm","cm","cm","cm","cm","cm","cm"]},"tech11":{"lengths":[17.4,21,19.2,27,20.7,26.5,24.3,17.8,21,29.4],"units":["cm","cm","cm","cm","cm","cm","cm","cm","cm","cm"]},"tech12":{"lengths":[24,25,23,31.6,22.3,25.8,18.7,31.9,31.5,20.2],"units":["cm","cm","cm","cm","cm","cm","cm","cm","cm","cm"]},"tech13":{"lengths":["24.1cm","31.5cm","29.4cm","27.3cm","27.4cm","22.5cm","18.4cm","31.5cm","17.9cm","20.3cm"],"units":["what's this column for?","what's this column for?","what's this column for?","what's this column for?","what's this column for?","what's this column for?","what's this column for?","what's this column for?","what's this column for?","what's this column for?"]},"tech14":{"lengths":[19.1,25.7,24.3,32.1,24.5,22.2,23.4,23.9,22.1,25.9],"units":["cm","cm","cm","cm","cm","cm","cm","cm","cm","cm"]},"tech15":{"lengths":[24.3,25.6,28.6,19.1,22.5,19.6,30.3,31.4,28.9,18.9],"units":["cm","cm","cm","cm","cm","cm","cm","cm","cm","cm"]},"tech16":{"lengths":[24.6,23.7,27,31.2,25.7,17.8,26.3,31.7,33.1,23.6],"units":["cm","cm","cm","cm","cm","cm","cm","cm","cm","cm"]},"tech17":{"lengths":[31.8,16.5,23.6,25.3,27.9,19.2,29,26.5,26.3,27.5],"units":["cm","cm","cm","cm","cm","cm","cm","cm","cm","cm"]},"tech18":{"lengths":[23.3,25.2,30.2,23.8,28,27.6,21.8,20.8,22,16],"units":["cm","cm","cm","cm","cm","cm","cm","cm","cm","cm"]},"tech19":{"lengths":[24.5,23.6,28.9,17.1,27.4,27,11.5,26.8,14.2,28.3],"units":["cm","cm","cm","cm","cm","cm","cm","cm","cm","cm"]},"tech20":{"lengths":[21.9,33.5,27.5,26.4,32,16.5,30.2,33.3,20.2,23.6],"units":["cm","cm","cm","cm","cm","cm","cm","cm","cm","cm"]},"tech21":{"lengths":[24.8,34.3,27.9,29.2,31.7,22.5,27.6,29.3,31.8,28.8],"units":["cm","cm","cm","cm","cm","cm","cm","cm","cm","cm"]},"tech22":{"lengths":[27.7,26.2,21.4,18.4,33,27.2,19.6,18.4,23.3,23.5],"units":["cm","cm","cm","cm","cm","cm","cm","cm","cm","cm"]},"tech23":{"lengths":[23.5,18.4,20.2,24.3,16,16.6,30.5,22.1,15.7,24.4],"units":["cm","cm","cm","cm","cm","cm","cm","cm","cm","cm"]},"tech24":{"lengths":[20.6,24.1,20.6,16.7,21.8,23.6,17.9,24.4,19.6,15.6],"units":["cm","cm","cm","cm","cm","cm","cm","cm","cm","cm"]},"tech25":{"lengths":[19.5,21.1,36.4,19.5,26.1,29.5,30.1,30.4,24.2,20.9],"units":["cm","cm","cm","cm","cm","cm","cm","cm","cm","cm"]},"tech26":{"lengths":[26.6,27.1,24.9,29.8,27.2,16.5,15.8,24,19.9,28],"units":["cm","cm","cm","cm","cm","cm","cm","cm","cm","cm"]},"tech27":{"lengths":[28.8,30.6,23.5,27.7,23.6,28.4,24.4,23.3,25.6,23.6],"units":["cm","cm","cm","cm","cm","cm","cm","cm","cm","cm"]},"tech28":{"lengths":[27.9,26.7,29.3,20.3,17,30,27.9,36.2,19.6,15.8],"units":["cm","cm","cm","cm","cm","cm","cm","cm","cm","cm"]},"tech29":{"lengths":[23.5,27.1,29.9,24.1,25.8,26.1,28.6,30.6,26.4,24.6],"units":["cm","cm","cm","cm","cm","cm","cm","cm","cm","cm"]},"tech30":{"lengths":[23.7,18,28.2,20.5,26.5,16.9,20.4,35.5,27.8,25.3],"units":["cm","cm","cm","cm","cm","cm","cm","cm","cm","cm"]},"tech31":{"lengths":["29.6cm","18.5cm","27.1cm","19.4cm","19.7cm","27.6cm","21.6cm","30cm","25.2cm","27.7cm"],"units":["what's this column for?","what's this column for?","what's this column for?","what's this column for?","what's this column for?","what's this column for?","what's this column for?","what's this column for?","what's this column for?","what's this column for?"]},"tech32":{"lengths":[34,27.3,21.1,20.1,21.5,27.2,22.8,22.5,19.2,32.2],"units":["cm","cm","cm","cm","cm","cm","cm","cm","cm","cm"]},"tech33":{"lengths":[29.1,26,26,24.8,22.4,20.9,29.3,17.9,27.2,21],"units":["cm","cm","cm","cm","cm","cm","cm","cm","cm","cm"]},"tech34":{"lengths":[16.2,29.7,14.3,18.2,29.9,30.2,22.9,26.8,22.5,28.5],"units":["cm","cm","cm","cm","cm","cm","cm","cm","cm","cm"]},"tech35":{"lengths":[23.4,34.9,13.8,29.2,23.6,28.3,22.7,22,16.4,24],"units":["cm","cm","cm","cm","cm","cm","cm","cm","cm","cm"]},"tech36":{"lengths":[26.6,23.7,23.5,12.8,17.8,26.1,27.8,27.2,25.9,23],"units":["cm","cm","cm","cm","cm","cm","cm","cm","cm","cm"]},"tech37":{"lengths":[29.5,30.2,25.5,22.3,41.5,28.7,32.1,23.3,24.8,27.2],"units":["cm","cm","cm","cm","cm","cm","cm","cm","cm","cm"]},"tech38":{"lengths":[19.5,31.4,25.1,21.6,27.1,34.1,22.2,23,22.4,22.1],"units":["cm","cm","cm","cm","cm","cm","cm","cm","cm","cm"]},"tech39":{"lengths":[20.5,27.1,18.9,22.6,33.1,32.3,30.5,22.1,15.6,19.1],"units":["cm","cm","cm","cm","cm","cm","cm","cm","cm","cm"]},"tech40":{"lengths":[14.2,31.8,22.5,25.8,25.2,26.5,25.1,28.8,30.3,21.7],"units":["cm","cm","cm","cm","cm","cm","cm","cm","cm","cm"]},"tech41":{"lengths":["15.3cm","30.1cm","25cm","27.8cm","16.7cm","21.7cm","22.8cm","30.2cm","30.1cm","27.2cm"],"units":["what's this column for?","what's this column for?","what's this column for?","what's this column for?","what's this column for?","what's this column for?","what's this column for?","what's this column for?","what's this column for?","what's this column for?"]},"tech42":{"lengths":[26,32.6,24,28.7,29.4,24,17.7,24.8,26.5,27],"units":["cm","cm","cm","cm","cm","cm","cm","cm","cm","cm"]},"tech43":{"lengths":[26.8,29.1,23.3,31.3,21,28.1,20.9,12.7,18.3,25.7],"units":["cm","cm","cm","cm","cm","cm","cm","cm","cm","cm"]},"tech44":{"lengths":[21.8,19.6,20.3,20.7,27.5,22.2,24.1,31.6,26.4,25.1],"units":["cm","cm","cm","cm","cm","cm","cm","cm","cm","cm"]},"tech45":{"lengths":[22.7,9.76,34.3,34,19.5,24.2,31.9,30,31.4,19.6],"units":["cm","cm","cm","cm","cm","cm","cm","cm","cm","cm"]},"tech46":{"lengths":[25.4,20.4,26.9,28.3,23.6,26.6,21.6,36.3,16.5,27.9],"units":["cm","cm","cm","cm","cm","cm","cm","cm","cm","cm"]},"tech47":{"lengths":[23.1,19.3,26.3,14.5,17.9,19.6,19.6,25.5,33,17.4],"units":["cm","cm","cm","cm","cm","cm","cm","cm","cm","cm"]},"tech48":{"lengths":[31.6,24.3,20.1,23.7,28.7,26.7,23.3,33.5,26.5,23.8],"units":["cm","cm","cm","cm","cm","cm","cm","cm","cm","cm"]},"tech49":{"lengths":[34.4,29.4,20.4,18.8,23.2,31.6,26.5,21.5,29.4,24.3],"units":["cm","cm","cm","cm","cm","cm","cm","cm","cm","cm"]},"tech50":{"lengths":["13.9cm","29.9cm","17.2cm","23.5cm","19.6cm","22.6cm","20.6cm","25.9cm","24.2cm","24.6cm"],"units":["what's this column for?","what's this column for?","what's this column for?","what's this column for?","what's this column for?","what's this column for?","what's this column for?","what's this column for?","what's this column for?","what's this column for?"]},"tech51":{"lengths":[36.8,18.9,25.9,29,30.3,24.9,21.3,24.7,34.7,27.4],"units":["cm","cm","cm","cm","cm","cm","cm","cm","cm","cm"]},"tech52":{"lengths":["28cm","24.3cm","29.5cm","30cm","14.5cm","24.7cm","24.3cm","27.2cm","34.7cm","34.7cm"],"units":["what's this column for?","what's this column for?","what's this column for?","what's this column for?","what's this column for?","what's this column for?","what's this column for?","what's this column for?","what's this column for?","what's this column for?"]},"tech53":{"lengths":[30.5,27.5,30.2,19.5,25.3,28.1,19.7,32.8,19.8,25.8],"units":["cm","cm","cm","cm","cm","cm","cm","cm","cm","cm"]},"tech54":{"lengths":[26.5,23.6,31.6,33.5,25.8,26.6,24.7,29.8,26,22.3],"units":["cm","cm","cm","cm","cm","cm","cm","cm","cm","cm"]},"tech55":{"lengths":[26.9,23.8,25.2,18,26.4,22.3,26.7,23.3,21.7,23.9],"units":["cm","cm","cm","cm","cm","cm","cm","cm","cm","cm"]},"tech56":{"lengths":[27.4,24.6,25,27.4,18.9,24,33.5,21.2,29.9,19.8],"units":["cm","cm","cm","cm","cm","cm","cm","cm","cm","cm"]},"tech57":{"lengths":[33.5,24.2,30.6,25.4,23.3,15.8,19.5,24.8,29.1,15.6],"units":["cm","cm","cm","cm","cm","cm","cm","cm","cm","cm"]},"tech58":{"lengths":[26.4,26.6,19.7,32.1,31,16.6,34.1,22.3,20.8,21.2],"units":["cm","cm","cm","cm","cm","cm","cm","cm","cm","cm"]},"tech59":{"lengths":["26.7cm","17.2cm","11.9cm","32.3cm","36.4cm","22.7cm","28.8cm","25cm","32.4cm","27.8cm"],"units":["what's this column for?","what's this column for?","what's this column for?","what's this column for?","what's this column for?","what's this column for?","what's this column for?","what's this column for?","what's this column for?","what's this column for?"]},"tech60":{"lengths":[33.4,25.1,22,31.9,25.2,20,20.2,27.5,19.1,32.8],"units":["cm","cm","cm","cm","cm","cm","cm","cm","cm","cm"]},"tech61":{"lengths":["31.8cm","30.8cm","33.3cm","26cm","22.1cm","27.8cm","30.3cm","37.1cm","15.2cm","26.4cm"],"units":["what's this column for?","what's this column for?","what's this column for?","what's this column for?","what's this column for?","what's this column for?","what's this column for?","what's this column for?","what's this column for?","what's this column for?"]},"tech62":{"lengths":[16.6,32.7,33.4,30.2,37.7,22.2,33.7,19.3,29.5,16.5],"units":["cm","cm","cm","cm","cm","cm","cm","cm","cm","cm"]},"tech63":{"lengths":[18.6,31.6,30.7,23.8,28.8,20.7,24.2,24.5,23.6,28.7],"units":["cm","cm","cm","cm","cm","cm","cm","cm","cm","cm"]},"tech64":{"lengths":[25,24.3,30,24.6,21.2,27.8,14.1,25.5,21.6,23.2],"units":["cm","cm","cm","cm","cm","cm","cm","cm","cm","cm"]},"tech65":{"lengths":[19.8,30.2,24.5,25.7,31.1,26.1,20.7,22.6,28.4,13.3],"units":["cm","cm","cm","cm","cm","cm","cm","cm","cm","cm"]},"tech66":{"lengths":[21.3,27.8,23.8,31.8,21.1,16.3,18.9,18.9,28.7,25.6],"units":["cm","cm","cm","cm","cm","cm","cm","cm","cm","cm"]},"tech67":{"lengths":[28.4,18.6,28.2,18.1,22,31.1,13.7,16.1,31.5,20.9],"units":["cm","cm","cm","cm","cm","cm","cm","cm","cm","cm"]},"tech68":{"lengths":[21.5,23.7,22.5,23,11.7,26.3,20.3,21.9,19.5,24.4],"units":["cm","cm","cm","cm","cm","cm","cm","cm","cm","cm"]},"tech69":{"lengths":[23.8,31.9,23.3,25.1,26.9,22.8,34.8,17.9,35.1,23.2],"units":["cm","cm","cm","cm","cm","cm","cm","cm","cm","cm"]},"tech70":{"lengths":[25.9,30.3,30.8,5.87,29.9,15.6,28.5,17.2,23.9,26],"units":["cm","cm","cm","cm","cm","cm","cm","cm","cm","cm"]},"tech71":{"lengths":[19.4,29.7,27.2,19.5,21.7,28.9,26.2,32.1,22,16.4],"units":["cm","cm","cm","cm","cm","cm","cm","cm","cm","cm"]},"tech72":{"lengths":[16.6,31.1,29.3,27.5,34.5,25.2,26.6,19.5,35.6,24],"units":["cm","cm","cm","cm","cm","cm","cm","cm","cm","cm"]},"tech73":{"lengths":[25.4,26.3,26.4,27.7,22.7,22.4,26.2,22.3,31.1,25.9],"units":["cm","cm","cm","cm","cm","cm","cm","cm","cm","cm"]},"tech74":{"lengths":[35.7,21.8,33.1,28.1,23.8,28.6,25,28.4,26.3,27.2],"units":["cm","cm","cm","cm","cm","cm","cm","cm","cm","cm"]},"tech75":{"lengths":[19.1,24.8,21.5,28.4,25.7,30.5,35.3,25.7,22.3,20.9],"units":["cm","cm","cm","cm","cm","cm","cm","cm","cm","cm"]},"tech76":{"lengths":[22.5,28.3,20,26,20.8,21.9,27.6,22,24.5,26.6],"units":["cm","cm","cm","cm","cm","cm","cm","cm","cm","cm"]},"tech77":{"lengths":["31cm","30.4cm","23.4cm","25.2cm","28.3cm","16.7cm","23.4cm","27.9cm","22.4cm","24.7cm"],"units":["what's this column for?","what's this column for?","what's this column for?","what's this column for?","what's this column for?","what's this column for?","what's this column for?","what's this column for?","what's this column for?","what's this column for?"]},"tech78":{"lengths":[26.1,34,25.9,19.2,40.1,23.1,27.8,29.4,23.2,26.2],"units":["cm","cm","cm","cm","cm","cm","cm","cm","cm","cm"]},"tech79":{"lengths":[26.1,26.2,30.6,20.1,32.2,26.7,25.9,22.2,24.2,26.9],"units":["cm","cm","cm","cm","cm","cm","cm","cm","cm","cm"]},"tech80":{"lengths":["22.3cm","29.8cm","27.3cm","20.5cm","27.7cm","21.2cm","19.8cm","14cm","29.3cm","26.2cm"],"units":["what's this column for?","what's this column for?","what's this column for?","what's this column for?","what's this column for?","what's this column for?","what's this column for?","what's this column for?","what's this column for?","what's this column for?"]},"tech81":{"lengths":[21.1,18.8,19.6,26.3,24.4,23.5,13.4,18.4,24.3,20.6],"units":["cm","cm","cm","cm","cm","cm","cm","cm","cm","cm"]},"tech82":{"lengths":[20.2,28.2,30.3,23.4,15.6,27.8,26.9,28.7,17.2,30.8],"units":["cm","cm","cm","cm","cm","cm","cm","cm","cm","cm"]},"tech83":{"lengths":[24,26.9,29,24.3,27.3,19.3,23.8,22.9,26,26.8],"units":["cm","cm","cm","cm","cm","cm","cm","cm","cm","cm"]},"tech84":{"lengths":[23.7,21.6,24.1,23.9,22.1,25.7,32.7,24.2,16,22.7],"units":["cm","cm","cm","cm","cm","cm","cm","cm","cm","cm"]},"tech85":{"lengths":[21.1,29.2,29.2,30.1,31.3,22.5,22.7,26.3,28.2,23.3],"units":["cm","cm","cm","cm","cm","cm","cm","cm","cm","cm"]},"tech86":{"lengths":[27.6,30.3,24.6,32.8,29.8,24.7,17.1,23.4,17.8,28.1],"units":["cm","cm","cm","cm","cm","cm","cm","cm","cm","cm"]},"tech87":{"lengths":[14,21.2,25.8,21.7,22.2,26.7,19.7,24.6,27.5,33.2],"units":["cm","cm","cm","cm","cm","cm","cm","cm","cm","cm"]},"tech88":{"lengths":[28.2,20.9,18.5,28.5,20,29.3,26.7,21.6,22.9,25.9],"units":["cm","cm","cm","cm","cm","cm","cm","cm","cm","cm"]},"tech89":{"lengths":[23.6,26.1,23.2,25.6,21.6,26.9,24.6,24.8,15.3,21.6],"units":["cm","cm","cm","cm","cm","cm","cm","cm","cm","cm"]},"tech90":{"lengths":["26.9cm","22.2cm","24.3cm","37.1cm","22.6cm","22.9cm","31.4cm","18.3cm","25.4cm","30.1cm"],"units":["what's this column for?","what's this column for?","what's this column for?","what's this column for?","what's this column for?","what's this column for?","what's this column for?","what's this column for?","what's this column for?","what's this column for?"]},"tech91":{"lengths":[25,16.6,20.8,30,21.9,26.7,25.1,22.5,23.2,27],"units":["cm","cm","cm","cm","cm","cm","cm","cm","cm","cm"]},"tech92":{"lengths":[27.6,33.1,26.7,18,29.5,25.9,37.9,20.3,25.5,27.6],"units":["cm","cm","cm","cm","cm","cm","cm","cm","cm","cm"]},"tech93":{"lengths":[21.7,28.3,22.2,20.2,28.1,25.5,26.9,22.1,34,28.3],"units":["cm","cm","cm","cm","cm","cm","cm","cm","cm","cm"]},"tech94":{"lengths":[14.7,20,27.8,15.3,28.9,19.3,27.9,20.3,22.9,25.8],"units":["cm","cm","cm","cm","cm","cm","cm","cm","cm","cm"]},"tech95":{"lengths":[32.2,22,26.4,20.2,19.9,21.1,31.8,29.7,28,30.6],"units":["cm","cm","cm","cm","cm","cm","cm","cm","cm","cm"]},"tech96":{"lengths":[25,24,22.4,22,21.2,32,21.8,25.8,27.2,13.8],"units":["cm","cm","cm","cm","cm","cm","cm","cm","cm","cm"]},"tech97":{"lengths":[23.5,27.7,17.3,18.7,24.4,17.9,15.1,28.9,29.5,19.9],"units":["cm","cm","cm","cm","cm","cm","cm","cm","cm","cm"]},"tech98":{"lengths":[20.5,19.3,25,30.7,28.5,20,31,24.5,27.7,31.9],"units":["cm","cm","cm","cm","cm","cm","cm","cm","cm","cm"]},"tech99":{"lengths":[16.1,27.7,24.1,24.8,30.2,20.5,30.7,22.9,21.4,24],"units":["cm","cm","cm","cm","cm","cm","cm","cm","cm","cm"]},"tech100":{"lengths":[26.5,19.8,24.1,17.1,31,33.9,30.3,32.2,22,32.1],"units":["cm","cm","cm","cm","cm","cm","cm","cm","cm","cm"]}},"options":{"mode":"tree","modes":["code","form","text","tree","view"]}},"evals":[],"jsHooks":[]}</script>
+<p>Our goal is to put all of these observations together, log transform the lengths, and plot. Using <code>map</code>, we know that we can use</p>
+<pre class="r"><code>length_data %&gt;% 
+  map(~log(.x$lengths))</code></pre>
+<p>Yep, that doesn’t work, since <code>map</code> hit an error somewhere in there (it doesn’t know how to take the log of (<code>25cm</code>). Now, we could go through all 100 entries and see which ones are bad, or concatenate them earlier and look for NAs after conversion to type numeric, but let’s see how we can use <code>purrr</code> to deal with this.</p>
+<pre class="r"><code>safe_log &lt;-  safely(log)
+
+diagnose_length &lt;- length_data %&gt;% 
+  map(~safe_log(.$lengths))
+
+head(diagnose_length,2)</code></pre>
+<pre><code>## $tech1
+## $tech1$result
+## NULL
+## 
+## $tech1$error
+## &lt;simpleError in .Primitive(&quot;log&quot;)(x, base): non-numeric argument to mathematical function&gt;
+## 
+## 
+## $tech2
+## $tech2$result
+##  [1] 2.975530 3.299534 3.117950 3.198673 3.367296 3.230804 3.086487 3.063391
+##  [9] 3.280911 3.284664
+## 
+## $tech2$error
+## NULL</code></pre>
+<p>Great, now we at least have something to work with. <code>safely</code> gives us two objects per entry: the data if it worked, and a log of the error messages if it didn’t.</p>
+<p>How do we figure out which tech’s are the problem? We can use <code>map_lgl</code> to help us out here</p>
+<pre class="r"><code>bad_lengths &lt;- map_lgl(diagnose_length, ~is.null(.x$error) == F)
+
+bad_techs &lt;- diagnose_length %&gt;% 
+  keep(bad_lengths)
+
+names(bad_techs)</code></pre>
+<pre><code>##  [1] &quot;tech1&quot;  &quot;tech13&quot; &quot;tech31&quot; &quot;tech41&quot; &quot;tech50&quot; &quot;tech52&quot; &quot;tech59&quot; &quot;tech61&quot;
+##  [9] &quot;tech77&quot; &quot;tech80&quot; &quot;tech90&quot;</code></pre>
+<p>I leave it to your imagination to think of how to resolve this problem, but at least we now know where the problem is. One strategy is to use the handy <code>possibly</code> function from <code>purrr</code>. This basically says try a function and return its value if it works, otherwise return something else.</p>
+<pre class="r"><code>possibly_log &lt;-  possibly(log, otherwise = NA)
+
+
+diagnose_length &lt;- length_data %&gt;% 
+  map(~possibly_log(.$lengths))
+
+listviewer::jsonedit(diagnose_length)</code></pre>
+<div id="htmlwidget-8" style="width:960px;height:480px;" class="jsonedit html-widget"></div>
+<script type="application/json" data-for="htmlwidget-8">{"x":{"data":{"tech1":null,"tech2":[2.97552956623647,3.29953372788566,3.11794990627824,3.19867311755068,3.36729582998647,3.23080439573347,3.08648663682246,3.06339092202781,3.28091121578765,3.2846635654062],"tech3":[3.35689712276558,3.3603753871419,3.16547504814109,3.15273602236366,3.23474917402449,3.41114771251532,3.29953372788566,3.47196645255036,3.2188758248682,3.42100000895834],"tech4":[2.99071973173045,3.3499040872746,3.45315712059287,3.51452606696916,3.03013370027132,2.99071973173045,3.17387845893747,3.25037449192757,3.03013370027132,3.05870707271538],"tech5":[3.1904763503465,3.20680324363393,2.59525470695687,2.90142159408275,3.20274644293832,3.16547504814109,2.94443897916644,2.70805020110221,3.14415227867226,3.34286180464919],"tech6":[2.98061863574394,3.25037449192757,3.38777436133001,3.15700042115011,3.37073817417745,2.92852352386054,3.40119738166216,3.3603753871419,3.10458667846607,3.27714473299218],"tech7":[2.96010509591084,3.28840188751681,3.29953372788566,3.33932197794407,2.9391619220656,3.23867845216438,3.01062088604774,3.2188758248682,3.45631668088323,3.11351530921037],"tech8":[3.22286784613774,3.00071981506503,2.80336038090653,3.34286180464919,3.20274644293832,2.91777073208428,3.27714473299218,3.19867311755068,3.49650756146648,3.01553490085017],"tech9":[3.73766961828337,3.25809653802148,3.37416870927424,3.43720781918519,3.06805293513362,3.14415227867226,2.79728133483015,3.05870707271538,3.3357695763397,3.15700042115011],"tech10":[3.23867845216438,2.96010509591084,3.00071981506503,2.98061863574394,2.7408400239252,3.41114771251532,3.1904763503465,3.13983261752775,3.47815842279828,3.3357695763397],"tech11":[2.85647020622048,3.04452243772342,2.95491027903374,3.29583686600433,3.03013370027132,3.27714473299218,3.1904763503465,2.87919845729804,3.04452243772342,3.38099467434464],"tech12":[3.17805383034795,3.2188758248682,3.13549421592915,3.45315712059287,3.10458667846607,3.25037449192757,2.92852352386054,3.4626060097908,3.44998754583159,3.00568260440716],"tech13":null,"tech14":[2.94968833505258,3.24649099190117,3.1904763503465,3.46885603013597,3.19867311755068,3.10009228887823,3.15273602236366,3.17387845893747,3.09557760852371,3.25424296870549],"tech15":[3.1904763503465,3.24259235148552,3.35340671782581,2.94968833505258,3.11351530921037,2.97552956623647,3.41114771251532,3.44680789291421,3.36384159511839,2.9391619220656],"tech16":[3.20274644293832,3.16547504814109,3.29583686600433,3.44041809481544,3.24649099190117,2.87919845729804,3.26956893918372,3.45631668088323,3.49953328238302,3.16124671203156],"tech17":[3.45946628978613,2.80336038090653,3.16124671203156,3.23080439573347,3.32862668882732,2.95491027903374,3.36729582998647,3.27714473299218,3.26956893918372,3.31418600467253],"tech18":[3.14845336057165,3.22684399451738,3.40784192438082,3.16968558067743,3.3322045101752,3.3178157727231,3.08190996979504,3.03495298670727,3.09104245335832,2.77258872223978],"tech19":[3.19867311755068,3.16124671203156,3.36384159511839,2.83907846350861,3.31054301339402,3.29583686600433,2.4423470353692,3.28840188751681,2.65324196460721,3.34286180464919],"tech20":[3.08648663682246,3.51154543883102,3.31418600467253,3.27336401015227,3.46573590279973,2.80336038090653,3.40784192438082,3.5055573969864,3.00568260440716,3.16124671203156],"tech21":[3.21084365317094,3.53514535417189,3.32862668882732,3.37416870927424,3.45631668088323,3.11351530921037,3.3178157727231,3.37758751602302,3.45946628978613,3.3603753871419],"tech22":[3.32143241319329,3.26575941076705,3.06339092202781,2.91235066461494,3.49650756146648,3.30321697330195,2.97552956623647,2.91235066461494,3.14845336057165,3.15700042115011],"tech23":[3.15700042115011,2.91235066461494,3.00568260440716,3.1904763503465,2.77258872223978,2.8094026953625,3.41772668361337,3.09557760852371,2.75366071235426,3.19458313229916],"tech24":[3.02529107579554,3.18221184049661,3.02529107579554,2.81540871942271,3.08190996979504,3.16124671203156,2.88480071284671,3.19458313229916,2.97552956623647,2.74727091425549],"tech25":[2.9704144655697,3.04927304048202,3.5945687746427,2.9704144655697,3.26193531432865,3.38439026334577,3.40452517175483,3.41444260841218,3.18635263316264,3.03974915897077],"tech26":[3.28091121578765,3.29953372788566,3.21486780347066,3.39450839351136,3.30321697330195,2.80336038090653,2.76000994003292,3.17805383034795,2.99071973173045,3.3322045101752],"tech27":[3.3603753871419,3.42100000895834,3.15700042115011,3.32143241319329,3.16124671203156,3.34638914516716,3.19458313229916,3.14845336057165,3.24259235148552,3.16124671203156],"tech28":[3.32862668882732,3.2846635654062,3.37758751602302,3.01062088604774,2.83321334405622,3.40119738166216,3.32862668882732,3.58905911883173,2.97552956623647,2.76000994003292],"tech29":[3.15700042115011,3.29953372788566,3.39785848039664,3.18221184049661,3.25037449192757,3.26193531432865,3.35340671782581,3.42100000895834,3.27336401015227,3.20274644293832],"tech30":[3.16547504814109,2.89037175789616,3.33932197794407,3.02042488614436,3.27714473299218,2.82731362192903,3.01553490085017,3.56953269648137,3.32503602069659,3.23080439573347],"tech31":null,"tech32":[3.52636052461616,3.30688670219091,3.04927304048202,3.00071981506503,3.06805293513362,3.30321697330195,3.1267605359604,3.11351530921037,2.95491027903374,3.47196645255036],"tech33":[3.37073817417745,3.25809653802148,3.25809653802148,3.21084365317094,3.10906095886099,3.03974915897077,3.37758751602302,2.88480071284671,3.30321697330195,3.04452243772342],"tech34":[2.78501124223834,3.39114704580865,2.66025953726586,2.90142159408275,3.39785848039664,3.40784192438082,3.13113691056019,3.28840188751681,3.11351530921037,3.3499040872746],"tech35":[3.15273602236366,3.55248682920838,2.62466859216316,3.37416870927424,3.16124671203156,3.34286180464919,3.12236492448736,3.09104245335832,2.79728133483015,3.17805383034795],"tech36":[3.28091121578765,3.16547504814109,3.15700042115011,2.54944517092557,2.87919845729804,3.26193531432865,3.32503602069659,3.30321697330195,3.25424296870549,3.13549421592915],"tech37":[3.38439026334577,3.40784192438082,3.23867845216438,3.10458667846607,3.72569342723665,3.35689712276558,3.46885603013597,3.14845336057165,3.21084365317094,3.30321697330195],"tech38":[2.9704144655697,3.44680789291421,3.22286784613774,3.07269331469012,3.29953372788566,3.52929738428947,3.10009228887823,3.13549421592915,3.10906095886099,3.09557760852371],"tech39":[3.02042488614436,3.29953372788566,2.9391619220656,3.11794990627824,3.49953328238302,3.47506723022861,3.41772668361337,3.09557760852371,2.74727091425549,2.94968833505258],"tech40":[2.65324196460721,3.45946628978613,3.11351530921037,3.25037449192757,3.22684399451738,3.27714473299218,3.22286784613774,3.3603753871419,3.41114771251532,3.07731226054641],"tech41":null,"tech42":[3.25809653802148,3.48431228837266,3.17805383034795,3.35689712276558,3.38099467434464,3.17805383034795,2.87356463957978,3.21084365317094,3.27714473299218,3.29583686600433],"tech43":[3.28840188751681,3.37073817417745,3.14845336057165,3.44361809754611,3.04452243772342,3.3357695763397,3.03974915897077,2.54160199346455,2.90690105984738,3.24649099190117],"tech44":[3.08190996979504,2.97552956623647,3.01062088604774,3.03013370027132,3.31418600467253,3.10009228887823,3.18221184049661,3.45315712059287,3.27336401015227,3.22286784613774],"tech45":[3.12236492448736,2.278292400425,3.53514535417189,3.52636052461616,2.9704144655697,3.18635263316264,3.4626060097908,3.40119738166216,3.44680789291421,2.97552956623647],"tech46":[3.23474917402449,3.01553490085017,3.29212628660779,3.34286180464919,3.16124671203156,3.28091121578765,3.07269331469012,3.5918177412708,2.80336038090653,3.32862668882732],"tech47":[3.13983261752775,2.96010509591084,3.26956893918372,2.67414864942653,2.88480071284671,2.97552956623647,2.97552956623647,3.23867845216438,3.49650756146648,2.85647020622048],"tech48":[3.45315712059287,3.1904763503465,3.00071981506503,3.16547504814109,3.35689712276558,3.2846635654062,3.14845336057165,3.51154543883102,3.27714473299218,3.16968558067743],"tech49":[3.53805656437935,3.38099467434464,3.01553490085017,2.9338568698359,3.14415227867226,3.45315712059287,3.27714473299218,3.06805293513362,3.38099467434464,3.1904763503465],"tech50":null,"tech51":[3.60549784517489,2.9391619220656,3.25424296870549,3.36729582998647,3.41114771251532,3.21486780347066,3.05870707271538,3.20680324363393,3.54673968695281,3.31054301339402],"tech52":null,"tech53":[3.41772668361337,3.31418600467253,3.40784192438082,2.9704144655697,3.23080439573347,3.3357695763397,2.98061863574394,3.4904285153901,2.98568193770049,3.25037449192757],"tech54":[3.27714473299218,3.16124671203156,3.45315712059287,3.51154543883102,3.25037449192757,3.28091121578765,3.20680324363393,3.39450839351136,3.25809653802148,3.10458667846607],"tech55":[3.29212628660779,3.16968558067743,3.22684399451738,2.89037175789616,3.27336401015227,3.10458667846607,3.2846635654062,3.14845336057165,3.07731226054641,3.17387845893747],"tech56":[3.31054301339402,3.20274644293832,3.2188758248682,3.31054301339402,2.9391619220656,3.17805383034795,3.51154543883102,3.05400118167797,3.39785848039664,2.98568193770049],"tech57":[3.51154543883102,3.18635263316264,3.42100000895834,3.23474917402449,3.14845336057165,2.76000994003292,2.9704144655697,3.21084365317094,3.37073817417745,2.74727091425549],"tech58":[3.27336401015227,3.28091121578765,2.98061863574394,3.46885603013597,3.43398720448515,2.8094026953625,3.52929738428947,3.10458667846607,3.03495298670727,3.05400118167797],"tech59":null,"tech60":[3.50855589998265,3.22286784613774,3.09104245335832,3.4626060097908,3.22684399451738,2.99573227355399,3.00568260440716,3.31418600467253,2.94968833505258,3.4904285153901],"tech61":null,"tech62":[2.8094026953625,3.48737507790321,3.50855589998265,3.40784192438082,3.62966009445396,3.10009228887823,3.51749783735832,2.96010509591084,3.38439026334577,2.80336038090653],"tech63":[2.92316158071916,3.45315712059287,3.42426265459315,3.16968558067743,3.3603753871419,3.03013370027132,3.18635263316264,3.19867311755068,3.16124671203156,3.35689712276558],"tech64":[3.2188758248682,3.1904763503465,3.40119738166216,3.20274644293832,3.05400118167797,3.32503602069659,2.64617479738412,3.23867845216438,3.07269331469012,3.14415227867226],"tech65":[2.98568193770049,3.40784192438082,3.19867311755068,3.24649099190117,3.43720781918519,3.26193531432865,3.03013370027132,3.11794990627824,3.34638914516716,2.58776403522771],"tech66":[3.05870707271538,3.32503602069659,3.16968558067743,3.45946628978613,3.04927304048202,2.79116510781272,2.9391619220656,2.9391619220656,3.35689712276558,3.24259235148552],"tech67":[3.34638914516716,2.92316158071916,3.33932197794407,2.89591193827178,3.09104245335832,3.43720781918519,2.61739583283408,2.77881927199042,3.44998754583159,3.03974915897077],"tech68":[3.06805293513362,3.16547504814109,3.11351530921037,3.13549421592915,2.45958884180371,3.26956893918372,3.01062088604774,3.08648663682246,2.9704144655697,3.19458313229916],"tech69":[3.16968558067743,3.4626060097908,3.14845336057165,3.22286784613774,3.29212628660779,3.1267605359604,3.54961738678043,2.88480071284671,3.55820113047182,3.14415227867226],"tech70":[3.25424296870549,3.41114771251532,3.42751468997953,1.76985463384001,3.39785848039664,2.74727091425549,3.3499040872746,2.84490938381941,3.17387845893747,3.25809653802148],"tech71":[2.96527306606928,3.39114704580865,3.30321697330195,2.9704144655697,3.07731226054641,3.36384159511839,3.26575941076705,3.46885603013597,3.09104245335832,2.79728133483015],"tech72":[2.8094026953625,3.43720781918519,3.37758751602302,3.31418600467253,3.54095932403731,3.22684399451738,3.28091121578765,2.9704144655697,3.57234563785798,3.17805383034795],"tech73":[3.23474917402449,3.26956893918372,3.27336401015227,3.32143241319329,3.12236492448736,3.10906095886099,3.26575941076705,3.10458667846607,3.43720781918519,3.25424296870549],"tech74":[3.57515068878559,3.08190996979504,3.49953328238302,3.3357695763397,3.16968558067743,3.35340671782581,3.2188758248682,3.34638914516716,3.26956893918372,3.30321697330195],"tech75":[2.94968833505258,3.21084365317094,3.06805293513362,3.34638914516716,3.24649099190117,3.41772668361337,3.56388296393925,3.24649099190117,3.10458667846607,3.03974915897077],"tech76":[3.11351530921037,3.34286180464919,2.99573227355399,3.25809653802148,3.03495298670727,3.08648663682246,3.3178157727231,3.09104245335832,3.19867311755068,3.28091121578765],"tech77":null,"tech78":[3.26193531432865,3.52636052461616,3.25424296870549,2.95491027903374,3.69137633431252,3.13983261752775,3.32503602069659,3.38099467434464,3.14415227867226,3.26575941076705],"tech79":[3.26193531432865,3.26575941076705,3.42100000895834,3.00071981506503,3.47196645255036,3.2846635654062,3.25424296870549,3.10009228887823,3.18635263316264,3.29212628660779],"tech80":null,"tech81":[3.04927304048202,2.9338568698359,2.97552956623647,3.26956893918372,3.19458313229916,3.15700042115011,2.59525470695687,2.91235066461494,3.1904763503465,3.02529107579554],"tech82":[3.00568260440716,3.33932197794407,3.41114771251532,3.15273602236366,2.74727091425549,3.32503602069659,3.29212628660779,3.35689712276558,2.84490938381941,3.42751468997953],"tech83":[3.17805383034795,3.29212628660779,3.36729582998647,3.1904763503465,3.30688670219091,2.96010509591084,3.16968558067743,3.13113691056019,3.25809653802148,3.28840188751681],"tech84":[3.16547504814109,3.07269331469012,3.18221184049661,3.17387845893747,3.09557760852371,3.24649099190117,3.48737507790321,3.18635263316264,2.77258872223978,3.12236492448736],"tech85":[3.04927304048202,3.37416870927424,3.37416870927424,3.40452517175483,3.44361809754611,3.11351530921037,3.12236492448736,3.26956893918372,3.33932197794407,3.14845336057165],"tech86":[3.3178157727231,3.41114771251532,3.20274644293832,3.4904285153901,3.39450839351136,3.20680324363393,2.83907846350861,3.15273602236366,2.87919845729804,3.3357695763397],"tech87":[2.63905732961526,3.05400118167797,3.25037449192757,3.07731226054641,3.10009228887823,3.2846635654062,2.98061863574394,3.20274644293832,3.31418600467253,3.50254987592244],"tech88":[3.33932197794407,3.03974915897077,2.91777073208428,3.3499040872746,2.99573227355399,3.37758751602302,3.2846635654062,3.07269331469012,3.13113691056019,3.25424296870549],"tech89":[3.16124671203156,3.26193531432865,3.14415227867226,3.24259235148552,3.07269331469012,3.29212628660779,3.20274644293832,3.21084365317094,2.72785282839839,3.07269331469012],"tech90":null,"tech91":[3.2188758248682,2.8094026953625,3.03495298670727,3.40119738166216,3.08648663682246,3.2846635654062,3.22286784613774,3.11351530921037,3.14415227867226,3.29583686600433],"tech92":[3.3178157727231,3.49953328238302,3.2846635654062,2.89037175789616,3.38439026334577,3.25424296870549,3.63495111208838,3.01062088604774,3.23867845216438,3.3178157727231],"tech93":[3.07731226054641,3.34286180464919,3.10009228887823,3.00568260440716,3.3357695763397,3.23867845216438,3.29212628660779,3.09557760852371,3.52636052461616,3.34286180464919],"tech94":[2.68784749378469,2.99573227355399,3.32503602069659,2.72785282839839,3.36384159511839,2.96010509591084,3.32862668882732,3.01062088604774,3.13113691056019,3.25037449192757],"tech95":[3.47196645255036,3.09104245335832,3.27336401015227,3.00568260440716,2.99071973173045,3.04927304048202,3.45946628978613,3.39114704580865,3.3322045101752,3.42100000895834],"tech96":[3.2188758248682,3.17805383034795,3.10906095886099,3.09104245335832,3.05400118167797,3.46573590279973,3.08190996979504,3.25037449192757,3.30321697330195,2.62466859216316],"tech97":[3.15700042115011,3.32143241319329,2.85070650150373,2.92852352386054,3.19458313229916,2.88480071284671,2.71469474382088,3.36384159511839,3.38439026334577,2.99071973173045],"tech98":[3.02042488614436,2.96010509591084,3.2188758248682,3.42426265459315,3.3499040872746,2.99573227355399,3.43398720448515,3.19867311755068,3.32143241319329,3.4626060097908],"tech99":[2.77881927199042,3.32143241319329,3.18221184049661,3.21084365317094,3.40784192438082,3.02042488614436,3.42426265459315,3.13113691056019,3.06339092202781,3.17805383034795],"tech100":[3.27714473299218,2.98568193770049,3.18221184049661,2.83907846350861,3.43398720448515,3.5234150143864,3.41114771251532,3.47196645255036,3.09104245335832,3.46885603013597]},"options":{"mode":"tree","modes":["code","form","text","tree","view"]}},"evals":[],"jsHooks":[]}</script>
+</div>
+<div id="find-and-convert-factors" class="section level3">
+<h3>Find and Convert Factors</h3>
+<p>Factors can creep into your data, which can cause problem sometimes. There’s lot’s of ways to solve this, but you can use <code>purrr</code> to efficiently check for factors, and convert them to characters in your data frame.</p>
+<p>Let’s take a look at the <code>gapminder</code> dataset, from the <code>gapminder</code> package.</p>
+<pre class="r"><code>gapminder</code></pre>
+<pre><code>## # A tibble: 1,704 x 6
+##    country     continent  year lifeexp      pop gdppercap
+##    &lt;fct&gt;       &lt;fct&gt;     &lt;int&gt;   &lt;dbl&gt;    &lt;int&gt;     &lt;dbl&gt;
+##  1 Afghanistan Asia       1952    28.8  8425333      779.
+##  2 Afghanistan Asia       1957    30.3  9240934      821.
+##  3 Afghanistan Asia       1962    32.0 10267083      853.
+##  4 Afghanistan Asia       1967    34.0 11537966      836.
+##  5 Afghanistan Asia       1972    36.1 13079460      740.
+##  6 Afghanistan Asia       1977    38.4 14880372      786.
+##  7 Afghanistan Asia       1982    39.9 12881816      978.
+##  8 Afghanistan Asia       1987    40.8 13867957      852.
+##  9 Afghanistan Asia       1992    41.7 16317921      649.
+## 10 Afghanistan Asia       1997    41.8 22227415      635.
+## # … with 1,694 more rows</code></pre>
+<p>Yep, look at that, country and continent are both factors. Useful for regression, but a little dangerous to have in your raw data.</p>
+<p>We can use <code>purrr</code> to find all the factors in our data</p>
+<pre class="r"><code>gapminder %&gt;%
+map_lgl(is.factor)</code></pre>
+<pre><code>##   country continent      year   lifeexp       pop gdppercap 
+##      TRUE      TRUE     FALSE     FALSE     FALSE     FALSE</code></pre>
+<p>And to convert each column that is a factor into a character, we could try <code>map_if</code>, which applies a conditional statement to each element in the list, and applies the function if the test is passed</p>
+<pre class="r"><code>gapminder %&gt;%
+map_if(is.factor, as.character) %&gt;% 
+  str(2)</code></pre>
+<pre><code>## List of 6
+##  $ country  : chr [1:1704] &quot;Afghanistan&quot; &quot;Afghanistan&quot; &quot;Afghanistan&quot; &quot;Afghanistan&quot; ...
+##  $ continent: chr [1:1704] &quot;Asia&quot; &quot;Asia&quot; &quot;Asia&quot; &quot;Asia&quot; ...
+##  $ year     : int [1:1704] 1952 1957 1962 1967 1972 1977 1982 1987 1992 1997 ...
+##  $ lifeexp  : num [1:1704] 28.8 30.3 32 34 36.1 ...
+##  $ pop      : int [1:1704] 8425333 9240934 10267083 11537966 13079460 14880372 12881816 13867957 16317921 22227415 ...
+##  $ gdppercap: num [1:1704] 779 821 853 836 740 ...</code></pre>
+<p>Huh well that worked, but something is weird. Our nice <code>gapminder</code> dataframe is now a list. How can we do this and keep things as a dataframe? We can use the <code>purrrlyr</code> package to do this, which has handy parallels of the functions in <code>purrr</code>, but designed to deal with and give back dataframes.</p>
+<pre class="r"><code>gapminder %&gt;%
+purrrlyr::dmap_if(is.factor, as.character) %&gt;% 
+  head()</code></pre>
+<pre><code>## # A tibble: 6 x 6
+##   country     continent  year lifeexp      pop gdppercap
+##   &lt;chr&gt;       &lt;chr&gt;     &lt;int&gt;   &lt;dbl&gt;    &lt;int&gt;     &lt;dbl&gt;
+## 1 Afghanistan Asia       1952    28.8  8425333      779.
+## 2 Afghanistan Asia       1957    30.3  9240934      821.
+## 3 Afghanistan Asia       1962    32.0 10267083      853.
+## 4 Afghanistan Asia       1967    34.0 11537966      836.
+## 5 Afghanistan Asia       1972    36.1 13079460      740.
+## 6 Afghanistan Asia       1977    38.4 14880372      786.</code></pre>
+<p>Much better, those pesky factors are now characters and we still have a dataframe.</p>
+</div>
+<div id="print-all-plots-to-pdf" class="section level3">
+<h3>Print All Plots to PDF</h3>
+<p>Suppose you’ve got a large project and want to save (or print) all the plots. This often leads to a lot of copy and pasting of save commands.</p>
+<p>Here’s another solution, using <code>walk</code>. Remember, the <code>walk</code> family works the same way as the <code>map</code> family, but doesn’t return anything. Rather, <code>walk</code> just produces the “side effects” of a function, e.g. saving objects to a pdf.</p>
+<p>I usually tag all my ggplot objects that I want to save with <code>_plot</code></p>
+<pre class="r"><code>life_v_money_plot &lt;- gapminder %&gt;%
+ggplot(aes(gdppercap, lifeexp)) +
+geom_abline(aes(slope = 1, intercept = 0))  +
+geom_point() +
+geom_smooth(method = &#39;lm&#39;)
+
+life_v_money_plot</code></pre>
+<pre><code>## `geom_smooth()` using formula &#39;y ~ x&#39;</code></pre>
+<p><img src="/blog/2018-02-13-practical-purrr_files/figure-html/unnamed-chunk-60-1.svg" width="960" /></p>
+<pre class="r"><code>life_v_time_plot &lt;- gapminder %&gt;%
+ggplot(aes(year, lifeexp)) +
+geom_point() +
+geom_smooth(method = &#39;lm&#39;)
+
+life_v_time_plot</code></pre>
+<pre><code>## `geom_smooth()` using formula &#39;y ~ x&#39;</code></pre>
+<p><img src="/blog/2018-02-13-practical-purrr_files/figure-html/unnamed-chunk-61-1.svg" width="960" /></p>
+<p>Suppose I want to save both of these plots?</p>
+<pre class="r"><code>plot_files &lt;- ls()[ str_detect(ls(), &#39;_plot&#39;)]
+
+plot_foo &lt;- function(x){
+
+ggsave(paste0(x,&#39;.pdf&#39;), get(x), device = cairo_pdf)
+
+}
+
+walk(plot_files, plot_foo)</code></pre>
+<pre><code>## Saving 10 x 5 in image
+## Saving 10 x 5 in image</code></pre>
+<pre><code>## `geom_smooth()` using formula &#39;y ~ x&#39;</code></pre>
+<pre><code>## Saving 10 x 5 in image</code></pre>
+<pre><code>## `geom_smooth()` using formula &#39;y ~ x&#39;</code></pre>
+<p>And just like that, I’ve saved PDFs of all of my plots.</p>
+</div>
+<div id="partial" class="section level3">
+<h3>Partial</h3>
+<p>I just really like this one. Suppose you’ve got something that you are copy and pasting a lot, like getting interquartile range of something.</p>
+<pre class="r"><code>gapminder %&gt;%
+  summarise(
+    mean_gdp = mean(gdppercap),
+    lower_gdp = quantile(gdppercap, 0.25),
+    upper_gdp = quantile(gdppercap, 0.75),
+    mean_life = mean(lifeexp),
+    lower_life = quantile(lifeexp, 0.25),
+    upper_life = quantile(lifeexp, 0.75)
+  )</code></pre>
+<pre><code>## # A tibble: 1 x 6
+##   mean_gdp lower_gdp upper_gdp mean_life lower_life upper_life
+##      &lt;dbl&gt;     &lt;dbl&gt;     &lt;dbl&gt;     &lt;dbl&gt;      &lt;dbl&gt;      &lt;dbl&gt;
+## 1    7215.     1202.     9325.      59.5       48.2       70.8</code></pre>
+<p>Works, and in this case not hard, but still annoying to retype!</p>
+<pre class="r"><code>lower = partial(quantile, probs = 0.25)
+
+upper = partial(quantile, probs = 0.75)
+
+gapminder %&gt;%
+  summarise(
+    mean_gdp = mean(gdppercap),
+    lower_gdp = lower(gdppercap),
+    upper_gdp = upper(gdppercap),
+    mean_life = mean(lifeexp),
+    lower_life = lower(lifeexp),
+    upper_life = upper(lifeexp)
+  )</code></pre>
+<pre><code>## # A tibble: 1 x 6
+##   mean_gdp lower_gdp upper_gdp mean_life lower_life upper_life
+##      &lt;dbl&gt;     &lt;dbl&gt;     &lt;dbl&gt;     &lt;dbl&gt;      &lt;dbl&gt;      &lt;dbl&gt;
+## 1    7215.     1202.     9325.      59.5       48.2       70.8</code></pre>
+<p>And that’s about it, hopefully this helps you get started incorporated <code>purrr</code> into your programming.</p>
+</div>
+</div>
