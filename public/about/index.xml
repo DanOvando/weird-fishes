@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>About Me on Weird Fishes - Fisheries, Oceans, and Data Science</title>
+    <link>http://weirdfishes.blog/about/</link>
+    <description>Recent content in About Me on Weird Fishes - Fisheries, Oceans, and Data Science</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>en-us</language>
+    <lastBuildDate>Tue, 20 Feb 2018 00:00:00 +0000</lastBuildDate><atom:link href="http://weirdfishes.blog/about/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>About Me</title>
+      <link>http://weirdfishes.blog/about/bad_index/</link>
+      <pubDate>Wed, 09 Apr 2014 00:00:00 +0000</pubDate>
+      
+      <guid>http://weirdfishes.blog/about/bad_index/</guid>
+      <description>Research Background Publications @Costello2012a</description>
+    </item>
+    
+  </channel>
+</rss>

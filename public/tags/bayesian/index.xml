@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>Bayesian on Weird Fishes - Fisheries, Oceans, and Data Science</title>
+    <link>http://weirdfishes.blog/tags/bayesian/</link>
+    <description>Recent content in Bayesian on Weird Fishes - Fisheries, Oceans, and Data Science</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>en-us</language>
+    <lastBuildDate>Sun, 03 Jun 2018 00:00:00 +0000</lastBuildDate><atom:link href="http://weirdfishes.blog/tags/bayesian/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>Fitting Bayesian Models using Stan and R</title>
+      <link>http://weirdfishes.blog/blog/fitting-bayesian-models-with-stan-and-r/</link>
+      <pubDate>Sun, 03 Jun 2018 00:00:00 +0000</pubDate>
+      
+      <guid>http://weirdfishes.blog/blog/fitting-bayesian-models-with-stan-and-r/</guid>
+      <description>What’s Stan and Why Use It?  How does Stan work? A Note on Divergences  Filling your Stan Toolbox  A Note on Priors  Example Model: Predicting Salmon  Write Your Statistical Model Examine spawning and recruitment data Write Your Stan Model  Transformed Parameters Block Fitting your model  Run Diagnostics  Assessing and Fixing Divergences and Treedepth Problems Feature Engineering and Non-Centering Parameter Diagnostics Posterior Predictive Analysis  Comparing Models  rstanarm References   What’s Stan and Why Use It?</description>
+    </item>
+    
+  </channel>
+</rss>

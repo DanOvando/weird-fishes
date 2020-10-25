@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>purrr on Weird Fishes - Fisheries, Oceans, and Data Science</title>
+    <link>http://weirdfishes.blog/tags/purrr/</link>
+    <description>Recent content in purrr on Weird Fishes - Fisheries, Oceans, and Data Science</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>en-us</language>
+    <lastBuildDate>Tue, 20 Feb 2018 00:00:00 +0000</lastBuildDate><atom:link href="http://weirdfishes.blog/tags/purrr/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>Data Wrangling and Model Fitting using purrr</title>
+      <link>http://weirdfishes.blog/blog/practical-purrr/</link>
+      <pubDate>Tue, 20 Feb 2018 00:00:00 +0000</pubDate>
+      
+      <guid>http://weirdfishes.blog/blog/practical-purrr/</guid>
+      <description>What is purrr? The Basics of purrr Key purrr verbs Multiple lists using pmap  Wrangling lists Analysis with purrr and modelr Parallel purrr Miscellaneos purrr Debugging using safely Find and Convert Factors Print All Plots to PDF Partial    These are materials from a workshop I taught for UC Santa Barbara’s eco-data-science group to get people familiar with using purrr for their data-wrangling and modeling needs.</description>
+    </item>
+    
+  </channel>
+</rss>

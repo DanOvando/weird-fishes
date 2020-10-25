@@ -542,8 +542,8 @@ Let's look at one stock in particular. Data for this analyses can be found in th
 
 ```{r}
 
-sr_data <- read_csv(here::here("data","rlsadb_v4.25_ssb_recruits.csv")) %>% 
-  set_names(tolower)
+# sr_data <- read_csv(here::here("data","rlsadb_v4.25_ssb_recruits.csv")) %>% 
+#   set_names(tolower)
 
 sal_data <- sr_data %>% 
   filter(stockid == 'PSALMAKPSWUD') %>% 
