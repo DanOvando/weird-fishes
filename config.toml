@@ -8,7 +8,7 @@ disqusShortname = "weirdfishes"
 googleAnalytics = "UA-114111223-1"
 pluralizeListTitles = false
 enableEmoji = true
-ignoreFiles = ["\\.Rmd$", "\\.Rmarkdown$", "_cache$", "\\.knit\\.md$", "\\.utf8\\.md$"]
+ignoreFiles = ["\\.Rmd$", "\\.Rmarkdown$", "_files$", "_cache$"]
 [permalinks]
     post = "/:year/:month/:day/:slug/"
 
