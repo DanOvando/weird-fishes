@@ -10,24 +10,30 @@ biblio-style: apalike
 description: "An introduction to fitting Bayesian models using Stan and R"
 ---
 
+<script src="/rmarkdown-libs/header-attrs/header-attrs.js"></script>
 
 <div id="TOC">
 <ul>
-<li><a href="#whats-stan-and-why-use-it">What’s Stan and Why Use It?</a><ul>
+<li><a href="#whats-stan-and-why-use-it">What’s Stan and Why Use It?</a>
+<ul>
 <li><a href="#how-does-stan-work">How does Stan work?</a></li>
 <li><a href="#a-note-on-divergences">A Note on Divergences</a></li>
 </ul></li>
-<li><a href="#filling-your-stan-toolbox">Filling your Stan Toolbox</a><ul>
+<li><a href="#filling-your-stan-toolbox">Filling your Stan Toolbox</a>
+<ul>
 <li><a href="#a-note-on-priors">A Note on Priors</a></li>
 </ul></li>
-<li><a href="#example-model-predicting-salmon">Example Model: Predicting Salmon</a><ul>
+<li><a href="#example-model-predicting-salmon">Example Model: Predicting Salmon</a>
+<ul>
 <li><a href="#write-your-statistical-model">Write Your Statistical Model</a></li>
 <li><a href="#examine-spawning-and-recruitment-data">Examine spawning and recruitment data</a></li>
-<li><a href="#write-your-stan-model">Write Your Stan Model</a><ul>
+<li><a href="#write-your-stan-model">Write Your Stan Model</a>
+<ul>
 <li><a href="#transformed-parameters-block">Transformed Parameters Block</a></li>
 <li><a href="#fitting-your-model">Fitting your model</a></li>
 </ul></li>
-<li><a href="#run-diagnostics">Run Diagnostics</a><ul>
+<li><a href="#run-diagnostics">Run Diagnostics</a>
+<ul>
 <li><a href="#assessing-and-fixing-divergences-and-treedepth-problems">Assessing and Fixing Divergences and Treedepth Problems</a></li>
 <li><a href="#feature-engineering-and-non-centering">Feature Engineering and Non-Centering</a></li>
 <li><a href="#parameter-diagnostics">Parameter Diagnostics</a></li>
@@ -42,6 +48,7 @@ description: "An introduction to fitting Bayesian models using Stan and R"
 
 <div id="whats-stan-and-why-use-it" class="section level1">
 <h1>What’s Stan and Why Use It?</h1>
+<p>Hello?</p>
 <p>Stan is a programming language designed to make statistical modeling easier and faster, especially for Bayesian estimation problems. Stan can help you estimate complex models with large numbers of parameters, and can generally do it faster than alternative like JAGS/BUGS</p>
 <p>That all sounds good, but why is that useful for me? Suppose you have a hierarchical ecological modeling problem with data clustered by space, time, and species, such as estimating the effect of ocean temperatures on coral growth. You can use Stan to fit that model (and it will likely be faster than BUGS/JAGS if you’re already used to working in those platforms). Suppose just want to use informative priors to help fit a growth model. You can use Stan for that. Suppose you just prefer Bayesian analysis and want to run a simple multiple regression. Stan can do that.</p>
 <p>The purpose of this document is not to perfectly describe or debate Bayesian analysis, but to provide a path to get you started using Stan in your research. This is not a deep dive into the inner workings of Stan and model fitting - explanations and examples are designed to try and help people get the hang of using Stan. There are many <a href="http://mc-stan.org/users/documentation/index.html">great resources</a> to understand the inner workings of Stan and provide higher-level examples, but I’ve found that they are often either too basic, or jump straight to the finished product without explaining the steps to get there. This tutorial is intended as a bridge to help get people from zero to working in Stan. Comments and suggestions are welcome!</p>
@@ -280,7 +287,7 @@ print(&quot;hooray&quot;)
 <p>For example, if you know that some model output <code>thing</code> has to be positive, you can add <code>print(thing)</code> to your code to make sure that it is in fact positive.</p>
 <div id="a-note-on-priors" class="section level2">
 <h2>A Note on Priors</h2>
-<p>Setting priors is an art and a science that goes well beyond anything we can discuss here, and there are lots of resources out there to help you on this <span class="citation">(I recommend Hobbs and Hooten 2015, <span class="citation">@McElreath2016</span>, and <span class="citation">@Gelman2013</span> as a foundation)</span>. You’ll notice though that Stan doesn’t force you to specify priors, so it can be tempting to say “hey, I like Stan, but priors scare me, so I just won’t specify any”. By default though, any parameter that isn’t supplied a specific prior gets assigned a uniform prior on the range <span class="math inline">\([-\infty, \infty]\)</span>, which might seem innocuous, but is not in fact an uninformative prior (in fact nothing may technically be), especially if your model is not actually defined along that range (e.g. if your parameter can only be positive). Saying that <span class="math inline">\(-\infty\)</span> is just as likely as $ $ is in most cases a pretty strong and unlikely statement.</p>
+<p>Setting priors is an art and a science that goes well beyond anything we can discuss here, and there are lots of resources out there to help you on this <span class="citation">(I recommend Hobbs and Hooten 2015, @McElreath2016, and <span class="citation">@Gelman2013</span> as a foundation)</span>. You’ll notice though that Stan doesn’t force you to specify priors, so it can be tempting to say “hey, I like Stan, but priors scare me, so I just won’t specify any”. By default though, any parameter that isn’t supplied a specific prior gets assigned a uniform prior on the range <span class="math inline">\([-\infty, \infty]\)</span>, which might seem innocuous, but is not in fact an uninformative prior (in fact nothing may technically be), especially if your model is not actually defined along that range (e.g. if your parameter can only be positive). Saying that <span class="math inline">\(-\infty\)</span> is just as likely as $ $ is in most cases a pretty strong and unlikely statement.</p>
 <p>So, while Stan won’t force you to specify priors explicitly, you should always take the time to think carefully about your priors and test the affect of your choices on your model outcomes.</p>
 <p>That’s a small look at the key features of writing Stan code. There’s a ton more out there, but those are the basic tools for most coding. Feel free to play around with the <code>scratch.stan</code> file to test out different behaviors.</p>
 <pre class="stan"><code>
@@ -371,15 +378,15 @@ plot(scratch)</code></pre>
 <p>To back up, a stock recruit relationship’s job is to say, for a given amount of observed spawning biomass (<em>SSB</em>) in a fishery, how many new fish (recruits, <em>R</em>) enter the population.</p>
 <p>We can write a general BH model by</p>
 <p><span class="math display">\[ R = \frac{\alpha{SSB}}{1 + \beta{SSB}}\]</span></p>
-<p>Where SSB is spawning stock biomass (the biomass of reproductively mature fish in the population), <span class="math inline">\(\alpha\)</span> is the maximum average number of recruits (new fish) possible in the population, and <span class="math inline">\(\beta\)</span> is the amount of SSB needed to produce on average <span class="math inline">\(\alpha{/2}\)</span></p>
+<p>Where SSB is spawning stock biomass (the biomass of reproductively mature fish in the population), <span class="math inline">\(\alpha\)</span> is the maximum average number of recruits (new fish) possible in the population, and <span class="math inline">\(\beta\)</span> is the unfished spawning biomass that produces <span class="math inline">\(\alpha\)</span> recruits</p>
 <div class="figure"><span id="fig:unnamed-chunk-16"></span>
 <img src="/blog/2018-02-16-a-practical-introduction-to-stan_files/figure-html/unnamed-chunk-16-1.svg" alt="Example Beverton-Holt stock recruitmenet relationship (black line), red line shows beta" width="960" />
 <p class="caption">
 Figure 1: Example Beverton-Holt stock recruitmenet relationship (black line), red line shows beta
 </p>
 </div>
-<p>The problem here is that <span class="math inline">\(\beta\)</span> is obviously very specific to each species, making it difficult to really say much about the resilience of a species based on that parameter. To that end Mace &amp; Doonan 1988 provided a reparameterization of the BH equation using a term called “steepness” (<em>h</em>), which is the slope of the stock-recruitment curve when SSB is 20% of max (i.e. unfished) SSB. This allows for species with vastly different stock sizes to be compared in terms of their steepness, with species with higher values of steepness being more resilient to fishing than those with lower steepness</p>
-<p><span class="math display">\[ \frac{0.8(\alpha){(h){{SSB}}}}{0.2 (\alpha)(1 - h) + (h - 0.2)SSB}\]</span></p>
+<p>The problem here is that <span class="math inline">\(\beta\)</span> is obviously very specific to each species, making it difficult to really say much about the resilience of a species based on that parameter. To that end Mace &amp; Doonan 1988 provided a reparameterization of the BH equation using a term called “steepness” (<em>h</em>), which is the slope of the stock-recruitment curve when SSB is 20% of max (i.e. unfished) SSB. This allows for species with vastly different stock sizes to be compared in terms of their steepness, with species with higher values of steepness being more resilient to fishing than those with lower steepness. <span class="math inline">\(\beta\)</span> is now the unfished SSB that produces .</p>
+<p><span class="math display">\[\frac{0.8(\alpha){(h){{SSB}}}}{0.2 (\beta)(1 - h) + (h - 0.2)SSB}\]</span></p>
 <pre class="r"><code>alpha &lt;- 1000
 
 cross_df(list(ssb = 0:1000, h = c(0.2,0.6,1))) %&gt;% 
@@ -412,9 +419,9 @@ sal_data %&gt;%
 <p>So, there seems to be a relationship between SSB and R, but it’s messy. Our goal is to use Stan to estimate a Beverton-Holt stock recruitment curve for this stock.</p>
 <p>Let’s start by writing out the model for this model. We have three parameters we need to estimate, steepness <em>h</em>, maximum recruitment <span class="math inline">\(\alpha\)</span>, and some error term <span class="math inline">\(\sigma\)</span>.</p>
 <p>We can write this as</p>
-<p><span class="math display">\[[\alpha,h,\sigma | r] \propto [ r | \alpha,h,\sigma][\alpha][h][\sigma]  \]</span></p>
+<p><span class="math display">\[[\alpha,h,\sigma,\beta| r] \propto [ r | \alpha,h,\sigma][\alpha][h][\sigma]\]</span></p>
 <p>Where <em>r</em> are our recruitment data. That’s just a conceptual framework for the model; we can write it more clearly by specifying the model in terms of distributions.</p>
-<p><span class="math display">\[[\alpha,h,\sigma | r] \propto normal( log(r) | bh(h,\alpha),\sigma) * unif(h|0.2,1) * normal(\alpha|10*max(r),0.1*max(r)) * cauchy(\sigma|0,2.5)  \]</span></p>
+<p><span class="math display">\[[\alpha,h,\beta,\sigma | r] \propto normal( log(r) | bh(h,\alpha),\sigma) * normal(log(\beta)|10,2) * unif(h|0.2,1) * normal(\alpha|10*max(r),0.1*max(r)) * cauchy(\sigma|0,2.5)\]</span></p>
 <p>In English, this says that we believe that recruitment is a log-normal process, while specifying appropriate priors for our other parameters. E.g. we know that <em>h</em> has to be between 0.2 and 1, and it’s reasonable to think that max recruitment is something larger than the largest recruitment ever observed (<strong>much more care needs to be taken in prior construction, this is just an example</strong>)</p>
 <!-- Easiest way to think about the log normal distribution is a normal distribution with a cv instead of a sigma . So, you can just calculate the cv for your data and that can give you an idea of a reasonable prior on sigma in log space  -->
 </div>
@@ -449,17 +456,21 @@ real&lt;lower = 0.2, upper = 1&gt; h; //steepness
 
 real&lt;lower = 0&gt; alpha; // max recruitment
 
+real log_beta;
+
 real&lt;lower = 0&gt; sigma; // recruitment standard deviation 
 
 
 }
 transformed parameters{
 
+real beta = exp(log_beta);
+
 vector[n] rhat;
 
 vector[n] log_rhat;
 
-rhat = (0.8 * alpha * h * ssb) ./ (0.2 * alpha * (1 - h) +(h - 0.2) * ssb); // beverton holt model
+rhat = (0.8 * alpha * h * ssb) ./ (0.2 * beta * (1 - h) +(h - 0.2) * ssb); // beverton holt model
 
 log_rhat = log(rhat);
 
@@ -473,6 +484,8 @@ log_r ~ normal(log_rhat - 0.5 * sigma^2, sigma); //account for retransformation 
 sigma ~ cauchy(0,2.5);
 
 alpha ~ normal(2*max_r, 0.2*max_r);
+
+log_beta ~ normal(10,2);
 
 }
 
@@ -523,19 +536,39 @@ data &lt;- list(n = nrow(sal_data),
                max_r = max(sal_data$r)
              )
 
-bh_fit &lt;- stan(file = here::here(&quot;src&quot;,&quot;bh_model.stan&quot;),
-                 data = data,
-                 chains = n_chains,
-                 warmup = warmups,
-                 iter = total_iterations,
-                 cores = n_cores,
-                 refresh = 250,
-                 init = list(list(h = 0.4, alpha = 2 * data$max_r),
-                             list(h = 0.21, alpha = 3 * data$max_r),
-                             list(h = 0.8, alpha = 1 * data$max_r),
-                             list(h = 0.3, alpha = .8 * data$max_r)),
-                 control = list(max_treedepth = max_treedepth,
-                                adapt_delta = adapt_delta))</code></pre>
+bh_fit &lt;- stan(
+  file = here::here(&quot;src&quot;, &quot;bh_model.stan&quot;),
+  data = data,
+  chains = n_chains,
+  warmup = warmups,
+  iter = total_iterations,
+  cores = n_cores,
+  refresh = 250,
+  init = list(
+    list(
+      h = 0.4,
+      alpha = 2 * data$max_r,
+      log_beta = log(2* max(sal_data$ssb))
+    ),
+    list(
+      h = 0.21,
+      alpha = 3 * data$max_r,
+      log_beta = log(3 *max(sal_data$ssb))
+    ),
+    list(
+      h = 0.8,
+      alpha = 1 * data$max_r,
+      log_beta = log(1.1*max(sal_data$ssb))
+    ),
+    list(
+      h = 0.3,
+      alpha = .8 * data$max_r,
+      log_beta = log(5*max(sal_data$ssb))
+    )
+  ),
+  control = list(max_treedepth = max_treedepth,
+                 adapt_delta = adapt_delta)
+)</code></pre>
 </div>
 </div>
 <div id="run-diagnostics" class="section level2">
@@ -552,20 +585,20 @@ bh_fit &lt;- stan(file = here::here(&quot;src&quot;,&quot;bh_model.stan&quot;),
 ## [1] &quot;rstan&quot;</code></pre>
 <p><code>stanfit</code> options are designed to interface with a few base R commands that you’re use to, like <code>summary</code> and <code>plot</code> (though if you have lots of parameters simply calling these can be pretty messy)</p>
 <pre class="r"><code>summary(bh_fit)$summary %&gt;% head()</code></pre>
-<pre><code>##                 mean      se_mean           sd         2.5%          25%
-## h       6.151189e-01 1.973710e-03 7.996867e-02 4.736735e-01 5.595725e-01
-## alpha   1.347951e+07 2.578966e+04 1.375038e+06 1.087532e+07 1.251470e+07
-## sigma   1.244766e+00 3.909254e-03 1.536794e-01 9.857448e-01 1.138360e+00
-## rhat[1] 3.878165e+06 2.606069e+04 1.019423e+06 2.424899e+06 3.176325e+06
-## rhat[2] 2.457963e+06 2.052924e+04 7.794184e+05 1.434101e+06 1.934075e+06
-## rhat[3] 2.923377e+06 2.273543e+04 8.714675e+05 1.745947e+06 2.331036e+06
-##                  50%          75%        97.5%    n_eff      Rhat
-## h       6.102183e-01 6.658881e-01 7.894732e-01 1641.622 0.9999249
-## alpha   1.347969e+07 1.441459e+07 1.619931e+07 2842.745 1.0000028
-## sigma   1.229409e+00 1.336666e+00 1.597634e+00 1545.410 0.9998845
-## rhat[1] 3.703839e+06 4.394955e+06 6.446219e+06 1530.159 1.0001951
-## rhat[2] 2.302245e+06 2.803361e+06 4.466444e+06 1441.437 1.0004840
-## rhat[3] 2.758271e+06 3.329831e+06 5.160948e+06 1469.252 1.0003802</code></pre>
+<pre><code>##                  mean      se_mean           sd         2.5%          25%
+## h        3.940245e-01 4.272209e-03 1.516102e-01 2.074347e-01 2.746638e-01
+## alpha    1.324387e+07 2.964300e+04 1.412839e+06 1.059985e+07 1.225558e+07
+## log_beta 1.521850e+01 3.884401e-02 8.441066e-01 1.383574e+01 1.479069e+01
+## sigma    1.336562e+00 7.879675e-03 2.099545e-01 1.014002e+00 1.192393e+00
+## beta     5.420385e+06 1.162113e+05 4.856554e+06 1.020438e+06 2.651644e+06
+## rhat[1]  5.085023e+06 9.770728e+04 2.282747e+06 2.669668e+06 3.678945e+06
+##                   50%          75%        97.5%     n_eff      Rhat
+## h        3.575253e-01 4.832960e-01 7.558899e-01 1259.3660 1.0026446
+## alpha    1.325891e+07 1.420814e+07 1.603256e+07 2271.6472 1.0002479
+## log_beta 1.520210e+01 1.569308e+01 1.673578e+01  472.2222 1.0053324
+## sigma    1.302248e+00 1.446893e+00 1.830616e+00  709.9595 1.0053984
+## beta     4.001180e+06 6.537568e+06 1.854636e+07 1746.4644 0.9998641
+## rhat[1]  4.540659e+06 5.827987e+06 1.110453e+07  545.8355 1.0052644</code></pre>
 <p>The plot command is a great way to get a first glance at your fits</p>
 <pre class="r"><code>plot(bh_fit)</code></pre>
 <p><img src="/blog/2018-02-16-a-practical-introduction-to-stan_files/figure-html/unnamed-chunk-24-1.svg" width="960" /></p>
@@ -614,7 +647,7 @@ mack_diagnostics %&gt;%
 </div>
 <div id="feature-engineering-and-non-centering" class="section level3">
 <h3>Feature Engineering and Non-Centering</h3>
-<p>If you’ve tried these tricks and you’re still getting lots of divergent transitions, or if your model is just taking forever to run, feature engineering and non-centered model parameterizations can help. Feature engineering refers to how you decide to encode your data. Suppose for example that you have a model of health outcomes that includes both birth weight (mean say 3 kg) and city population (mean say 20,000 people). These two variables are on vastly different scales, meaning that a numerical routine like HMC needs to jump around vastly different scales of numbers to find the right coefficient for each. You could instead center (subtract the mean value) and then scale (divide by the standard deviation) each variable (e.g. <code>sc_pop = (pop - mean(pop)) / sd(pop)</code>) before passing it to Stan, so that each variable is on on the same scale (standard deviations from its mean). The information content of the data hasn’t changed, it’s now just easier for Stan to hunt over the parameter space. Though of course this does change the interpretation of any coefficients that come out of the model, so you’ll need to think about that. There are lots of ways to do feature engineering, I recommend checking out the <a href="https://topepo.github.io/recipes/"><code>recipes</code></a> for a great set of feature engineering tools and discussion.</p>
+<p>If you’ve tried these tricks and you’re still getting lots of divergent transitions, or if your model is just taking forever to run, feature engineering and non-centered model parameterizations can help. Feature engineering refers to how you decide to encode your data. Suppose for example that you have a model of health outcomes that includes both birth weight (mean say 3 kg) and city population (mean say 20,000 people). These two variables are on vastly different scales, meaning that a numerical routine like HMC needs to jump around vastly different scales of numbers to find the right coefficient for each. You could instead center (subtract the mean value) and then scale (divide by the standard deviation) each variable (e.g. <code>sc_pop = (pop - mean(pop)) / sd(pop)</code>) before passing it to Stan, so that each variable is on on the same scale (standard deviations from its mean). The information content of the data hasn’t changed, it’s now just easier for Stan to hunt over the parameter space. Though of course this does change the interpretation of any coefficients that come out of the model, so you’ll need to think about that. There are lots of ways to do feature engineering, I recommend checking out the <a href="https://topepo.github.io/recipes/"><code>recipes</code></a> for a great set of feature engineering tools and discussion.</p>
 <p>Suppose you do that and you’re still running into divergences. You also decide that you want to include random effects for each city in your model, of the form</p>
 <p><span class="math display">\[city_{i} \sim normal(\mu_{city},\sigma_{city}) \]</span></p>
 <p>To estimate this, you could simply estimate the coefficient for each city, use the above relationship as its prior. This can run into problems related to a fun thing called “Neal’s Funnel” (see the Stan Documentation for a good description) that causes the model to produce a bunch of divergences and have trouble converging (this phenomenon pops up all the time in hierarchical models).</p>
@@ -635,15 +668,15 @@ mack_diagnostics %&gt;%
 
 bh_summary %&gt;% head()</code></pre>
 <pre><code>## # A tibble: 6 x 11
-##   variable    mean se_mean      sd  `2.5%`   `25%`   `50%`   `75%` `97.5%`
-##   &lt;chr&gt;      &lt;dbl&gt;   &lt;dbl&gt;   &lt;dbl&gt;   &lt;dbl&gt;   &lt;dbl&gt;   &lt;dbl&gt;   &lt;dbl&gt;   &lt;dbl&gt;
-## 1 h        6.15e-1 1.97e-3 8.00e-2 4.74e-1 5.60e-1 6.10e-1 6.66e-1 7.89e-1
-## 2 alpha    1.35e+7 2.58e+4 1.38e+6 1.09e+7 1.25e+7 1.35e+7 1.44e+7 1.62e+7
-## 3 sigma    1.24e+0 3.91e-3 1.54e-1 9.86e-1 1.14e+0 1.23e+0 1.34e+0 1.60e+0
-## 4 rhat[1]  3.88e+6 2.61e+4 1.02e+6 2.42e+6 3.18e+6 3.70e+6 4.39e+6 6.45e+6
-## 5 rhat[2]  2.46e+6 2.05e+4 7.79e+5 1.43e+6 1.93e+6 2.30e+6 2.80e+6 4.47e+6
-## 6 rhat[3]  2.92e+6 2.27e+4 8.71e+5 1.75e+6 2.33e+6 2.76e+6 3.33e+6 5.16e+6
-## # … with 2 more variables: n_eff &lt;dbl&gt;, Rhat &lt;dbl&gt;</code></pre>
+##   variable    mean se_mean      sd  `2.5%`   `25%`   `50%`   `75%` `97.5%` n_eff
+##   &lt;chr&gt;      &lt;dbl&gt;   &lt;dbl&gt;   &lt;dbl&gt;   &lt;dbl&gt;   &lt;dbl&gt;   &lt;dbl&gt;   &lt;dbl&gt;   &lt;dbl&gt; &lt;dbl&gt;
+## 1 h        3.94e-1 4.27e-3 1.52e-1 2.07e-1 2.75e-1 3.58e-1 4.83e-1 7.56e-1 1259.
+## 2 alpha    1.32e+7 2.96e+4 1.41e+6 1.06e+7 1.23e+7 1.33e+7 1.42e+7 1.60e+7 2272.
+## 3 log_beta 1.52e+1 3.88e-2 8.44e-1 1.38e+1 1.48e+1 1.52e+1 1.57e+1 1.67e+1  472.
+## 4 sigma    1.34e+0 7.88e-3 2.10e-1 1.01e+0 1.19e+0 1.30e+0 1.45e+0 1.83e+0  710.
+## 5 beta     5.42e+6 1.16e+5 4.86e+6 1.02e+6 2.65e+6 4.00e+6 6.54e+6 1.85e+7 1746.
+## 6 rhat[1]  5.09e+6 9.77e+4 2.28e+6 2.67e+6 3.68e+6 4.54e+6 5.83e+6 1.11e+7  546.
+## # … with 1 more variable: Rhat &lt;dbl&gt;</code></pre>
 <p>There are two really important diagnostic statistics hidden in this summary:</p>
 <ul>
 <li><p><code>n_eff</code>: the effective sample size</p></li>
@@ -1051,7 +1084,7 @@ ggplot() +
   geom_density(data = sal_data, aes(log(r), fill = &#39;Observed&#39;), alpha = 0.5) + 
   scale_fill_manual(values = wes_palette(&quot;Zissou1&quot;))  </code></pre>
 <p><img src="/blog/2018-02-16-a-practical-introduction-to-stan_files/figure-html/unnamed-chunk-39-1.svg" width="960" /></p>
-<p>We can also use the <code>loo</code> package to try and quantitatively compare the two models. <code>loo</code> stands for leave-one-out, and the <code>loo</code> function provides a powerful interface for performing leave-one-out cross validation for Bayesian models. Basically, it tests the out-of-sample predictive accuracy of each of the models. You can think of it as an improvement over AIC/DIC for model comparison (see <code>?&quot;loo-package&quot;</code>). Of course, if visual diagnostics like the posterior predictive test strongly suggest that you should select one model over another, you can often trust that. But, for more ambiguous cases, we’d like to have some quantitative way to judge model performance, and that’s where <code>loo</code> can come in.</p>
+<p>We can also use the <code>loo</code> package to try and quantitatively compare the two models. <code>loo</code> stands for leave-one-out, and the <code>loo</code> function provides a powerful interface for performing leave-one-out cross validation for Bayesian models. Basically, it tests the out-of-sample predictive accuracy of each of the models. You can think of it as an improvement over AIC/DIC for model comparison (see <code>?"loo-package"</code>). Of course, if visual diagnostics like the posterior predictive test strongly suggest that you should select one model over another, you can often trust that. But, for more ambiguous cases, we’d like to have some quantitative way to judge model performance, and that’s where <code>loo</code> can come in.</p>
 <p>There are a few ways to use <code>loo</code>, but the simplest requires a bit of prep work. <code>loo</code> needs to evaluate the likelihood as a function of leaving out data. So, it needs to have access to the pure likelihood. You can either write a function to do this, which we won’t cover here (see <code>?loo::loo</code>), or you can go back in your model and store the log-likelihood in the <code>generated quantities</code> block</p>
 <pre class="stan"><code>
   vector[n] log_likelihood;
@@ -1063,7 +1096,7 @@ ggplot() +
   }
 </code></pre>
 <p>Once we’ve done this, we can extract the log-likelihood using <code>loo::extract_log_lik</code>.</p>
-<p><code>loo::extract_log_lik()</code> has an option <code>parameter_name</code> that defaults to <code>parameter_name = &quot;log_lik&quot;</code>, but for the sake of this example we’ve named our log-likelihood object in the <code>stanfit</code> object <code>parameter_name</code></p>
+<p><code>loo::extract_log_lik()</code> has an option <code>parameter_name</code> that defaults to <code>parameter_name = "log_lik"</code>, but for the sake of this example we’ve named our log-likelihood object in the <code>stanfit</code> object <code>parameter_name</code></p>
 <pre class="r"><code>log_lik_ricker &lt;- extract_log_lik(ricker_fit, parameter_name = &quot;log_likelihood&quot;)</code></pre>
 <p>Once we have this, we can pass the log-likelihood matrix to the <code>loo</code> function to get our diagnostics.</p>
 <pre class="r"><code>ricker_loo &lt;- loo::loo(log_lik_ricker)</code></pre>
@@ -1075,14 +1108,14 @@ bh_loo &lt;- loo::loo(log_lik_bh)
 
 compare(bh_loo, ricker_loo)</code></pre>
 <pre><code>## elpd_diff        se 
-##      -0.7       0.5</code></pre>
+##      -0.8       0.5</code></pre>
 <p>The output of compare is a big confusing, but basically, if <code>elpd_diff</code> is positive, that means that according to <code>loo</code>, the second model is preferred. If it’s negative, the first model is preferred. So, in this case, per the <code>loo</code> criteria, there is a bit more support for the Beverton-Holt model, at least as we parameterized it here. But we can also see that <code>elpd_diff</code> is on about the same scale as the standard error <code>se</code>, giving some indication that there isn’t a big difference between the models (if for example <code>elpd_diff</code> had been <code>-2000</code>, much bigger than the <code>se</code> of <code>0.5</code>, this would indicate more support for the difference). Biologically, we have reasons to think that the Ricker model might still be the better option.</p>
 <p>If you want to compare more than two models, you just pass more <code>loo</code> objects to compare! Compare conveniently orders the matrix in descending order of model performance.</p>
 <pre class="r"><code>compare(bh_loo, ricker_loo, ricker_loo)</code></pre>
 <pre><code>##            elpd_diff se_diff elpd_loo p_loo looic
-## bh_loo       0.0       0.0   -57.8      2.2 115.7
-## ricker_loo  -0.7       0.5   -58.5      2.3 117.1
-## ricker_loo  -0.7       0.5   -58.5      2.3 117.1</code></pre>
+## bh_loo       0.0       0.0   -57.9      2.3 115.8
+## ricker_loo  -0.8       0.5   -58.7      2.5 117.4
+## ricker_loo  -0.8       0.5   -58.7      2.5 117.4</code></pre>
 <p>And just like that, we have a solid sketch of going from raw data, to model fits, to model comparison, using Stan and R. There is clearly a lot more work that would have to go into doing this analysis properly (e.g. we haven’t done any testing of the effects of our choices for our prior distributions), but the tools we’ve gone over here should serve as a useful template to build off of for more complete analysis.</p>
 <p>Hopefully this helps you to start using Stan in your analyses, I’ll post some more complicated examples as time allows. Good luck!</p>
 </div>
@@ -1102,9 +1135,9 @@ plot(example_model)</code></pre>
 </div>
 <div id="references" class="section level1 unnumbered">
 <h1>References</h1>
-<div id="refs" class="references">
+<div id="refs" class="references hanging-indent">
 <div id="ref-Dorn2002">
-<p>Dorn, Martin W. 2002. “Advice on West Coast Rockfish Harvest Rates from Bayesian Meta-Analysis of Stock-Recruit Relationships.” <em>North American Journal of Fisheries Management</em> 22 (1): 280–300. <a href="https://doi.org/10.1577/1548-8675(2002)022&lt;0280:AOWCRH&gt;2.0.CO;2">https://doi.org/10.1577/1548-8675(2002)022&lt;0280:AOWCRH&gt;2.0.CO;2</a>.</p>
+<p>Dorn, Martin W. 2002. “Advice on West Coast Rockfish Harvest Rates from Bayesian Meta-Analysis of Stock-Recruit Relationships.” <em>North American Journal of Fisheries Management</em> 22 (1): 280–300. <a href="https://doi.org/10.1577/1548-8675(2002)022%3C0280:AOWCRH%3E2.0.CO;2">https://doi.org/10.1577/1548-8675(2002)022&lt;0280:AOWCRH&gt;2.0.CO;2</a>.</p>
 </div>
 <div id="ref-Gelman2013">
 <p>Gelman, Andrew, John B. Carlin, Hal S. Stern, David B. Dunson, Aki Vehtari, and Donald B. Rubin. 2013. <em>Bayesian Data Analysis</em>. CRC press.</p>

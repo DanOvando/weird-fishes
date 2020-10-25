@@ -33,6 +33,7 @@ theme_set(plot_theme)
 
 # What's Stan and Why Use It?
 
+Hello?
 
 Stan is a programming language designed to make statistical modeling easier and faster, especially for Bayesian estimation problems. Stan can help you estimate complex models with large numbers of parameters, and can generally do it faster than alternative like JAGS/BUGS 
 
@@ -492,7 +493,7 @@ We can write a general BH model by
 
 $$ R = \frac{\alpha{SSB}}{1 + \beta{SSB}}$$
 
-Where SSB is spawning stock biomass (the biomass of reproductively mature fish in the population),  $\alpha$ is the maximum average number of recruits (new fish) possible in the population, and $\beta$ is the amount of SSB needed to produce on average $\alpha{/2}$
+Where SSB is spawning stock biomass (the biomass of reproductively mature fish in the population),  $\alpha$ is the maximum average number of recruits (new fish) possible in the population, and $\beta$ is the unfished spawning biomass that produces $\alpha$ recruits
 
 ```{r, echo = F, fig.cap= "Example Beverton-Holt stock recruitmenet relationship (black line), red line shows beta"}
 
@@ -512,10 +513,10 @@ data_frame(ssb = 0:1000) %>%
 ```
 
 
-The problem here is that $\beta$ is obviously very specific to each species, making it difficult to really say much about the resilience of a species based on that parameter. To that end Mace & Doonan 1988 provided a reparameterization of the BH equation using a term called "steepness" (*h*), which is the slope of the stock-recruitment curve when SSB is 20% of max (i.e. unfished) SSB. This allows for species with vastly different stock sizes to be compared in terms of their steepness, with species with higher values of steepness being more resilient to fishing than those with lower steepness
+The problem here is that $\beta$ is obviously very specific to each species, making it difficult to really say much about the resilience of a species based on that parameter. To that end Mace & Doonan 1988 provided a reparameterization of the BH equation using a term called "steepness" (*h*), which is the slope of the stock-recruitment curve when SSB is 20% of max (i.e. unfished) SSB. This allows for species with vastly different stock sizes to be compared in terms of their steepness, with species with higher values of steepness being more resilient to fishing than those with lower steepness. $\beta$ is now the unfished SSB that produces \alpha. 
 
 
-$$ \frac{0.8(\alpha){(h){{SSB}}}}{0.2 (\alpha)(1 - h) + (h - 0.2)SSB}$$
+$$\frac{0.8(\alpha){(h){{SSB}}}}{0.2 (\beta)(1 - h) + (h - 0.2)SSB}$$
 
 ```{r}
 
@@ -562,11 +563,11 @@ Let's start by writing out the model for this model. We have three parameters we
 
 We can write this as
 
-$$[\alpha,h,\sigma | r] \propto [ r | \alpha,h,\sigma][\alpha][h][\sigma]  $$
+$$[\alpha,h,\sigma,\beta| r] \propto [ r | \alpha,h,\sigma][\alpha][h][\sigma]$$
 
 Where *r* are our recruitment data. That's just a conceptual framework for the model; we can write it more clearly by specifying the model in terms of distributions. 
 
-$$[\alpha,h,\sigma | r] \propto normal( log(r) | bh(h,\alpha),\sigma) * unif(h|0.2,1) * normal(\alpha|10*max(r),0.1*max(r)) * cauchy(\sigma|0,2.5)  $$
+$$[\alpha,h,\beta,\sigma | r] \propto normal( log(r) | bh(h,\alpha),\sigma) * normal(log(\beta)|10,2) * unif(h|0.2,1) * normal(\alpha|10*max(r),0.1*max(r)) * cauchy(\sigma|0,2.5)$$
 
 In English, this says that we believe that recruitment is a log-normal process, while specifying appropriate priors for our other parameters. E.g. we know that *h* has to be between 0.2 and 1, and it's reasonable to think that max recruitment is something larger than the largest recruitment ever observed (**much more care needs to be taken in prior construction, this is just an example**) 
 
@@ -605,17 +606,21 @@ real<lower = 0.2, upper = 1> h; //steepness
 
 real<lower = 0> alpha; // max recruitment
 
+real log_beta;
+
 real<lower = 0> sigma; // recruitment standard deviation 
 
 
 }
 transformed parameters{
 
+real beta = exp(log_beta);
+
 vector[n] rhat;
 
 vector[n] log_rhat;
 
-rhat = (0.8 * alpha * h * ssb) ./ (0.2 * alpha * (1 - h) +(h - 0.2) * ssb); // beverton holt model
+rhat = (0.8 * alpha * h * ssb) ./ (0.2 * beta * (1 - h) +(h - 0.2) * ssb); // beverton holt model
 
 log_rhat = log(rhat);
 
@@ -629,6 +634,8 @@ log_r ~ normal(log_rhat - 0.5 * sigma^2, sigma); //account for retransformation 
 sigma ~ cauchy(0,2.5);
 
 alpha ~ normal(2*max_r, 0.2*max_r);
+
+log_beta ~ normal(10,2);
 
 }
 
@@ -692,19 +699,40 @@ data <- list(n = nrow(sal_data),
                max_r = max(sal_data$r)
              )
 
-bh_fit <- stan(file = here::here("src","bh_model.stan"),
-                 data = data,
-                 chains = n_chains,
-                 warmup = warmups,
-                 iter = total_iterations,
-                 cores = n_cores,
-                 refresh = 250,
-                 init = list(list(h = 0.4, alpha = 2 * data$max_r),
-                             list(h = 0.21, alpha = 3 * data$max_r),
-                             list(h = 0.8, alpha = 1 * data$max_r),
-                             list(h = 0.3, alpha = .8 * data$max_r)),
-                 control = list(max_treedepth = max_treedepth,
-                                adapt_delta = adapt_delta))
+bh_fit <- stan(
+  file = here::here("src", "bh_model.stan"),
+  data = data,
+  chains = n_chains,
+  warmup = warmups,
+  iter = total_iterations,
+  cores = n_cores,
+  refresh = 250,
+  init = list(
+    list(
+      h = 0.4,
+      alpha = 2 * data$max_r,
+      log_beta = log(2* max(sal_data$ssb))
+    ),
+    list(
+      h = 0.21,
+      alpha = 3 * data$max_r,
+      log_beta = log(3 *max(sal_data$ssb))
+    ),
+    list(
+      h = 0.8,
+      alpha = 1 * data$max_r,
+      log_beta = log(1.1*max(sal_data$ssb))
+    ),
+    list(
+      h = 0.3,
+      alpha = .8 * data$max_r,
+      log_beta = log(5*max(sal_data$ssb))
+    )
+  ),
+  control = list(max_treedepth = max_treedepth,
+                 adapt_delta = adapt_delta)
+)
+
 
 ```
 

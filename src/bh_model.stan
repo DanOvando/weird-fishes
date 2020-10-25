@@ -25,17 +25,21 @@ real<lower = 0.2, upper = 1> h; //steepness
 
 real<lower = 0> alpha; // max recruitment
 
+real log_beta; // max recruitment
+
 real<lower = 0> sigma;
 
 
 }
 transformed parameters{
 
+real beta = exp(log_beta);
+
 vector[n] rhat;
 
 vector[n] log_rhat;
 
-rhat = (0.8 * alpha * h * ssb) ./ (0.2 * alpha * (1 - h) +(h - 0.2) * ssb);
+rhat = (0.8 * alpha * h * ssb) ./ (0.2 * beta * (1 - h) +(h - 0.2) * ssb);
 
 log_rhat = log(rhat);
 
@@ -49,6 +53,9 @@ log_r ~ normal(log_rhat - 0.5 * sigma^2, sigma);
 sigma ~ cauchy(0,2.5);
 
 alpha ~ normal(2*max_r, 0.1*2*max_r);
+
+log_beta ~ normal(10,2);
+
 
 }
 
