@@ -1,6 +1,6 @@
 ---
 title: "About Me"
-date: "2018-02-20"
+date: "`r Sys.Date()`"
 bibliography: my-pubs.bib
 nocite: |
   @Costello2012a
@@ -14,9 +14,10 @@ nocite: |
   @Rosenberg2014
   @Ovando2016
   @Ovando2013
+toc: false
 ---
 
-[View my CV](`r here::here("static","about","ovando_cv_oct_2020.pdf")`)
+# [View my CV](https://github.com/DanOvando/weird-fishes/blob/master/static/about/ovando_cv_oct_2020.pdf)
 
 # About This Blog
 
