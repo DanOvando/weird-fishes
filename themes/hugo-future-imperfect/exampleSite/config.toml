@@ -122,7 +122,7 @@ pluralizeListTitles = false
 [[menu.main]]
   name = "Categories"
   url = "/categories/"
-  identifier = "fa fa-sitemap"
+  identifier = "fa fa-book"
   weight = 5
 
 [[menu.main]]

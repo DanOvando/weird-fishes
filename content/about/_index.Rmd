@@ -18,7 +18,7 @@ toc: false
 linkcolor: blue
 ---
 
-[***View my CV***](https://raw.githubusercontent.com/DanOvando/weird-fishes/master/static/about/ovando_cv_oct_2020.pdf)
+[***View my CV***](https://raw.githubusercontent.com/DanOvando/weird-fishes/master/static/about/ovando-cv-june-2021.pdf)
 
 # About This Blog
 
