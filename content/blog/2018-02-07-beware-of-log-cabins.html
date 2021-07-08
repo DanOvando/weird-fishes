@@ -1,0 +1,34 @@
+---
+title: Beware of Log Cabins
+author: Dan Ovando
+date: '2018-02-07'
+slug: beware-of-log-cabins
+categories: [Frogs, Toads]
+tags: [R, Amphibians]
+draft: true
+type: post
+---
+
+<script src="/rmarkdown-libs/header-attrs/header-attrs.js"></script>
+
+<div id="TOC">
+<ul>
+<li><a href="#to-glm-or-not-to-glm">To <code>glm</code> or not to <code>glm</code>?</a></li>
+</ul>
+</div>
+
+<div id="to-glm-or-not-to-glm" class="section level1">
+<h1>To <code>glm</code> or not to <code>glm</code>?</h1>
+<p><a href="http://andrewgelman.com/2006/04/10/log_transformat/" class="uri">http://andrewgelman.com/2006/04/10/log_transformat/</a></p>
+<p><a href="http://www.uphs.upenn.edu/dgimhsr/presenta/ispora06/ISPOR_logcosts_2006.pdf" class="uri">http://www.uphs.upenn.edu/dgimhsr/presenta/ispora06/ISPOR_logcosts_2006.pdf</a></p>
+<p><a href="https://magesblog.com/post/2015-08-04-generalised-linear-models-in-r/" class="uri">https://magesblog.com/post/2015-08-04-generalised-linear-models-in-r/</a></p>
+<p>log transforming says that</p>
+<p><span class="math display">\[log(x) \sim N(\mu, \sigma)\]</span></p>
+<p>in other words, this is estimating the mean of log(x)</p>
+<p>A GLM is saying that x ~</p>
+<p>in the glm case, you are estimating the log of the expected value of y</p>
+<p>so you’re saying that y itself is normally distributed, and <span class="math inline">\(\mu\)</span> log(mu) = a + b etc.</p>
+<p>Meaning, mu is linear through the log link.</p>
+<p>What about gamma?</p>
+<p>Height might be a good one for the glm method? Has to be positive, but you would certainly imagine that factors related to height would be multiplicative in nature, e.g. genetics + nutrition</p>
+</div>

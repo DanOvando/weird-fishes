@@ -319,10 +319,8 @@ pmap(list(list1 = 1:nrow(dmonds), list2 = dmonds$price, list3 = dmonds$carat), p
 y &lt;-  c(1, NA, 1, NA)
 
 z &lt;-  data_frame(x = x, y = y)</code></pre>
-<pre><code>## Warning: `data_frame()` is deprecated as of tibble 1.1.0.
-## Please use `tibble()` instead.
-## This warning is displayed once every 8 hours.
-## Call `lifecycle::last_warnings()` to see where this warning was generated.</code></pre>
+<pre><code>## Warning: `data_frame()` was deprecated in tibble 1.1.0.
+## Please use `tibble()` instead.</code></pre>
 <pre class="r"><code>z %&gt;%
 mutate(both_na = map2_lgl(x,y, ~ is.na(.x) &amp; is.na(.y)))</code></pre>
 <pre><code>## # A tibble: 4 x 3
@@ -825,23 +823,21 @@ test_data &lt;- cross_df(test_data) %&gt;%
 <pre><code>## Warning: `cols` is now required when using unnest().
 ## Please use `cols = c(test_training)`</code></pre>
 <pre><code>## Warning: The `.id` argument of `unnest()` is deprecated as of tidyr 1.0.0.
-## Manually create column of names instead.
-## This warning is displayed once every 8 hours.
-## Call `lifecycle::last_warnings()` to see where this warning was generated.</code></pre>
+## Manually create column of names instead.</code></pre>
 <pre class="r"><code>test_data</code></pre>
 <pre><code>## # A tibble: 40 x 5
 ##    splits             id     model_name model        fit         
 ##    &lt;list&gt;             &lt;chr&gt;  &lt;chr&gt;      &lt;named list&gt; &lt;named list&gt;
-##  1 &lt;split [1.5K/171]&gt; Fold01 woah       &lt;formula&gt;    &lt;lm&gt;        
-##  2 &lt;split [1.5K/171]&gt; Fold02 woah       &lt;formula&gt;    &lt;lm&gt;        
-##  3 &lt;split [1.5K/171]&gt; Fold03 woah       &lt;formula&gt;    &lt;lm&gt;        
-##  4 &lt;split [1.5K/171]&gt; Fold04 woah       &lt;formula&gt;    &lt;lm&gt;        
-##  5 &lt;split [1.5K/170]&gt; Fold05 woah       &lt;formula&gt;    &lt;lm&gt;        
-##  6 &lt;split [1.5K/170]&gt; Fold06 woah       &lt;formula&gt;    &lt;lm&gt;        
-##  7 &lt;split [1.5K/170]&gt; Fold07 woah       &lt;formula&gt;    &lt;lm&gt;        
-##  8 &lt;split [1.5K/170]&gt; Fold08 woah       &lt;formula&gt;    &lt;lm&gt;        
-##  9 &lt;split [1.5K/170]&gt; Fold09 woah       &lt;formula&gt;    &lt;lm&gt;        
-## 10 &lt;split [1.5K/170]&gt; Fold10 woah       &lt;formula&gt;    &lt;lm&gt;        
+##  1 &lt;split [1533/171]&gt; Fold01 woah       &lt;formula&gt;    &lt;lm&gt;        
+##  2 &lt;split [1533/171]&gt; Fold02 woah       &lt;formula&gt;    &lt;lm&gt;        
+##  3 &lt;split [1533/171]&gt; Fold03 woah       &lt;formula&gt;    &lt;lm&gt;        
+##  4 &lt;split [1533/171]&gt; Fold04 woah       &lt;formula&gt;    &lt;lm&gt;        
+##  5 &lt;split [1534/170]&gt; Fold05 woah       &lt;formula&gt;    &lt;lm&gt;        
+##  6 &lt;split [1534/170]&gt; Fold06 woah       &lt;formula&gt;    &lt;lm&gt;        
+##  7 &lt;split [1534/170]&gt; Fold07 woah       &lt;formula&gt;    &lt;lm&gt;        
+##  8 &lt;split [1534/170]&gt; Fold08 woah       &lt;formula&gt;    &lt;lm&gt;        
+##  9 &lt;split [1534/170]&gt; Fold09 woah       &lt;formula&gt;    &lt;lm&gt;        
+## 10 &lt;split [1534/170]&gt; Fold10 woah       &lt;formula&gt;    &lt;lm&gt;        
 ## # … with 30 more rows</code></pre>
 <p>In a few lines of code, we now have “tidy” cross validation routine across multiple models, not bad.</p>
 <pre class="r"><code>test_data &lt;- test_data %&gt;%
@@ -914,13 +910,11 @@ test_data$fit &lt;- fits</code></pre>
 <pre class="r"><code>library(furrr)</code></pre>
 <pre><code>## Loading required package: future</code></pre>
 <pre class="r"><code>future::plan(multiprocess(workers = 1))</code></pre>
-<pre><code>## Warning: [ONE-TIME WARNING] Forked processing (&#39;multicore&#39;) is disabled
-## in future (&gt;= 1.13.0) when running R from RStudio, because it is
-## considered unstable. Because of this, plan(&quot;multicore&quot;) will fall
-## back to plan(&quot;sequential&quot;), and plan(&quot;multiprocess&quot;) will fall back to
-## plan(&quot;multisession&quot;) - not plan(&quot;multicore&quot;) as in the past. For more details,
-## how to control forked processing or not, and how to silence this warning in
-## future R sessions, see ?future::supportsMulticore</code></pre>
+<pre><code>## Warning in supportsMulticoreAndRStudio(...): [ONE-TIME WARNING] Forked
+## processing (&#39;multicore&#39;) is not supported when running R from RStudio
+## because it is considered unstable. For more details, how to control forked
+## processing or not, and how to silence this warning in future R sessions, see ?
+## parallelly::supportsMulticore</code></pre>
 <pre class="r"><code>start &lt;- Sys.time()
 
 test_data &lt;- test_data %&gt;% 
@@ -929,7 +923,7 @@ test_data &lt;- test_data %&gt;%
 
 
 Sys.time() - start</code></pre>
-<pre><code>## Time difference of 1.218323 secs</code></pre>
+<pre><code>## Time difference of 1.71475 secs</code></pre>
 </div>
 <div id="miscellaneos-purrr" class="section level2">
 <h2>Miscellaneos <code>purrr</code></h2>
