@@ -88,7 +88,7 @@ knitr::include_graphics("https://conbio.onlinelibrary.wiley.com/cms/asset/b94e3f
 
 # What evidence for those effects did we see in the Channel Islands?
 
-So what did we find? We estimated that the MPAs in the Channel Islands had an overall uncertain but positive effect from 2003 to 2009. But, that trend reverses itself from 2009 to 2018, and in the most recent time step we don't estimate any clear effect of the MPAs on total biomass of targeted finfish included in our study. The data and model say that there is some probability of a small positive effect, but a roughly equal probability of a small negative effect (Figure \@ref(fig:ddplot)). 
+So what did we find? We estimated that the MPAs in the Channel Islands had an overall uncertain but positive effect from 2003 to 2012. But, that trend reverses itself from 2012 to 2018, and in the most recent time step we don't estimate any clear effect of the MPAs on total biomass of targeted finfish included in our study. The data and model say that there is some probability of a small positive effect, but a roughly equal probability of a small negative effect (Figure \@ref(fig:ddplot)). 
 
 So what happened here? We didn't see evidence of a "constant catch" fishing behavior in the region that might explain this decline, so that possibility suggested by our simulation modeling seems unlikely. Instead, we think what happened is that a marine heatwave that started around 2009 may have had a larger effect on the targeted species, which in the Channel Islands often prefer cooler waters, than the non-targeted species, and that given the effect size of the MPA this environmental shock was large enough to mask the signal of the effects of the MPAs on fish biomass. 
 

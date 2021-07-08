@@ -129,7 +129,7 @@ ignoreFiles = ["\\.Rmd$", "\\.Rmarkdown$", "_cache$", "\\.knit\\.md$", "\\.utf8\
   #weight = 4
 
 [[menu.main]]
-  name = "Publications"
+  name = "Publication Summaries"
   url = "/categories/publications"
   identifier = "fa fa-book"
   weight = 5
