@@ -4,13 +4,47 @@ author: Dan Ovando
 date: '`r Sys.Date()`'
 slug: pop-effects-of-mpas
 categories:
-  - publicaitons
-tags: [mpas,Bayesian]
+  - publications
+  - Pubs
+tags: [mpas,Bayesian, publications]
 description: ''
 draft: false
 type: post
 bibliography: blog.bib
 biblio-style: apalike
+toc: false
 ---
 
-A description of 
+
+Marine protected areas (MPAs) are parts of the ocean where activities like fishing can be prohibited. MPAs are an important conservation tool, since they can be used to protect entire portinos of an ecosystem from threats such as fishing. 
+
+Marine protected areas (MPAs) cover 3–7% of the world's ocean, and international organizations call for 30% coverage by 2030....
+
+
+Although numerous studies show that MPAs produce conservation benefits inside their borders, many MPAs are also justified on the grounds that they confer conservation benefits to the connected populations that span beyond their borders
+
+MPAs are an important conservation tool... In @ovando2021a (available open-access [here](https://doi.org/10.1111/cobi.13782)), we answered three important questions
+
+1. What should we expect from MPAs?
+
+## How can we detect MPA effects?
+
+3. What evidence for those effects did we see in the Channel Islands National Marine Sanctuary, USA?
+
+
+## What should we expect from MPAs?
+
+```{r, fig.cap="Testing", echo=FALSE}
+knitr::include_graphics("https://conbio.onlinelibrary.wiley.com/cms/asset/50d586f6-8df2-4385-b338-a5f10a556f5f/cobi13782-fig-0001-m.jpg")
+```
+
+## How can we detect MPA effects?
+
+## What evidence for those effects did we see in the Channel Islands?
+
+```{r, fig.cap="Testing", echo=FALSE}
+knitr::include_graphics("https://conbio.onlinelibrary.wiley.com/cms/asset/f49aefdf-5480-4d14-8135-12dea9ff99b7/cobi13782-fig-0002-m.jpg")
+```
+
+
+# References

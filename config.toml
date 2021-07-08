@@ -81,9 +81,9 @@ ignoreFiles = ["\\.Rmd$", "\\.Rmarkdown$", "_cache$", "\\.knit\\.md$", "\\.utf8\
   # These are optional params related to the sidebar. They are recommended, but not
   # required for proper functionality. HTML is supported within the params.
 [params.intro]
-  header    = "Weird Fishes"
+  header    = "Dan Ovando"
 
-  paragraph = "Thoughts on fisheries, oceans, data science, and music"
+  paragraph = "Fisheries, Oceans, Data Science"
 
   about     = "Dan Ovando is a Post-Doctoral Researcher at the University of Washington -  Future Imperfect theme ported by Julio Pescador"
 
@@ -92,10 +92,10 @@ ignoreFiles = ["\\.Rmd$", "\\.Rmarkdown$", "_cache$", "\\.knit\\.md$", "\\.utf8\
   [params.intro.pic]
     src       = "/img/main/dovando.jpg"
     # Sets Image to be a cirlce
-    circle    = false
+    circle    = true
     # Sets Image to be Future Imperfect's hexagon
     imperfect = true
-    width     = ""
+    width     = "50%"
     alt       = "Hugo Future Imperfect"
 
 [params.postAmount]
@@ -129,8 +129,8 @@ ignoreFiles = ["\\.Rmd$", "\\.Rmarkdown$", "_cache$", "\\.knit\\.md$", "\\.utf8\
   #weight = 4
 
 [[menu.main]]
-  name = "Topics"
-  url = "/categories/"
+  name = "Publications"
+  url = "/categories/publications"
   identifier = "fa fa-sitemap"
   weight = 5
 
@@ -148,7 +148,7 @@ ignoreFiles = ["\\.Rmd$", "\\.Rmarkdown$", "_cache$", "\\.knit\\.md$", "\\.utf8\
   github           = "danovando"
   stackoverflow    = "5129341" # User Number
   #linkedin         = "example"
-  twitter          = "@DanOvand0"
+  twitter          = "DanOvand0"
   googlescholar    = "dovando07@gmail.com"
   #orcid            = ""
   researchgate     = "Daniel_Ovando"
