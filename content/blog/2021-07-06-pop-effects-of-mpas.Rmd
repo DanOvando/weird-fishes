@@ -106,5 +106,8 @@ Based on our simulation results, we might expect it to be hard to detect a relat
 
 MPAs are an important conservation tool, and can often produce large conservation gains. But, actually detecting these gains can be complicated, and it can be easy to accidentally miss them, or to overestimate them. We go into some solutions to these problems, the the reality is that detecting the population level effects of MPAs is likely to be a challenge in many places. Clearly communicating what to expect from and what can be detected from MPAs is critical to ensuring that MPAs play effective roles in fisheries management and marine conservation.
 
+# Acknowledgments
+
+Funding for the simulation model was provided by the National Marine Fisheries Service – SeaGrant Population and Ecosystem Dynamics Fellowship. Empirical data collection was funded primarily by the David and Lucille Packard Foundation in support of the Partnership for Interdisciplinary Studies of Coastal Oceans (PISCO) with additional funding from the California Ocean Protection Council and California SeaGrant. This study would not have been possible without the work provided by PISCO divers over the years. We especially thank K. Davis Koehn and A. Parsons-Field. We also thank C. Szuwalski, J. Lawson, A. Punt, C. Brown, and two anonymous reviewers for helpful comments and technical support.
 
 # References
