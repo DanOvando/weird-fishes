@@ -7,50 +7,64 @@ categories:
   - publications
   - Pubs
 tags: [mpas,Bayesian, publications]
-description: ''
+description: 'A summary of Ovando et al. (2021)'
 draft: false
 type: post
 bibliography: blog.bib
 biblio-style: apalike
 toc: false
+linkcolor: blue
 ---
 
 <script src="/rmarkdown-libs/header-attrs/header-attrs.js"></script>
 
 
-<p>Marine protected areas (MPAs) are parts of the ocean where activities like fishing can be prohibited. MPAs are an important conservation tool, since they can be used to protect entire portinos of an ecosystem from threats such as fishing.</p>
-<p>Marine protected areas (MPAs) cover 3–7% of the world’s ocean, and international organizations call for 30% coverage by 2030….</p>
-<p>Although numerous studies show that MPAs produce conservation benefits inside their borders, many MPAs are also justified on the grounds that they confer conservation benefits to the connected populations that span beyond their borders</p>
-<p>MPAs are an important conservation tool… In <span class="citation"><a href="#ref-ovando2021a" role="doc-biblioref">Ovando et al.</a> (<a href="#ref-ovando2021a" role="doc-biblioref">2021</a>)</span> (available open-access <a href="https://doi.org/10.1111/cobi.13782">here</a>), we answered three important questions</p>
+<p>If you’ve ever spent time exploring a part of the ocean protected from fishing you’ve probably been struck by the amazing abundance of marine life living there. These places, currently covering between 3-7% of the world’s oceans, are a form of Marine Protected Area (MPA). MPAs can be a powerful conservation tool, and there is a <a href="https://www.campaignfornature.org/g7-nations-agree-to-historic-nature-compact">growing movement</a> to expand MPAs to cover 30% of the world’s oceans by 2030. However, actually measuring the effect that MPAs have on fish populations can be very difficult, due to the ability of both fish and fishermen to move great distances. This means we have surprisingly little empirical evidence of the effect of MPAs on fish populations across seascapes.</p>
+<p>In <span class="citation"><a href="#ref-ovando2021a" role="doc-biblioref">Ovando et al.</a> (<a href="#ref-ovando2021a" role="doc-biblioref">2021</a>)</span> we explored three questions:</p>
 <ol style="list-style-type: decimal">
-<li>What should we expect from MPAs?</li>
+<li><p>How do MPAs affect fish populations?</p></li>
+<li><p>How can we detect these effects?</p></li>
+<li><p>What evidence for those effects did we see in the Channel Islands National Marine Sanctuary, USA?</p></li>
 </ol>
-<div id="how-can-we-detect-mpa-effects" class="section level2">
-<h2>How can we detect MPA effects?</h2>
-<ol start="3" style="list-style-type: decimal">
-<li>What evidence for those effects did we see in the Channel Islands National Marine Sanctuary, USA?</li>
-</ol>
-</div>
-<div id="what-should-we-expect-from-mpas" class="section level2">
-<h2>What should we expect from MPAs?</h2>
+<p>We found that except for large MPAs on heavily overfished species, the total effects of MPAs on fish populations both inside and outside their borders are likely to be small and extremely hard to detect. We demonstrated this using data from the heavily studied and moderately exploited fish populations living in and around a large MPA network in the Channel Islands National Marine Sanctuaty, California, USA. After 14 years we found no clear effect of this MPA network on a group of finfish targeted by fishing, with the data supporting an effect ranging from a moderate benefit to a moderate loss. Using computer simulations we showed that this result is actually to be expected, and highlight ways that communities can plan for and potentially overcome the challenge of detecting the seascape-level effect of MPAs on fish populations. It is particularly critical that we expand vital long-term MPA monitoring programs beyond ecological data to include monitoring of human dimensions.</p>
 <div class="figure"><span id="fig:unnamed-chunk-1"></span>
-<img src="https://conbio.onlinelibrary.wiley.com/cms/asset/50d586f6-8df2-4385-b338-a5f10a556f5f/cobi13782-fig-0001-m.jpg" alt="Testing"  />
+<img src="https://conbio.onlinelibrary.wiley.com/cms/asset/4d20ecee-c6e9-447b-ab77-04a7477c5b44/cobi13782-fig-0005-m.jpg" alt="Map of the study region in the Northern Channel Islands, California (USA) (shading, binned number of Partnership for Interdisciplinary Studies of Coastal Oceans [PISCO] sampling events over the study period)"  />
 <p class="caption">
-Figure 1: Testing
+Figure 1: Map of the study region in the Northern Channel Islands, California (USA) (shading, binned number of Partnership for Interdisciplinary Studies of Coastal Oceans [PISCO] sampling events over the study period)
+</p>
+</div>
+<div id="how-do-mpas-affect-fish-populations" class="section level1">
+<h1>How do MPAs affect fish populations?</h1>
+<p>First off, what do we mean by a “population?” We generally define populations as a group of animals connected by movement and reproduction. We are used to thinking about this in the context of mating, and so might consider a population as being defined by the movement range of a group of sexually mature fish. However, the larvae of many fish species can travel vast distances, sometimes dispersing hundreds of kilometers over many months. This means that seemingly distant groups of adult fish can in fact be part of the same population, connected both through adult movement and larval dispersal. By “population-level effects” then, we are talking about the effect of MPAs not just on the adult fish that happen to live inside protected areas, but the net effect of MPAs across entire connected fish populations both inside and outside their borders.</p>
+<p>What effect then should we expect MPAs to have on fish populations? This might seem like a somewhat pointless question. MPAs can prevent fishing within an area, and all else being equal, if you kill fewer fish there are more fish left over in the water. Question answered! So why study this? Well it turns out that predicting how much the creation of an MPA will affect fish populations can be surprisingly difficult. One obvious factor in this equation is how heavily fished a population would have been without an MPA; all else being equal the more heavily fished a species is the larger and more rapid the effect of an MPA will be. Movement creates another important complication, both fish and fishing fleets have a habit of moving, often a lot. Many fish range across tens to thousands of kilometers at some point in their life history, and this dispersal means that MPAs can act as a source of adult or larval fish to unprotected areas outside their borders, potentially providing conservation benefits there. But, this same movement can dilute the protection provided by MPAs, exposing animals to greater amounts of fishing as they spend time outside of protected waters.</p>
+<p>But, fish movement isn’t the only thing we have to worry about. Suppose that an MPA is placed on some prime fishing grounds near a harbor. The fishers that used to work those waters have two choices: either leave the fishery, or start to fish harder in the waters outside the MPA. If they choose to to move rather than leave, this will increase fishing pressure outside the MPAs, creating a balancing act between the conservation benefits of fishing less inside the MPA and the conservation losses of fishing harder outside the MPA.</p>
+<p>We built a computer simulation to explore the ways in which these and other factors such as MPA design and life history impact the effects of MPAs on fish populations that you can explore <a href="https://danovando.shinyapps.io/simmpa/">here</a>. The results of this are shown in Figure <a href="#fig:sim-effect">2</a>. There’s a lot to unpack here, but two important results are that</p>
+<ol style="list-style-type: decimal">
+<li><p>MPA networks covering 30% or less of a population’s range are unlikely to have large population-level effects unless the fished populations are very overfished and</p></li>
+<li><p>An MPA of a given size can have a wide range of effects depending on the specific eclogical and economic dyanmics of that system</p></li>
+</ol>
+<div class="figure"><span id="fig:sim-effect"></span>
+<img src="https://conbio.onlinelibrary.wiley.com/cms/asset/50d586f6-8df2-4385-b338-a5f10a556f5f/cobi13782-fig-0001-m.jpg" alt="Simulated population-level effects of MPAs. Panel (a) shows median simulated population-level (pop.) MPA effect sizes as a function of percent of species' range inside MPA (y-axis), and pre-MPA depletion (x-axis). Pre-MPA depletion is a measure of fishing pressure, where 0% means that the population is unfished, and 100% means that the population is extinct in the time period immediately prior to MPA implementation. Panel (b) shows distribution of simulations across range of MPA sizes and pre-MPA depletions separately"  />
+<p class="caption">
+Figure 2: Simulated population-level effects of MPAs. Panel (a) shows median simulated population-level (pop.) MPA effect sizes as a function of percent of species’ range inside MPA (y-axis), and pre-MPA depletion (x-axis). Pre-MPA depletion is a measure of fishing pressure, where 0% means that the population is unfished, and 100% means that the population is extinct in the time period immediately prior to MPA implementation. Panel (b) shows distribution of simulations across range of MPA sizes and pre-MPA depletions separately
 </p>
 </div>
 </div>
-<div id="how-can-we-detect-mpa-effects-1" class="section level2">
-<h2>How can we detect MPA effects?</h2>
+<div id="how-can-we-detect-mpa-effects" class="section level1">
+<h1>How can we detect MPA effects?</h1>
+<p>Now that we have a sense for what to expect from MPAs under different conditions, how can we actually detect those effects in the real world? The most common strategy is to find a comparison site that is as similar to the MPA (e.g. same types of habitat and fish species) as possible, except that it allows fishing. Researchers can then compare things like the abundance of fish inside the MPAs relative to the abundance of fish in these “control” sites.</p>
 </div>
-<div id="what-evidence-for-those-effects-did-we-see-in-the-channel-islands" class="section level2">
-<h2>What evidence for those effects did we see in the Channel Islands?</h2>
-<div class="figure"><span id="fig:unnamed-chunk-2"></span>
+<div id="what-evidence-for-those-effects-did-we-see-in-the-channel-islands" class="section level1">
+<h1>What evidence for those effects did we see in the Channel Islands?</h1>
+<div class="figure"><span id="fig:unnamed-chunk-3"></span>
 <img src="https://conbio.onlinelibrary.wiley.com/cms/asset/f49aefdf-5480-4d14-8135-12dea9ff99b7/cobi13782-fig-0002-m.jpg" alt="Testing"  />
 <p class="caption">
-Figure 2: Testing
+Figure 3: Testing
 </p>
 </div>
+</div>
+<div id="the-take-home" class="section level1">
+<h1>The Take Home</h1>
 </div>
 <div id="references" class="section level1 unnumbered">
 <h1>References</h1>

@@ -2,23 +2,14 @@
 title: "About Me"
 date: "`r Sys.Date()`"
 bibliography: my-pubs.bib
-nocite: |
-  @Costello2012a
-  @Dowling2016
-  @Rahimi2016
-  @Szuwalski2016b
-  @Fogarty2016
-  @Ovando2016a
-  @Costello2016
-  @Hilborn2014b
-  @Rosenberg2014
-  @Ovando2016
-  @Ovando2013
+biblio-style: apalike
 toc: false
 linkcolor: blue
 ---
 
-[***View my CV***](https://raw.githubusercontent.com/DanOvando/weird-fishes/master/static/about/ovando-cv-june-2021.pdf)
+ <font size="6"> [***View my CV***](https://raw.githubusercontent.com/DanOvando/weird-fishes/master/static/about/ovando-cv-june-2021.pdf) </font> 
+
+
 
 # About This Blog
 
@@ -37,7 +28,25 @@ I received my B.S. from the University of Miami, and my Master's in Environmenta
 
 # Selected Publications
 
+Ovando, D., Caselle, J.E., Costello, C., Deschenes, O., Gaines, S.D., Hilborn, R., Liu, O., 2021. Assessing the population-level conservation effects of marine protected areas. Conservation Biology n/a. https://doi.org/10.1111/cobi.13782
 
+Ovando, D., Liu, O., Molina, R., Szuwalski, C., 2021. Models of marine protected areas must explicitly address spatial dynamics. PNAS 118. https://doi.org/10.1073/pnas.2025958118
 
+Ovando, D., Hilborn, R., Monnahan, C., Rudd, M., Rishi Sharma, Thorson, J., Rousseau, Y., Yimin Ye, In Press. Improving Estimates of the State of Global Fisheries Depends on Better Data. Fish and Fisheries 84041677 Bytes. https://doi.org/10.6084/M9.FIGSHARE.13070627.V2
 
+Ovando, D., Libecap, G.D., Millage, K.D., Thomas, L., 2020. Coasean Approaches to Address Overfishing: Bigeye Tuna Conservation in the Western and Central Pacific Ocean. Marine Resource Economics 000–000. https://doi.org/10.1086/711853
+
+Ovando, D., Dougherty, D., Wilson, J.R., 2016. Market and design solutions to the short-term economic impacts of marine reserves. Fish and Fisheries 17, 939–954. https://doi.org/10.1111/faf.12153
+
+Ovando, D.A., Deacon, R.T., Lester, S.E., Costello, C., Van Leuvan, T., McIlwain, K., Strauss, K.C., Arbuckle, M., Fujita, R., Gelcich, S., Uchida, H., 2013. Conservation incentives and collective choices in cooperative fisheries. Marine Policy 37, 132–140. https://doi.org/10.1016/j.marpol.2012.03.012
+
+Ovando, D., Poon, S., Costello, C., 2017. Opportunities and precautions for integrating cooperation and individual transferable quotas with territorial use rights in fisheries. Bulletin of Marine Science 93, 101–115. https://doi.org/10.5343/bms.2016.1081
+
+Hilborn, R., Ovando, D., 2014. Reflections on the success of traditional fisheries management. ICES Journal of Marine Science 71, 1040–1046. https://doi.org/10.1093/icesjms/fsu034
+
+Costello, C., Ovando, D., Clavelle, T., Strauss, C.K., Hilborn, R., Melnychuk, M.C., Branch, T.A., Gaines, S.D., Szuwalski, C.S., Cabral, R.B., Rader, D.N., Leland, A., 2016. Global fishery prospects under contrasting management regimes. Proc Natl Acad Sci USA 113, 5125–5129. https://doi.org/10.1073/pnas.1520420113
+
+Costello, C., Ovando, D., Hilborn, R., Gaines, S.D., Deschenes, O., Lester, S.E., 2012. Status and Solutions for the World’s Unassessed Fisheries. Science 338, 517–520. https://doi.org/10.1126/science.1223389
+
+Costello, C., Ovando, D., 2019. Status, Institutions, and Prospects for Global Capture Fisheries. Annual Review of Environment and Resources 44, 177–200. https://doi.org/10.1146/annurev-environ-101718-033310
 
