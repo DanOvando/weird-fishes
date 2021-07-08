@@ -41,6 +41,7 @@ vector[n] log_rhat;
 
 rhat = (0.8 * alpha * h * ssb) ./ (0.2 * beta * (1 - h) +(h - 0.2) * ssb);
 
+
 log_rhat = log(rhat);
 
 }

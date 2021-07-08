@@ -1,0 +1,13 @@
+---
+title: Assessing the Population-Level Effects of MPAs
+author: Dan Ovando
+date: '`r Sys.Date()`'
+slug: pop-effects-of-mpas
+categories:
+  - publicaitons
+tags: [mpas,Bayesian]
+description: ''
+draft: false
+type: post
+---
+

@@ -10,6 +10,7 @@ biblio-style: apalike
 description: "An introduction to fitting Bayesian models using Stan and R"
 ---
 
+
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE, message = F, warning = F, cache = F)
 ```
@@ -568,7 +569,8 @@ $$[\alpha,h,\sigma,\beta| r] \propto [ r | \alpha,h,\sigma][\alpha][h][\sigma]$$
 
 Where *r* are our recruitment data. That's just a conceptual framework for the model; we can write it more clearly by specifying the model in terms of distributions. 
 
-$$[\alpha,h,\beta,\sigma | r] \propto normal( log(r) | bh(h,\alpha),\sigma) * normal(log(\beta)|10,2) * unif(h|0.2,1) * normal(\alpha|10*max(r),0.1*max(r)) * cauchy(\sigma|0,2.5)$$
+$$[\alpha,h,\beta,\sigma | r] \propto N( log(r) | bh(h,\alpha),\sigma) \times N(log(\beta)|10,2) 
+\times unif(h|0.2,1) * N(\alpha|10*max(r),0.1*max(r))  cauchy(\sigma|0,2.5)$$
 
 In English, this says that we believe that recruitment is a log-normal process, while specifying appropriate priors for our other parameters. E.g. we know that *h* has to be between 0.2 and 1, and it's reasonable to think that max recruitment is something larger than the largest recruitment ever observed (**much more care needs to be taken in prior construction, this is just an example**) 
 
@@ -1389,8 +1391,9 @@ bh_pp_rhat <- bh_mcmc[ 'pp_rhat'] %>%
 
 
 ricker_pp_rhat <- ricker_fit %>% 
-  rstan::extract() %>% 
-  pluck("pp_rhat") %>% 
+  rstan::extract()
+  
+  ricker_pp_rhat <- ricker_pp_rhat["pp_rhat"] %>% 
   map_df(as_data_frame, .id = 'variable') %>% 
   gather(observation,value, -variable) %>% 
   mutate(model = "Ricker")
