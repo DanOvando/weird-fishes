@@ -58,7 +58,7 @@ knitr::include_graphics("https://conbio.onlinelibrary.wiley.com/cms/asset/50d586
 Now that we have a sense for what to expect from MPAs under different conditions, how can we actually detect those effects in the real world? The most common strategy is to find a comparison site that is as similar to the MPA (e.g. same types of habitat and fish species) as possible, except that it allows fishing. Researchers can then compare things like the abundance of fish inside the MPAs relative to the abundance of fish in these "control" sites. 
 
 ```{r}
-
+knitr::include_graphics("https://raw.githubusercontent.com/DanOvando/weird-fishes/master/static/blog/2021-07-06-pop-effects-of-mpas_files/biased_dr_plot.png")
 ```
 
 
