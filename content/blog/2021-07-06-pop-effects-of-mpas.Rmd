@@ -9,5 +9,8 @@ tags: [mpas,Bayesian]
 description: ''
 draft: false
 type: post
+bibliography: blog.bib
+biblio-style: apalike
 ---
 
+A description of 
