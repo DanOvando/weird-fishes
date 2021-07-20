@@ -10,7 +10,7 @@ tags: [mpas,Bayesian, publications]
 description: 'A summary of Ovando et al. (2021)'
 draft: false
 type: post
-bibliography: blog.bib
+bibliography: ../blog.bib
 toc: false
 linkcolor: blue
 ---

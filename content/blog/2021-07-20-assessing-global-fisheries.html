@@ -1,0 +1,128 @@
+---
+title: Improving estimates of the state of global fisheries depends on better data
+author: Dan Ovando
+date: '2021-07-20'
+slug: global-fisheries
+categories:
+  - publications
+  - Pubs
+tags: [catch-only models,stock assessment, fisheries, publications]
+description: 'A summary of Ovando et al. (2021) "Improving estimates of the state of global fisheries depends on better data"'
+draft: false
+type: post
+bibliography: blog.bib
+toc: false
+linkcolor: blue
+---
+
+<script src="/rmarkdown-libs/header-attrs/header-attrs.js"></script>
+
+
+<p><em>We tested </em></p>
+<p><span class="citation"><a href="#ref-ovando2021b" role="doc-biblioref">Ovando et al.</a> (<a href="#ref-ovando2021b" role="doc-biblioref">2021</a>)</span></p>
+<p>There is a saying adapted from the fisheries scientist <a href="http://jgshepherd.com/thoughts/">John Shepard</a> that managing fisheries is just like managing trees except they move and you can’t see them. This means that actually figuring out how many fish are in the water can be very difficult, and determining what sustainable levels of harvest are likely to be even more challenging.</p>
+<p>Fisheries with lots of data and resources utilize statistical models called “stock assessments” to solve these problems, providing managers with estimates of current biomass, <span class="math inline">\(B\)</span>, relative the the biomass that would be expected to support maximum fishery yields on average over the long term, <span class="math inline">\(B_{MSY}\)</span>, a ratio referred to as <span class="math inline">\(B/B_{MSY}\)</span>. The Food and Agriculture Organization of the United Nations (FAO) breaks fisheries into three categories based on <span class="math inline">\(B/B_{MSY}\)</span>: underfished (<span class="math inline">\(B/B_{MSY} \geq 1.2\)</span>), maximally sustainably fished (<span class="math inline">\(0.8 \geq B/B_{MSY} &lt; 1.2\)</span>), and overfished (<span class="math inline">\(B/B_{MSY} &lt; 0.8\)</span>).</p>
+<p>The FAO’s State of World Fisheries and Aquaculture (SOFIA) report is the most widely used primary source for tracking the global state of fisheries. The latest SOFIA report, covering 70% of the landings of all fisheries in the world, estimates that as of 2017, 59.6% of marine fish stocks are maximally sustainably fished (at or near targets for sustainable food production), 6.2% are underfished, and 34.2% are overfished <span class="citation">(<a href="#ref-fao2020" role="doc-biblioref">FAO 2020</a>)</span>. Where possible, these statements about the status of individual fish stocks are made on the basis of formal stock assessments summarized in the RAM Legacy Stock Assessment Database (<a href="https://www.ramlegacy.org/">RLSADB</a>). The “assessed” fisheries in RLSADB represent roughly 50% of global capture as of 2020 (Hilborn et al., 2020) and represent our best estimates of the state of assessed fish populations around the globe.</p>
+<p>That leaves roughly 50% of global landings, and the majority of global fisheries, as currently “unassessed.” While these unassessed stocks are generally individually smaller and less economically valuable than the fish populations in the assessed category, collectively they are a vital source of food, employment, cultural value and ecosystem services around the world. The SOFIA report includes unassessed stocks and bases its estimates for these fisheries on data-limited methods or qualitative expert opinion for each region where these stocks are distributed (FAO, 2020).</p>
+<p>But, given the importance of these unassessed fisheries, a large number of studies have tried to come up with more quantitative tools for estimating <span class="math inline">\(B/B_{MSY}\)</span> values in unassessed fisheries. Catches reported from fisheries are the only consistently available source of data for fisheries around the world. So, a large number of studies have tried to develop various types of “catch-only” models that try and estimate stock status based basically on the volume and shape of a fishery’s catch history, expert knowledge, and life history information.</p>
+<div id="what-did-we-do" class="section level1">
+<h1>What did we do?</h1>
+<p>We developed a new stock assessment model and R package called <a href="https://github.com/DanOvando/sraplus#sraplus"><code>sraplus</code></a> to test the ability of catch-only models, augmented with different kinds of data, to provide accurate estimates of stock status for global fisheries.</p>
+<p>This model used a lot of different broadly available information including the catch histories themselves, data on strength of fisheries management, trawl fishing intensity, and reconstructions of fishing effort. We then compared estimates of <span class="math inline">\(B/B_{MSY}\)</span> made by <code>sraplus</code> using these broadly available data, along with the default settings of <a href="https://github.com/SISTA16/cmsy"><code>CMSY</code></a>, another widely used catch-only model, to the best available estimates of <span class="math inline">\(B/B_{MSY}\)</span> from the RAM Legacy Stock Assessment Database. The idea here was to approximate a “regional level” assessment process, where we have catch data for individual fisheries, but we only have general regional level estimates of things like strength of fisheries management.</p>
+<pre class="r"><code>knitr::include_graphics(&quot;https://raw.githubusercontent.com/DanOvando/weird-fishes/master/static/blog/2021-07-20-assessing-global-fisheries_files/figure_3.jpg&quot;)</code></pre>
+<p><img src="https://raw.githubusercontent.com/DanOvando/weird-fishes/master/static/blog/2021-07-20-assessing-global-fisheries_files/figure_3.jpg" /><!-- --></p>
+</div>
+<div id="what-did-we-find" class="section level1">
+<h1>What did we find?</h1>
+<p>Overall we found that the catch-only style models tested here provided generally biased and inaccurate measures of stock status. For one of our tests, we used data directly from each fishery in the RLSADB. This provides an estimate of the best that this model could possibly do, given that it is a highly simplified representation of the population model used in the actual stock assessment for each fishery, with a mean absolute percent error (MAPE) of 29%, and accurately classifying fisheries into the correct FAO status bin 69% of the time.</p>
+<p>Error, bias, and accuracy performance dropped quickly after that though. The estimates of fish populations based primarily on catch histories that we produced on average performed 25% better than a random guess. But, on average, these methods assigned fisheries to the wrong FAO status category 57% of the time. Within these broad summaries, the performance of models trained on our tested data sources varied widely across regions, with no clear patterns such as individual models consistently performing better for particular areas or species groups.</p>
+<table>
+<caption>Global performance statistics in the most recent year available of models using different sources of data. MPE = median percent error (bias), MAPE = median absolute percent error (error), Accuracy = percent of times that stocks were classified to the correct FAO status bin (underfished, maximally sustainably fished, overfished). Performance is judged relative to <em>B/B<sub>MSY</sub></em> reported values in RAM Legacy Stock Assessment Database.</caption>
+<thead>
+<tr class="header">
+<th align="left">Data Used</th>
+<th align="right">MPE</th>
+<th align="right">MAPE</th>
+<th align="right">Accuracy</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="left">RLSADB Index</td>
+<td align="right">0.14</td>
+<td align="right">0.29</td>
+<td align="right">0.69</td>
+</tr>
+<tr class="even">
+<td align="left">FMI</td>
+<td align="right">-0.09</td>
+<td align="right">0.47</td>
+<td align="right">0.42</td>
+</tr>
+<tr class="odd">
+<td align="left">SAR</td>
+<td align="right">-0.04</td>
+<td align="right">0.50</td>
+<td align="right">0.38</td>
+</tr>
+<tr class="even">
+<td align="left">Effective CPUE+</td>
+<td align="right">-0.30</td>
+<td align="right">0.52</td>
+<td align="right">0.43</td>
+</tr>
+<tr class="odd">
+<td align="left">Nominal CPUE+</td>
+<td align="right">-0.01</td>
+<td align="right">0.52</td>
+<td align="right">0.46</td>
+</tr>
+<tr class="even">
+<td align="left">CMSY</td>
+<td align="right">-0.54</td>
+<td align="right">0.60</td>
+<td align="right">0.41</td>
+</tr>
+<tr class="odd">
+<td align="left">Guess</td>
+<td align="right">-0.10</td>
+<td align="right">0.61</td>
+<td align="right">0.30</td>
+</tr>
+<tr class="even">
+<td align="left">Nominal CPUE</td>
+<td align="right">0.05</td>
+<td align="right">0.63</td>
+<td align="right">0.48</td>
+</tr>
+<tr class="odd">
+<td align="left">Effective CPUE</td>
+<td align="right">-0.36</td>
+<td align="right">0.68</td>
+<td align="right">0.41</td>
+</tr>
+</tbody>
+</table>
+</div>
+<div id="what-does-it-mean" class="section level1">
+<h1>What does it mean?</h1>
+<p>Overall, we found that catch-only models informed by a range of broadly available datasets performed generally better than a random guess in estimating <span class="math inline">\(B/B_{MSY}\)</span>, but not by much. As succinctly stated by Dr. Halley Froehlich then, <a href="https://twitter.com/DocFroehlich/status/1417200967896879112?s=20">“Better than a guess, but not good enough for actual stock-level decision making”</a>.</p>
+<p>What does this mean for our knowledge of global fisheries? Lots of really talented groups of scientists have tried to squeeze more information out of currently available data to improve estimates of <span class="math inline">\(B/B_{MSY}\)</span> for unassessed fisheries. Our study, combined with works such as <span class="citation"><a href="#ref-free2020" role="doc-biblioref">Free et al.</a> (<a href="#ref-free2020" role="doc-biblioref">2020</a>)</span>, suggests that there just isn’t much information on stock status to be squeezed out of catch histories, even when combined with other regional data.</p>
+<p>So how can we assess unassesesd fisheries? The FAO’s SOFIA report bases its estimates for these fisheries on data-limited methods or qualitative expert opinion for each region where these stocks are distributed. Baring new sources of data, the current SOFIA estimates are likely to remain the most accurate assessments of global unassessed fisheries: best available evidence suggests that relying on local expert opinion and locally available data, as the FAO’s assessments currently do, is likely to be much more accurate than substituting a more “quantitative” but likely inaccurate and biased catch-only model.</p>
+<p>Our analysis does not show that the data considered here are without value, but that attempting to indiscriminately apply these data to all areas of the globe results in meaningfully incorrect estimates of stock status for regions whose nature does not match the assumptions needed to apply these data sources.</p>
+<p>Models like <code>sraplus</code> can certainly help users incorporate their knowledge of a specific fishery into a localized assessment. But, achieving meaningful improvements in the assessment and management of global unassessed fisheries that are not based largely on expert opinion will depend on expanded collection of targeted data types, active management and local capacity building.</p>
+</div>
+<div id="references" class="section level1 unnumbered">
+<h1>References</h1>
+<div id="refs" class="references csl-bib-body hanging-indent">
+<div id="ref-fao2020" class="csl-entry">
+FAO. 2020. <em><span>State Of World Fisheries And Aquaculture</span> 2020: Sustainability in Action.</em> <span>S.l.</span>: <span>Food &amp; Agriculture Org</span>.
+</div>
+<div id="ref-free2020" class="csl-entry">
+Free, Christopher M., Olaf P. Jensen, Sean C. Anderson, Nicolas L. Gutierrez, Kristin M. Kleisner, Catherine Longo, C’oilín Minto, Giacomo Chato Osio, and Jessica C. Walsh. 2020. <span>“Blood from a Stone: <span>Performance</span> of Catch-Only Methods in Estimating Stock Biomass Status.”</span> <em>Fisheries Research</em> 223 (March): 105452. <a href="https://doi.org/10.1016/j.fishres.2019.105452">https://doi.org/10.1016/j.fishres.2019.105452</a>.
+</div>
+<div id="ref-ovando2021b" class="csl-entry">
+Ovando, Daniel, Ray Hilborn, Cole Monnahan, Merrill Rudd, Rishi Sharma, James T. Thorson, Yannick Rousseau, and Yimin Ye. 2021. <span>“Improving Estimates of the State of Global Fisheries Depends on Better Data.”</span> <em>Fish and Fisheries</em> n/a (n/a). <a href="https://doi.org/10.1111/faf.12593">https://doi.org/10.1111/faf.12593</a>.
+</div>
+</div>
+</div>
