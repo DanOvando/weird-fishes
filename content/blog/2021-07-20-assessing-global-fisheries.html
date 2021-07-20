@@ -29,8 +29,18 @@ linkcolor: blue
 <h1>What did we do?</h1>
 <p>We developed a new stock assessment model and R package called <a href="https://github.com/DanOvando/sraplus#sraplus"><code>sraplus</code></a> to test the ability of catch-only models, augmented with different kinds of data, to provide accurate estimates of stock status for global fisheries.</p>
 <p>This model used a lot of different broadly available information including the catch histories themselves, data on strength of fisheries management, trawl fishing intensity, and reconstructions of fishing effort. We then compared estimates of <span class="math inline">\(B/B_{MSY}\)</span> made by <code>sraplus</code> using these broadly available data, along with the default settings of <a href="https://github.com/SISTA16/cmsy"><code>CMSY</code></a>, another widely used catch-only model, to the best available estimates of <span class="math inline">\(B/B_{MSY}\)</span> from the RAM Legacy Stock Assessment Database. The idea here was to approximate a “regional level” assessment process, where we have catch data for individual fisheries, but we only have general regional level estimates of things like strength of fisheries management.</p>
-<pre class="r"><code>knitr::include_graphics(&quot;https://raw.githubusercontent.com/DanOvando/weird-fishes/master/static/blog/2021-07-20-assessing-global-fisheries_files/figure_3.jpg&quot;)</code></pre>
-<p><img src="https://raw.githubusercontent.com/DanOvando/weird-fishes/master/static/blog/2021-07-20-assessing-global-fisheries_files/figure_3.jpg" /><!-- --></p>
+<div class="figure"><span id="fig:unnamed-chunk-1"></span>
+<img src="https://raw.githubusercontent.com/DanOvando/weird-fishes/master/static/blog/2021-07-20-assessing-global-fisheries_files/figure_3.jpg" alt="Median absolute per cent error (MAPE) in most recent B/BMSY by FAO statistical area from different data sources. Data source panels are ordered in ascending (starting from top left) mean MAPE at the FAO region level."  />
+<p class="caption">
+Figure 1: Median absolute per cent error (MAPE) in most recent B/BMSY by FAO statistical area from different data sources. Data source panels are ordered in ascending (starting from top left) mean MAPE at the FAO region level.
+</p>
+</div>
+<div class="figure"><span id="fig:unnamed-chunk-2"></span>
+<img src="https://raw.githubusercontent.com/DanOvando/weird-fishes/master/static/blog/2021-07-20-assessing-global-fisheries_files/figure_4.jpg" alt="Mean classification accuracy (assignment to FAO stock status category) by FAO statistical area arising from different data sources. Data source panels are ordered in descending (starting from top left) mean accuracy at the FAO region level."  />
+<p class="caption">
+Figure 2: Mean classification accuracy (assignment to FAO stock status category) by FAO statistical area arising from different data sources. Data source panels are ordered in descending (starting from top left) mean accuracy at the FAO region level.
+</p>
+</div>
 </div>
 <div id="what-did-we-find" class="section level1">
 <h1>What did we find?</h1>

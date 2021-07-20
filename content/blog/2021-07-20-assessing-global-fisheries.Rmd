@@ -39,10 +39,14 @@ We developed a new stock assessment model and R package called [`sraplus`](https
 
 This model used a lot of different broadly available information including the catch histories themselves, data on strength of fisheries management, trawl fishing intensity, and reconstructions of fishing effort. We then compared estimates of $B/B_{MSY}$ made by `sraplus` using these broadly available data, along with the default settings of [`CMSY`](https://github.com/SISTA16/cmsy), another widely used catch-only model, to the best available estimates of $B/B_{MSY}$ from the RAM Legacy Stock Assessment Database. The idea here was to approximate a "regional level" assessment process, where we have catch data for individual fisheries, but we only have general regional level estimates of things like strength of fisheries management. 
 
-```{r}
+```{r, echo=FALSE, fig.cap="Median absolute per cent error (MAPE) in most recent B/BMSY by FAO statistical area from different data sources. Data source panels are ordered in ascending (starting from top left) mean MAPE at the FAO region level."}
 knitr::include_graphics("https://raw.githubusercontent.com/DanOvando/weird-fishes/master/static/blog/2021-07-20-assessing-global-fisheries_files/figure_3.jpg")
 ```
 
+
+```{r, echo=FALSE, fig.cap="Mean classification accuracy (assignment to FAO stock status category) by FAO statistical area arising from different data sources. Data source panels are ordered in descending (starting from top left) mean accuracy at the FAO region level."}
+knitr::include_graphics("https://raw.githubusercontent.com/DanOvando/weird-fishes/master/static/blog/2021-07-20-assessing-global-fisheries_files/figure_4.jpg")
+```
 
 # What did we find?
 
