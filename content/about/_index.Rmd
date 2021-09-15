@@ -26,6 +26,10 @@ I develop data-driven tools and ideas to help manage marine resources. My curren
 I received my B.S. from the University of Miami, and my Master's in Environmental Science and Management from the Bren School at UC Santa Barbara. After that I worked as a research scientist for the [Sustainable Fisheries Group](http://sfg.msi.ucsb.edu/) for several years, before returning to the Bren School to do a PhD with Dr. Chris Costello and Dr. Steve Gaines. I am currently a postdoctoral researcher with Dr. Ray Hilborn at the University of Washington School of Aquatic and Fishery Sciences.
 
 
+# Consulting
+
+I am available for consulting contracts regarding environmental data science, R instruction, statistics, fisheries, and marine conservation. Please contact me [here](https://www.weirdfishes.blog/contact/) if you would like to discuss a potential contract. 
+
 # Selected Publications
 
 Ovando, D., Caselle, J.E., Costello, C., Deschenes, O., Gaines, S.D., Hilborn, R., Liu, O., 2021. Assessing the population-level conservation effects of marine protected areas. Conservation Biology n/a. https://doi.org/10.1111/cobi.13782
