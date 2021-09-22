@@ -49,7 +49,9 @@ log_rhat = log(rhat);
 
 model{
 
-log_r ~ normal(log_rhat - 0.5 * sigma^2, sigma);
+// log_r ~ normal(log_rhat - 0.5 * sigma^2, sigma);
+
+log_r ~ normal(log_rhat, sigma);
 
 sigma ~ cauchy(0,2.5);
 

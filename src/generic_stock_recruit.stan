@@ -86,7 +86,9 @@ log_rhat = log(rhat);
 
 
 model{
-log_r ~ normal(log_rhat - 0.5 * sigma^2, sigma);
+// log_r ~ normal(log_rhat - 0.5 * sigma^2, sigma);
+
+log_r ~ normal(log_rhat, sigma);
 
 sigma ~ cauchy(0,2.5);
 
@@ -112,7 +114,7 @@ generated quantities{
 
    for (i in 1:n) {
 
-   log_likelihood[i] = normal_lpdf(log_r[i] | log_rhat[i] - 0.5 * sigma^2, sigma);
+   log_likelihood[i] = normal_lpdf(log_r[i] | log_rhat[i], sigma);
 
    }
 

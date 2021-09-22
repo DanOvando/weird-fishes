@@ -632,13 +632,13 @@ log_rhat = log(rhat);
 
 model{
 
-log_r ~ normal(log_rhat - 0.5 * sigma^2, sigma); //account for retransformation bias
+log_r ~ normal(log_rhat, sigma); //account for retransformation bias
 
 sigma ~ cauchy(0,2.5);
 
 alpha ~ normal(2*max_r, 0.2*max_r);
 
-log_beta ~ normal(10,2);
+log_beta ~ normal(10,5);
 
 }
 
@@ -713,22 +713,22 @@ bh_fit <- stan(
   init = list(
     list(
       h = 0.4,
-      alpha = 2 * data$max_r,
+      alpha = (1 * data$max_r),
       log_beta = log(2* max(sal_data$ssb))
     ),
     list(
       h = 0.21,
-      alpha = 3 * data$max_r,
+      alpha = (3 * data$max_r),
       log_beta = log(3 *max(sal_data$ssb))
     ),
     list(
       h = 0.8,
-      alpha = 1 * data$max_r,
+      alpha = (1 * data$max_r),
       log_beta = log(1.1*max(sal_data$ssb))
     ),
     list(
       h = 0.3,
-      alpha = .8 * data$max_r,
+      alpha = (.8 * data$max_r),
       log_beta = log(5*max(sal_data$ssb))
     )
   ),
@@ -999,7 +999,7 @@ In this case, our data are observed recruits. We hypothesize that these observed
 
 $$log(recruits) \sim normal(bh(h,\alpha,ssb), \sigma)$$
 
-So, using our draws from the posterior of h, $\alpha$, $\sigma$ and our observed SSB, we can use this model to generate draws of log_recruits, and compare those to the values that we actually see (we did this in the `generated quantities` block of `bh_model.stan`). The `generated quantities` is only evaluated during succesful draws from the algorithm, and so is less time/memory intensive than the other blocks. 
+So, using our draws from the posterior of h, $\alpha$, $\sigma$ and our observed SSB, we can use this model to generate draws of log_recruits, and compare those to the values that we actually see (we did this in the `generated quantities` block of `bh_model.stan`). The `generated quantities` is only evaluated during successful draws from the algorithm, and so is less time/memory intensive than the other blocks. 
 
 ```{r}
 
@@ -1208,7 +1208,7 @@ log_rhat = log(rhat);
 }
 
 model{
-log_r ~ normal(log_rhat - 0.5 * sigma^2, sigma);
+log_r ~ normal(log_rhat, sigma);
 
 sigma ~ cauchy(0,2.5);
 
@@ -1234,7 +1234,7 @@ generated quantities{
 
    for (i in 1:n) {
 
-   log_likelihood[i] = normal_lpdf(log_r[i] | log_rhat[i] - 0.5 * sigma^2, sigma);
+   log_likelihood[i] = normal_lpdf(log_r[i] | log_rhat[i], sigma);
 
    }
 
@@ -1267,7 +1267,7 @@ data <- list(
   n_sr_params = 2,
   max_h = 2,
   rec_par_mean = c(2 * max(sal_data$r),  0.5 * max(sal_data$ssb)),
-  rec_par_cv = c(0.5, 0.5)
+  rec_par_cv = c(4, 4)
   )
 
 
@@ -1423,7 +1423,7 @@ There are a few ways to use `loo`, but the simplest requires a bit of prep work.
 
   for (i in 1:n) {
 
-   log_likelihood[i] = normal_lpdf(log_r[i] | log_rhat[i] - 0.5 * sigma^2, sigma);
+   log_likelihood[i] = normal_lpdf(log_r[i] | log_rhat[i], sigma);
     
   }
 

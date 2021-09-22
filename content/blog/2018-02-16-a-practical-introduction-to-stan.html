@@ -482,13 +482,13 @@ log_rhat = log(rhat);
 
 model{
 
-log_r ~ normal(log_rhat - 0.5 * sigma^2, sigma); //account for retransformation bias
+log_r ~ normal(log_rhat, sigma); //account for retransformation bias
 
 sigma ~ cauchy(0,2.5);
 
 alpha ~ normal(2*max_r, 0.2*max_r);
 
-log_beta ~ normal(10,2);
+log_beta ~ normal(10,5);
 
 }
 
@@ -550,22 +550,22 @@ bh_fit &lt;- stan(
   init = list(
     list(
       h = 0.4,
-      alpha = 2 * data$max_r,
+      alpha = (1 * data$max_r),
       log_beta = log(2* max(sal_data$ssb))
     ),
     list(
       h = 0.21,
-      alpha = 3 * data$max_r,
+      alpha = (3 * data$max_r),
       log_beta = log(3 *max(sal_data$ssb))
     ),
     list(
       h = 0.8,
-      alpha = 1 * data$max_r,
+      alpha = (1 * data$max_r),
       log_beta = log(1.1*max(sal_data$ssb))
     ),
     list(
       h = 0.3,
-      alpha = .8 * data$max_r,
+      alpha = (.8 * data$max_r),
       log_beta = log(5*max(sal_data$ssb))
     )
   ),
@@ -589,19 +589,19 @@ bh_fit &lt;- stan(
 <p><code>stanfit</code> options are designed to interface with a few base R commands that you’re use to, like <code>summary</code> and <code>plot</code> (though if you have lots of parameters simply calling these can be pretty messy)</p>
 <pre class="r"><code>summary(bh_fit)$summary %&gt;% head()</code></pre>
 <pre><code>##                  mean      se_mean           sd         2.5%          25%
-## h        3.983598e-01 3.568748e-03 1.512902e-01 2.075428e-01 2.808947e-01
-## alpha    1.325438e+07 2.820604e+04 1.360072e+06 1.058128e+07 1.233046e+07
-## log_beta 1.523380e+01 4.589896e-02 9.443700e-01 1.385908e+01 1.483539e+01
-## sigma    1.335577e+00 6.862027e-03 2.050364e-01 1.019029e+00 1.193746e+00
-## beta     5.740270e+06 1.435698e+05 6.433938e+06 1.044529e+06 2.772858e+06
-## rhat[1]  5.036902e+06 7.725664e+04 2.156086e+06 2.651767e+06 3.714895e+06
-##                   50%          75%        97.5%     n_eff     Rhat
-## h        3.650244e-01 4.844091e-01 7.793210e-01 1797.1730 1.000770
-## alpha    1.324396e+07 1.417893e+07 1.598370e+07 2325.0884 1.000144
-## log_beta 1.522888e+01 1.566889e+01 1.683945e+01  423.3297 1.004994
-## sigma    1.307670e+00 1.439759e+00 1.814465e+00  892.8058 1.002779
-## beta     4.109793e+06 6.381361e+06 2.057213e+07 2008.2939 1.000133
-## rhat[1]  4.494906e+06 5.650444e+06 1.088280e+07  778.8618 1.002031</code></pre>
+## h        3.531235e-01 3.226061e-03 1.319078e-01 2.060150e-01 2.512486e-01
+## alpha    1.320946e+07 2.802828e+04 1.372401e+06 1.057111e+07 1.225540e+07
+## log_beta 1.614270e+01 1.467596e-02 5.976883e-01 1.526919e+01 1.572527e+01
+## sigma    1.256686e+00 3.679630e-03 1.596304e-01 9.927470e-01 1.140872e+00
+## beta     1.287661e+07 3.994971e+05 1.341664e+07 4.278845e+06 6.751460e+06
+## rhat[1]  1.990188e+06 6.519692e+03 4.243867e+05 1.294590e+06 1.690878e+06
+##                   50%          75%        97.5%    n_eff      Rhat
+## h        3.148728e-01 4.210180e-01 6.804863e-01 1671.843 0.9997845
+## alpha    1.318390e+07 1.415889e+07 1.593964e+07 2397.558 1.0022491
+## log_beta 1.602712e+01 1.647686e+01 1.750353e+01 1658.580 1.0002997
+## sigma    1.242049e+00 1.356561e+00 1.596014e+00 1882.014 1.0006828
+## beta     9.130399e+06 1.431562e+07 3.996565e+07 1127.873 1.0014462
+## rhat[1]  1.947388e+06 2.233570e+06 2.974107e+06 4237.106 0.9997667</code></pre>
 <p>The plot command is a great way to get a first glance at your fits</p>
 <pre class="r"><code>plot(bh_fit)</code></pre>
 <p><img src="/blog/2018-02-16-a-practical-introduction-to-stan_files/figure-html/unnamed-chunk-24-1.svg" width="960" /></p>
@@ -670,15 +670,15 @@ mack_diagnostics %&gt;%
   as_data_frame()
 
 bh_summary %&gt;% head()</code></pre>
-<pre><code>## # A tibble: 6 x 11
+<pre><code>## # A tibble: 6 × 11
 ##   variable    mean se_mean      sd  `2.5%`   `25%`   `50%`   `75%` `97.5%` n_eff
 ##   &lt;chr&gt;      &lt;dbl&gt;   &lt;dbl&gt;   &lt;dbl&gt;   &lt;dbl&gt;   &lt;dbl&gt;   &lt;dbl&gt;   &lt;dbl&gt;   &lt;dbl&gt; &lt;dbl&gt;
-## 1 h        3.98e-1 3.57e-3 1.51e-1 2.08e-1 2.81e-1 3.65e-1 4.84e-1 7.79e-1 1797.
-## 2 alpha    1.33e+7 2.82e+4 1.36e+6 1.06e+7 1.23e+7 1.32e+7 1.42e+7 1.60e+7 2325.
-## 3 log_beta 1.52e+1 4.59e-2 9.44e-1 1.39e+1 1.48e+1 1.52e+1 1.57e+1 1.68e+1  423.
-## 4 sigma    1.34e+0 6.86e-3 2.05e-1 1.02e+0 1.19e+0 1.31e+0 1.44e+0 1.81e+0  893.
-## 5 beta     5.74e+6 1.44e+5 6.43e+6 1.04e+6 2.77e+6 4.11e+6 6.38e+6 2.06e+7 2008.
-## 6 rhat[1]  5.04e+6 7.73e+4 2.16e+6 2.65e+6 3.71e+6 4.49e+6 5.65e+6 1.09e+7  779.
+## 1 h        3.53e-1 3.23e-3 1.32e-1 2.06e-1 2.51e-1 3.15e-1 4.21e-1 6.80e-1 1672.
+## 2 alpha    1.32e+7 2.80e+4 1.37e+6 1.06e+7 1.23e+7 1.32e+7 1.42e+7 1.59e+7 2398.
+## 3 log_beta 1.61e+1 1.47e-2 5.98e-1 1.53e+1 1.57e+1 1.60e+1 1.65e+1 1.75e+1 1659.
+## 4 sigma    1.26e+0 3.68e-3 1.60e-1 9.93e-1 1.14e+0 1.24e+0 1.36e+0 1.60e+0 1882.
+## 5 beta     1.29e+7 3.99e+5 1.34e+7 4.28e+6 6.75e+6 9.13e+6 1.43e+7 4.00e+7 1128.
+## 6 rhat[1]  1.99e+6 6.52e+3 4.24e+5 1.29e+6 1.69e+6 1.95e+6 2.23e+6 2.97e+6 4237.
 ## # … with 1 more variable: Rhat &lt;dbl&gt;</code></pre>
 <p>There are two really important diagnostic statistics hidden in this summary:</p>
 <ul>
@@ -748,7 +748,7 @@ bh_pars %&gt;%
 <p>Together then, each of these distributions make up the posterior probability distribution, which Stan helps us sample from. This also means though that we have a very clear hypothesis about the underlying process generating our data. So, if our hypothesis is right, our model should be able to generate data that looks very similar to the data we actually observed.</p>
 <p>In this case, our data are observed recruits. We hypothesize that these observed recruits come from a distribution.</p>
 <p><span class="math display">\[log(recruits) \sim normal(bh(h,\alpha,ssb), \sigma)\]</span></p>
-<p>So, using our draws from the posterior of h, <span class="math inline">\(\alpha\)</span>, <span class="math inline">\(\sigma\)</span> and our observed SSB, we can use this model to generate draws of log_recruits, and compare those to the values that we actually see (we did this in the <code>generated quantities</code> block of <code>bh_model.stan</code>). The <code>generated quantities</code> is only evaluated during succesful draws from the algorithm, and so is less time/memory intensive than the other blocks.</p>
+<p>So, using our draws from the posterior of h, <span class="math inline">\(\alpha\)</span>, <span class="math inline">\(\sigma\)</span> and our observed SSB, we can use this model to generate draws of log_recruits, and compare those to the values that we actually see (we did this in the <code>generated quantities</code> block of <code>bh_model.stan</code>). The <code>generated quantities</code> is only evaluated during successful draws from the algorithm, and so is less time/memory intensive than the other blocks.</p>
 <pre class="r"><code>pp_rhat &lt;- bh_mcmc[ &#39;pp_rhat&#39;] %&gt;% 
   map_df(as_data_frame, .id = &#39;variable&#39;) %&gt;% 
   gather(observation,value, -variable)
@@ -920,7 +920,7 @@ log_rhat = log(rhat);
 }
 
 model{
-log_r ~ normal(log_rhat - 0.5 * sigma^2, sigma);
+log_r ~ normal(log_rhat, sigma);
 
 sigma ~ cauchy(0,2.5);
 
@@ -946,7 +946,7 @@ generated quantities{
 
    for (i in 1:n) {
 
-   log_likelihood[i] = normal_lpdf(log_r[i] | log_rhat[i] - 0.5 * sigma^2, sigma);
+   log_likelihood[i] = normal_lpdf(log_r[i] | log_rhat[i], sigma);
 
    }
 
@@ -972,7 +972,7 @@ data &lt;- list(
   n_sr_params = 2,
   max_h = 2,
   rec_par_mean = c(2 * max(sal_data$r),  0.5 * max(sal_data$ssb)),
-  rec_par_cv = c(0.5, 0.5)
+  rec_par_cv = c(4, 4)
   )
 
 
@@ -1095,7 +1095,7 @@ ggplot() +
 
   for (i in 1:n) {
 
-   log_likelihood[i] = normal_lpdf(log_r[i] | log_rhat[i] - 0.5 * sigma^2, sigma);
+   log_likelihood[i] = normal_lpdf(log_r[i] | log_rhat[i], sigma);
     
   }
 </code></pre>
@@ -1112,14 +1112,14 @@ bh_loo &lt;- loo::loo(log_lik_bh)
 
 compare(bh_loo, ricker_loo)</code></pre>
 <pre><code>## elpd_diff        se 
-##      -0.6       0.5</code></pre>
+##       0.1       0.4</code></pre>
 <p>The output of compare is a big confusing, but basically, if <code>elpd_diff</code> is positive, that means that according to <code>loo</code>, the second model is preferred. If it’s negative, the first model is preferred. So, in this case, per the <code>loo</code> criteria, there is a bit more support for the Beverton-Holt model, at least as we parameterized it here. But we can also see that <code>elpd_diff</code> is on about the same scale as the standard error <code>se</code>, giving some indication that there isn’t a big difference between the models (if for example <code>elpd_diff</code> had been <code>-2000</code>, much bigger than the <code>se</code> of <code>0.5</code>, this would indicate more support for the difference). Biologically, we have reasons to think that the Ricker model might still be the better option.</p>
 <p>If you want to compare more than two models, you just pass more <code>loo</code> objects to compare! Compare conveniently orders the matrix in descending order of model performance.</p>
 <pre class="r"><code>compare(bh_loo, ricker_loo, ricker_loo)</code></pre>
 <pre><code>##            elpd_diff se_diff elpd_loo p_loo looic
-## bh_loo       0.0       0.0   -57.9      2.2 115.8
-## ricker_loo  -0.6       0.5   -58.5      2.3 117.0
-## ricker_loo  -0.6       0.5   -58.5      2.3 117.0</code></pre>
+## ricker_loo   0.0       0.0   -58.0      2.3 116.0
+## ricker_loo   0.0       0.0   -58.0      2.3 116.0
+## bh_loo      -0.1       0.4   -58.1      2.2 116.1</code></pre>
 <p>And just like that, we have a solid sketch of going from raw data, to model fits, to model comparison, using Stan and R. There is clearly a lot more work that would have to go into doing this analysis properly (e.g. we haven’t done any testing of the effects of our choices for our prior distributions), but the tools we’ve gone over here should serve as a useful template to build off of for more complete analysis.</p>
 <p>Hopefully this helps you to start using Stan in your analyses, I’ll post some more complicated examples as time allows. Good luck!</p>
 </div>
