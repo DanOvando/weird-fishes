@@ -7,7 +7,7 @@ toc: false
 linkcolor: blue
 ---
 
- <font size="6"> [***View my CV***](https://raw.githubusercontent.com/DanOvando/weird-fishes/master/static/about/ovando-cv-june-2021.pdf) </font> 
+ <font size="6"> [***View my CV***](https://raw.githubusercontent.com/DanOvando/weird-fishes/master/static/about/ovando_cv_nov_2021.pdf) </font> 
 
 
 
