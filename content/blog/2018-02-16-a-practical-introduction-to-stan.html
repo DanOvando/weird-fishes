@@ -83,7 +83,7 @@ description: "An introduction to fitting Bayesian models using Stan and R"
 <p>That’s where Stan comes in. If you write the model, Stan has a number of built in algorithms for helping you use MCMC to fit and diagnose that model quickly and efficiently. It’s beyond the scope of this article or my ability to explain exactly how it does this, but <span class="citation"><a href="#ref-Monnahan2016" role="doc-biblioref">Monnahan, Thorson, and Branch</a> (<a href="#ref-Monnahan2016" role="doc-biblioref">2016</a>)</span> provides a really great summary of the mathematics behind Stan’s algorithms, that I will now butcher.</p>
 <p>Stan makes use of two main tools to efficiently solve Bayesian problems: Hamiltonian Monte Carlo (HMC) and the no-U-turn sampler (NUTS). A simple MCMC might choose a new parameter value by drawing from a multivariate normal distribution centered on the last parameter value, with some tuned or supplied covariance matrix. This means that each new parameter value is likely to be highly correlated with the last parameter value, requiring you to draw a large number of samples and then “thin” the samples to create independent draws from the posterior.</p>
 <p>HMC and NUTS works a little differently. The details are very complicated, and I recommend reading more on this if you’re interested (see <span class="citation"><a href="#ref-Monnahan2016" role="doc-biblioref">Monnahan, Thorson, and Branch</a> (<a href="#ref-Monnahan2016" role="doc-biblioref">2016</a>)</span>), but the good news is someone else worked out all the details so that you can use it! But it’s good to have a rough sense of what’s going on.</p>
-<p>Think of the posterior probability of your model like a small planet with peaks and valleys. The of HMC/NUTS is a an astronaut that lands on this planet, and the astronauts goal is to find the highest peaks in the landscape. But, there’s a catch. The astronaut is blindfolded, but has a sensor that tells her four things: her elevation, her distance from her starting point, her speed, and her thrust. So, she could just systematically walk across the landscape, taking an elevation measurement at each and every point. This would work, but would take forever if the landscape is at all large (which its Mars, so it is). So instead, she does something like this. She starts traveling in a random direction, with a rule being she has to pick an initial thrust that she tries to maintain. She can then decide to take tiny little steps, or huge gigantic leaps (remember, it’s Mars so the gravity is much lower), all while trying to maintain the same thrust and speed. If she takes giant leaps, she covers the ground really quickly, but risks jumping right over mountains and missing them entirely. If she takes little tiny steps it’ll just take forever to survey the planet.</p>
+<p>Think of the posterior probability of your model like a small planet with peaks and valleys. The HMC/NUTS algorithm is a an astronaut that lands on this planet, and the astronaut’s goal is to find the highest peaks in the landscape. But, there’s a catch. The astronaut is blindfolded, but has a sensor that tells her four things: her elevation, her distance from her starting point, her speed, and her thrust. So, she could just systematically walk across the landscape, taking an elevation measurement at each and every point. This would work, but would take forever if the landscape is at all large (which it’s Mars, so it is). So instead, she does something like this. She starts traveling in a random direction, with a rule being she has to pick an initial thrust that she tries to maintain. She can then decide to take tiny little steps, or huge gigantic leaps (remember, it’s Mars so the gravity is much lower), all while trying to maintain the same thrust and speed. If she takes giant leaps, she covers the ground really quickly, but risks jumping right over mountains and missing them entirely. If she takes little tiny steps it’ll just take forever to survey the planet.</p>
 <p>She picks a step size and a thrust, and starts traveling, keeping track of her distance from her initial starting point, only stopping when her distance from her initial starting point starts to decrease (a U-turn, i.e. when the path she’s on doubles back on itself), or when, for the same thrust, her speed has plummeted (she’s crashed into the mountain) or gone through the roof (she’s accidentally reached escape velocity and is leaving the planet, this is my sad attempt to come up with another analogy for divergences), or when she has taken the most number of steps that she is willing to take on any one search path (max treedepth hit). Once she’s stopped, she looks at her altimeter. If she’s higher than she was when she started, she marks that spot as a possible peak. If she’s lower than where she started, she marks that spot as a possible peak with probability proportional to how much lower she is than her starting point (if she’s just a bit lower she’s likely to mark it, if she’s way lower she’s very unlikely to mark it). If she decides to mark that spot, she then starts a new path from that point. If she doesn’t mark that spot, she returns to her original position, marks that original position again, and tries a new path.</p>
 <p>This leaves really one key decision for the astronaut to make: how big should her stepsize be? She makes this decision by tallying the average rate at which she accepts a new position, and she knows from some smart people that an 80% acceptance rate is reflective of a good balance of of taking big enough steps to be efficient but not so large that you miss important features of the landscape. So, she keeps trying new step sizes until she hits that target acceptance rate.</p>
 <p>There’s a lot in here then, but to translate this back into practical terms, this means that for the most part, the only key decision that you, the analyst, needs to make in implementing the HMC/NUTS algorithm is what your target acceptance rate is. Stan then does the work for you of finding the right step size to achieve that target acceptance rate during its “warmup” period. Once it’s done with that, it enters the “sampling period,” holding that same step size constant.</p>
@@ -378,7 +378,7 @@ plot(scratch)</code></pre>
 <p>We can write a general BH model by</p>
 <p><span class="math display">\[ R = \frac{\alpha{SSB}}{1 + \beta{SSB}}\]</span></p>
 <p>Where SSB is spawning stock biomass (the biomass of reproductively mature fish in the population), <span class="math inline">\(\alpha\)</span> is the maximum average number of recruits (new fish) possible in the population, and <span class="math inline">\(\beta\)</span> is the unfished spawning biomass that produces <span class="math inline">\(\alpha\)</span> recruits</p>
-<div class="figure"><span id="fig:unnamed-chunk-16"></span>
+<div class="figure"><span style="display:block;" id="fig:unnamed-chunk-16"></span>
 <img src="/blog/2018-02-16-a-practical-introduction-to-stan_files/figure-html/unnamed-chunk-16-1.svg" alt="Example Beverton-Holt stock recruitmenet relationship (black line), red line shows beta" width="960" />
 <p class="caption">
 Figure 1: Example Beverton-Holt stock recruitmenet relationship (black line), red line shows beta
@@ -556,7 +556,7 @@ bh_fit &lt;- stan(
     list(
       h = 0.21,
       alpha = (3 * data$max_r),
-      log_beta = log(3 *max(sal_data$ssb))
+      log_beta = log(.5 *max(sal_data$ssb))
     ),
     list(
       h = 0.8,
@@ -588,20 +588,20 @@ bh_fit &lt;- stan(
 ## [1] &quot;rstan&quot;</code></pre>
 <p><code>stanfit</code> options are designed to interface with a few base R commands that you’re use to, like <code>summary</code> and <code>plot</code> (though if you have lots of parameters simply calling these can be pretty messy)</p>
 <pre class="r"><code>summary(bh_fit)$summary %&gt;% head()</code></pre>
-<pre><code>##                  mean      se_mean           sd         2.5%          25%
-## h        3.531235e-01 3.226061e-03 1.319078e-01 2.060150e-01 2.512486e-01
-## alpha    1.320946e+07 2.802828e+04 1.372401e+06 1.057111e+07 1.225540e+07
-## log_beta 1.614270e+01 1.467596e-02 5.976883e-01 1.526919e+01 1.572527e+01
-## sigma    1.256686e+00 3.679630e-03 1.596304e-01 9.927470e-01 1.140872e+00
-## beta     1.287661e+07 3.994971e+05 1.341664e+07 4.278845e+06 6.751460e+06
-## rhat[1]  1.990188e+06 6.519692e+03 4.243867e+05 1.294590e+06 1.690878e+06
+<pre><code>##                  mean      se_mean           sd          2.5%          25%
+## h        6.685759e-01 5.067263e-03 2.068465e-01  2.730828e-01 5.062846e-01
+## alpha    8.723886e+05 6.412593e+03 2.993728e+05  3.140341e+05 6.798074e+05
+## log_beta 1.013517e+00 1.836911e-02 9.968119e-01 -9.345200e-01 3.335604e-01
+## sigma    1.471980e+00 3.592025e-03 1.869521e-01  1.154740e+00 1.336889e+00
+## beta     4.513370e+00 1.288796e-01 5.748798e+00  3.927744e-01 1.395929e+00
+## rhat[1]  1.055458e+06 4.479597e+03 2.783988e+05  6.186680e+05 8.628785e+05
 ##                   50%          75%        97.5%    n_eff      Rhat
-## h        3.148728e-01 4.210180e-01 6.804863e-01 1671.843 0.9997845
-## alpha    1.318390e+07 1.415889e+07 1.593964e+07 2397.558 1.0022491
-## log_beta 1.602712e+01 1.647686e+01 1.750353e+01 1658.580 1.0002997
-## sigma    1.242049e+00 1.356561e+00 1.596014e+00 1882.014 1.0006828
-## beta     9.130399e+06 1.431562e+07 3.996565e+07 1127.873 1.0014462
-## rhat[1]  1.947388e+06 2.233570e+06 2.974107e+06 4237.106 0.9997667</code></pre>
+## h        6.823599e-01 8.465374e-01 9.835190e-01 1666.285 1.0010149
+## alpha    8.563591e+05 1.048110e+06 1.511807e+06 2179.503 1.0003879
+## log_beta 1.020026e+00 1.688228e+00 2.958424e+00 2944.761 0.9996424
+## sigma    1.457440e+00 1.586252e+00 1.897388e+00 2708.830 1.0002389
+## beta     2.773271e+00 5.409887e+00 1.926760e+01 1989.692 0.9997997
+## rhat[1]  1.011230e+06 1.200750e+06 1.720715e+06 3862.396 0.9996406</code></pre>
 <p>The plot command is a great way to get a first glance at your fits</p>
 <pre class="r"><code>plot(bh_fit)</code></pre>
 <p><img src="/blog/2018-02-16-a-practical-introduction-to-stan_files/figure-html/unnamed-chunk-24-1.svg" width="960" /></p>
@@ -671,15 +671,15 @@ mack_diagnostics %&gt;%
 
 bh_summary %&gt;% head()</code></pre>
 <pre><code>## # A tibble: 6 × 11
-##   variable    mean se_mean      sd  `2.5%`   `25%`   `50%`   `75%` `97.5%` n_eff
-##   &lt;chr&gt;      &lt;dbl&gt;   &lt;dbl&gt;   &lt;dbl&gt;   &lt;dbl&gt;   &lt;dbl&gt;   &lt;dbl&gt;   &lt;dbl&gt;   &lt;dbl&gt; &lt;dbl&gt;
-## 1 h        3.53e-1 3.23e-3 1.32e-1 2.06e-1 2.51e-1 3.15e-1 4.21e-1 6.80e-1 1672.
-## 2 alpha    1.32e+7 2.80e+4 1.37e+6 1.06e+7 1.23e+7 1.32e+7 1.42e+7 1.59e+7 2398.
-## 3 log_beta 1.61e+1 1.47e-2 5.98e-1 1.53e+1 1.57e+1 1.60e+1 1.65e+1 1.75e+1 1659.
-## 4 sigma    1.26e+0 3.68e-3 1.60e-1 9.93e-1 1.14e+0 1.24e+0 1.36e+0 1.60e+0 1882.
-## 5 beta     1.29e+7 3.99e+5 1.34e+7 4.28e+6 6.75e+6 9.13e+6 1.43e+7 4.00e+7 1128.
-## 6 rhat[1]  1.99e+6 6.52e+3 4.24e+5 1.29e+6 1.69e+6 1.95e+6 2.23e+6 2.97e+6 4237.
-## # … with 1 more variable: Rhat &lt;dbl&gt;</code></pre>
+##   variable        mean  se_mean      sd   `2.5%`   `25%`   `50%`   `75%` `97.5%`
+##   &lt;chr&gt;          &lt;dbl&gt;    &lt;dbl&gt;   &lt;dbl&gt;    &lt;dbl&gt;   &lt;dbl&gt;   &lt;dbl&gt;   &lt;dbl&gt;   &lt;dbl&gt;
+## 1 h              0.669  5.07e-3 2.07e-1  2.73e-1 5.06e-1 6.82e-1 8.47e-1 9.84e-1
+## 2 alpha     872389.     6.41e+3 2.99e+5  3.14e+5 6.80e+5 8.56e+5 1.05e+6 1.51e+6
+## 3 log_beta       1.01   1.84e-2 9.97e-1 -9.35e-1 3.34e-1 1.02e+0 1.69e+0 2.96e+0
+## 4 sigma          1.47   3.59e-3 1.87e-1  1.15e+0 1.34e+0 1.46e+0 1.59e+0 1.90e+0
+## 5 beta           4.51   1.29e-1 5.75e+0  3.93e-1 1.40e+0 2.77e+0 5.41e+0 1.93e+1
+## 6 rhat[1]  1055458.     4.48e+3 2.78e+5  6.19e+5 8.63e+5 1.01e+6 1.20e+6 1.72e+6
+## # … with 2 more variables: n_eff &lt;dbl&gt;, Rhat &lt;dbl&gt;</code></pre>
 <p>There are two really important diagnostic statistics hidden in this summary:</p>
 <ul>
 <li><p><code>n_eff</code>: the effective sample size</p></li>
@@ -953,9 +953,9 @@ generated quantities{
 }
 </code></pre>
 <p>To do this, I’m going to include a variable called <code>bh</code>, where if <code>bh == 1</code> the model uses Beverton-Holt dynamics, and otherwise it uses Ricker dynamics (you can see how this can easily be generalized to more than two candidate models). I’ll call this model “generic_stock_recruit.stan,” and I’ll now use it to fit both the Ricker and Beverton-Holt models.</p>
-<pre class="r"><code>warmups &lt;- 2000
+<pre class="r"><code>warmups &lt;- 2500
 
-total_iterations &lt;- 4000
+total_iterations &lt;- 5000
 
 max_treedepth &lt;-  10
 
@@ -970,9 +970,9 @@ data &lt;- list(
   max_r = max(sal_data$r),
   bh = 0,
   n_sr_params = 2,
-  max_h = 2,
-  rec_par_mean = c(2 * max(sal_data$r),  0.5 * max(sal_data$ssb)),
-  rec_par_cv = c(4, 4)
+  max_h = 3,
+  rec_par_mean = c(1 * max(sal_data$r),  0.5 * max(sal_data$ssb)),
+  rec_par_cv = c(10, 10)
   )
 
 
@@ -980,7 +980,7 @@ inits &lt;-
   map(1:chains,
   ~ list(
   h = runif(1, 0.2, 1),
-  rec_pars = rnorm(2, c(2 * data$max_r, 6 * data$max_r), .2 * data$max_r)
+  rec_pars = rnorm(2, c(1 * data$max_r, 1 * data$max_r), .2 * data$max_r)
   ))
   
 
@@ -1112,14 +1112,14 @@ bh_loo &lt;- loo::loo(log_lik_bh)
 
 compare(bh_loo, ricker_loo)</code></pre>
 <pre><code>## elpd_diff        se 
-##       0.1       0.4</code></pre>
+##       0.0       0.1</code></pre>
 <p>The output of compare is a big confusing, but basically, if <code>elpd_diff</code> is positive, that means that according to <code>loo</code>, the second model is preferred. If it’s negative, the first model is preferred. So, in this case, per the <code>loo</code> criteria, there is a bit more support for the Beverton-Holt model, at least as we parameterized it here. But we can also see that <code>elpd_diff</code> is on about the same scale as the standard error <code>se</code>, giving some indication that there isn’t a big difference between the models (if for example <code>elpd_diff</code> had been <code>-2000</code>, much bigger than the <code>se</code> of <code>0.5</code>, this would indicate more support for the difference). Biologically, we have reasons to think that the Ricker model might still be the better option.</p>
 <p>If you want to compare more than two models, you just pass more <code>loo</code> objects to compare! Compare conveniently orders the matrix in descending order of model performance.</p>
 <pre class="r"><code>compare(bh_loo, ricker_loo, ricker_loo)</code></pre>
 <pre><code>##            elpd_diff se_diff elpd_loo p_loo looic
-## ricker_loo   0.0       0.0   -58.0      2.3 116.0
-## ricker_loo   0.0       0.0   -58.0      2.3 116.0
-## bh_loo      -0.1       0.4   -58.1      2.2 116.1</code></pre>
+## ricker_loo   0.0       0.0   -58.0      2.2 116.1
+## ricker_loo   0.0       0.0   -58.0      2.2 116.1
+## bh_loo       0.0       0.1   -58.1      2.2 116.2</code></pre>
 <p>And just like that, we have a solid sketch of going from raw data, to model fits, to model comparison, using Stan and R. There is clearly a lot more work that would have to go into doing this analysis properly (e.g. we haven’t done any testing of the effects of our choices for our prior distributions), but the tools we’ve gone over here should serve as a useful template to build off of for more complete analysis.</p>
 <p>Hopefully this helps you to start using Stan in your analyses, I’ll post some more complicated examples as time allows. Good luck!</p>
 </div>

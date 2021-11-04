@@ -91,7 +91,7 @@ Stan makes use of two main tools to efficiently solve Bayesian problems:  Hamilt
 
 HMC and NUTS works a little differently. The details are very complicated, and I recommend reading more on this if you're interested (see @Monnahan2016), but the good news is someone else worked out all the details so that you can use it! But it's good to have a rough sense of what's going on. 
 
-Think of the posterior probability of your model like a small planet with peaks and valleys. The of HMC/NUTS is a an astronaut that lands on this planet, and the astronauts goal is to find the highest peaks in the landscape. But, there's a catch. The astronaut is blindfolded, but has a sensor that tells her four things: her elevation, her distance from her starting point, her speed, and her thrust. So, she could just systematically walk across the landscape, taking an elevation measurement at each and every point. This would work, but would take forever if the landscape is at all large (which its Mars, so it is). So instead, she does something like this. She starts traveling in a random direction, with a rule being she has to pick an initial thrust that she tries to maintain. She can then decide to take tiny little steps, or huge gigantic leaps (remember, it's Mars so the gravity is much lower), all while trying to maintain the same thrust and speed. If she takes giant leaps, she covers the ground really quickly, but risks jumping right over mountains and missing them entirely. If she takes little tiny steps it'll just take forever to survey the planet. 
+Think of the posterior probability of your model like a small planet with peaks and valleys. The HMC/NUTS algorithm is a an astronaut that lands on this planet, and the astronaut's goal is to find the highest peaks in the landscape. But, there's a catch. The astronaut is blindfolded, but has a sensor that tells her four things: her elevation, her distance from her starting point, her speed, and her thrust. So, she could just systematically walk across the landscape, taking an elevation measurement at each and every point. This would work, but would take forever if the landscape is at all large (which it's Mars, so it is). So instead, she does something like this. She starts traveling in a random direction, with a rule being she has to pick an initial thrust that she tries to maintain. She can then decide to take tiny little steps, or huge gigantic leaps (remember, it's Mars so the gravity is much lower), all while trying to maintain the same thrust and speed. If she takes giant leaps, she covers the ground really quickly, but risks jumping right over mountains and missing them entirely. If she takes little tiny steps it'll just take forever to survey the planet. 
 
 She picks a step size and a thrust, and starts traveling, keeping track of her distance from her initial starting point, only stopping when her distance from her initial starting point starts to decrease (a U-turn, i.e. when the path she's on doubles back on itself), or when, for the same thrust, her speed has plummeted (she's crashed into the mountain) or gone through the roof (she's accidentally reached escape velocity and is leaving the planet, this is my sad attempt to come up with another analogy for divergences), or when she has taken the most number of steps that she is willing to take on any one search path (max treedepth hit). Once she's stopped, she looks at her altimeter. If she's higher than she was when she started, she marks that spot as a possible peak. If she's lower than where she started, she marks that spot as a possible peak with probability proportional to how much lower she is than her starting point (if she's just a bit lower she's likely to mark it, if she's way lower she's very unlikely to mark it). If she decides to mark that spot, she then starts a new path from that point. If she doesn't mark that spot, she returns to her original position, marks that original position again, and tries a new path. 
 
@@ -719,7 +719,7 @@ bh_fit <- stan(
     list(
       h = 0.21,
       alpha = (3 * data$max_r),
-      log_beta = log(3 *max(sal_data$ssb))
+      log_beta = log(.5 *max(sal_data$ssb))
     ),
     list(
       h = 0.8,
@@ -1248,9 +1248,9 @@ To do this, I'm going to include a variable called `bh`, where if `bh == 1` the 
 
 ```{r ricker, results = "hide"}
 
-warmups <- 2000
+warmups <- 2500
 
-total_iterations <- 4000
+total_iterations <- 5000
 
 max_treedepth <-  10
 
@@ -1265,9 +1265,9 @@ data <- list(
   max_r = max(sal_data$r),
   bh = 0,
   n_sr_params = 2,
-  max_h = 2,
-  rec_par_mean = c(2 * max(sal_data$r),  0.5 * max(sal_data$ssb)),
-  rec_par_cv = c(4, 4)
+  max_h = 3,
+  rec_par_mean = c(1 * max(sal_data$r),  0.5 * max(sal_data$ssb)),
+  rec_par_cv = c(10, 10)
   )
 
 
@@ -1275,7 +1275,7 @@ inits <-
   map(1:chains,
   ~ list(
   h = runif(1, 0.2, 1),
-  rec_pars = rnorm(2, c(2 * data$max_r, 6 * data$max_r), .2 * data$max_r)
+  rec_pars = rnorm(2, c(1 * data$max_r, 1 * data$max_r), .2 * data$max_r)
   ))
   
 

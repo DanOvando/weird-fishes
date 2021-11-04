@@ -90,7 +90,7 @@ model{
 
 log_r ~ normal(log_rhat, sigma);
 
-sigma ~ cauchy(0,2.5);
+sigma ~ cauchy(0,5);
 
 for (i in 1:n_sr_params){
 

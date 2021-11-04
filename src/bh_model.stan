@@ -55,9 +55,9 @@ log_r ~ normal(log_rhat, sigma);
 
 sigma ~ cauchy(0,2.5);
 
-alpha ~ normal(2*max_r, 0.1*2*max_r);
+alpha ~ normal(max_r, max_r);
 
-log_beta ~ normal(10,2);
+log_beta ~ normal(1,1);
 
 
 }
