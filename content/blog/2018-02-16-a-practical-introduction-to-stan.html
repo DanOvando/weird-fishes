@@ -590,47 +590,47 @@ bh_fit &lt;- stan(
 <p><code>stanfit</code> options are designed to interface with a few base R commands that you’re use to, like <code>summary</code> and <code>plot</code> (though if you have lots of parameters simply calling these can be pretty messy)</p>
 <pre class="r"><code>summary(bh_fit)$summary %&gt;% head(20)</code></pre>
 <pre><code>##                   mean      se_mean           sd         2.5%          25%
-## h         7.165770e-01 2.979121e-03 1.425982e-01 3.993553e-01 6.281594e-01
-## log_alpha 1.530152e+01 2.873218e-02 9.830262e-01 1.392912e+01 1.459588e+01
-## log_beta  1.639835e+01 3.863843e-02 1.388037e+00 1.387365e+01 1.546320e+01
-## sigma     1.254693e+00 3.421401e-03 1.605946e-01 9.872042e-01 1.140773e+00
-## beta      4.062042e+07 3.520731e+06 1.321093e+08 1.059864e+06 5.194969e+06
-## alpha     9.501158e+06 8.047595e+05 3.309500e+07 1.120313e+06 2.182272e+06
-## rhat[1]   1.612958e+06 7.209532e+03 3.935047e+05 9.680164e+05 1.337600e+06
-## rhat[2]   1.099938e+06 3.801951e+03 2.407742e+05 7.113102e+05 9.283518e+05
-## rhat[3]   1.272157e+06 4.466366e+03 2.797730e+05 8.245976e+05 1.075057e+06
-## rhat[4]   7.321558e+05 3.392797e+03 1.868795e+05 4.444923e+05 6.020190e+05
-## rhat[5]   3.305962e+05 2.664933e+03 1.280825e+05 1.734146e+05 2.447010e+05
-## rhat[6]   4.077764e+05 2.911886e+03 1.427773e+05 2.213950e+05 3.107399e+05
-## rhat[7]   8.387166e+05 3.463233e+03 1.999425e+05 5.210445e+05 6.981422e+05
-## rhat[8]   1.326704e+06 4.755431e+03 2.946212e+05 8.496192e+05 1.120458e+06
-## rhat[9]   8.303037e+05 3.457354e+03 1.988712e+05 5.146768e+05 6.906258e+05
-## rhat[10]  6.604046e+05 3.337299e+03 1.783092e+05 3.928082e+05 5.364803e+05
-## rhat[11]  1.201940e+05 1.512520e+03 6.865125e+04 5.654941e+04 8.077783e+04
-## rhat[12]  1.031340e+05 1.370415e+03 6.178214e+04 4.800204e+04 6.865322e+04
-## rhat[13]  1.790898e+05 1.929397e+03 8.925702e+04 8.727181e+04 1.241264e+05
-## rhat[14]  6.096171e+05 3.286342e+03 1.720859e+05 3.560378e+05 4.907214e+05
-##                    50%          75%        97.5%    n_eff     Rhat
-## h         7.310092e-01 8.259325e-01 9.397437e-01 2291.141 1.000767
-## log_alpha 1.512069e+01 1.579101e+01 1.774076e+01 1170.559 1.002076
-## log_beta  1.633912e+01 1.726939e+01 1.937062e+01 1290.515 1.002359
-## sigma     1.238076e+00 1.352003e+00 1.614064e+00 2203.200 1.000242
-## beta      1.247358e+07 3.162284e+07 2.585550e+08 1407.996 1.002413
-## alpha     3.688345e+06 7.210216e+06 5.066554e+07 1691.190 1.001414
-## rhat[1]   1.571364e+06 1.831630e+06 2.545609e+06 2979.104 1.002828
-## rhat[2]   1.073651e+06 1.240920e+06 1.649208e+06 4010.578 1.001612
-## rhat[3]   1.239534e+06 1.430615e+06 1.931578e+06 3923.767 1.002137
-## rhat[4]   7.052927e+05 8.400488e+05 1.169431e+06 3033.942 1.000595
-## rhat[5]   3.010177e+05 3.812794e+05 6.755995e+05 2309.972 1.000215
-## rhat[6]   3.774814e+05 4.715511e+05 7.842331e+05 2404.196 1.000237
-## rhat[7]   8.109694e+05 9.551638e+05 1.288434e+06 3333.089 1.000833
-## rhat[8]   1.292851e+06 1.495058e+06 2.022340e+06 3838.381 1.002283
-## rhat[9]   8.023123e+05 9.470583e+05 1.276329e+06 3308.692 1.000812
-## rhat[10]  6.340780e+05 7.586639e+05 1.088193e+06 2854.679 1.000471
-## rhat[11]  1.024779e+05 1.353854e+05 2.950434e+05 2060.130 1.000246
-## rhat[12]  8.729611e+04 1.157588e+05 2.597453e+05 2032.458 1.000257
-## rhat[13]  1.563839e+05 2.044010e+05 4.167661e+05 2140.136 1.000222
-## rhat[14]  5.815080e+05 7.025339e+05 1.035608e+06 2741.983 1.000400</code></pre>
+## h         7.078239e-01 3.169747e-03 1.442343e-01 3.939527e-01 6.102924e-01
+## log_alpha 1.531332e+01 2.872326e-02 9.831090e-01 1.394481e+01 1.461657e+01
+## log_beta  1.635728e+01 3.693697e-02 1.375199e+00 1.375117e+01 1.543265e+01
+## sigma     1.249446e+00 3.212504e-03 1.542709e-01 9.865620e-01 1.137413e+00
+## beta      3.529879e+07 2.161060e+06 8.762722e+07 9.376908e+05 5.038670e+06
+## alpha     8.901170e+06 5.579195e+05 1.999969e+07 1.138033e+06 2.227905e+06
+## rhat[1]   1.621490e+06 7.394711e+03 3.892462e+05 9.692065e+05 1.340103e+06
+## rhat[2]   1.104467e+06 3.527194e+03 2.373059e+05 7.063650e+05 9.383191e+05
+## rhat[3]   1.277909e+06 4.282790e+03 2.757634e+05 8.174251e+05 1.086051e+06
+## rhat[4]   7.345194e+05 3.225063e+03 1.851484e+05 4.413389e+05 6.009212e+05
+## rhat[5]   3.314767e+05 2.796518e+03 1.287098e+05 1.717287e+05 2.435863e+05
+## rhat[6]   4.088632e+05 2.981960e+03 1.429569e+05 2.188126e+05 3.085639e+05
+## rhat[7]   8.416381e+05 3.232160e+03 1.976493e+05 5.194235e+05 6.985731e+05
+## rhat[8]   1.332869e+06 4.692239e+03 2.904921e+05 8.534010e+05 1.130690e+06
+## rhat[9]   8.331789e+05 3.231805e+03 1.966209e+05 5.139237e+05 6.912395e+05
+## rhat[10]  6.624290e+05 3.213212e+03 1.769783e+05 3.883628e+05 5.347691e+05
+## rhat[11]  1.206105e+05 1.698646e+03 6.983547e+04 5.617102e+04 8.083893e+04
+## rhat[12]  1.035079e+05 1.546167e+03 6.290990e+04 4.765039e+04 6.876601e+04
+## rhat[13]  1.796375e+05 2.127475e+03 9.047238e+04 8.653524e+04 1.239481e+05
+## rhat[14]  6.114202e+05 3.197734e+03 1.710481e+05 3.519857e+05 4.876340e+05
+##                    50%          75%        97.5%    n_eff      Rhat
+## h         7.270845e-01 8.181560e-01 9.333214e-01 2070.561 1.0024320
+## log_alpha 1.511319e+01 1.581729e+01 1.781410e+01 1171.483 1.0014070
+## log_beta  1.629629e+01 1.722079e+01 1.920069e+01 1386.145 1.0011261
+## sigma     1.236081e+00 1.345266e+00 1.591512e+00 2306.113 0.9993572
+## beta      1.195057e+07 3.012274e+07 2.181497e+08 1644.162 1.0010526
+## alpha     3.660791e+06 7.402201e+06 5.452135e+07 1285.000 1.0021554
+## rhat[1]   1.583968e+06 1.852581e+06 2.498254e+06 2770.808 1.0006444
+## rhat[2]   1.078392e+06 1.247371e+06 1.642774e+06 4526.456 1.0006552
+## rhat[3]   1.248251e+06 1.441385e+06 1.903794e+06 4145.907 1.0006514
+## rhat[4]   7.125345e+05 8.401275e+05 1.164322e+06 3295.820 1.0005496
+## rhat[5]   3.042651e+05 3.832535e+05 6.626600e+05 2118.304 1.0003367
+## rhat[6]   3.811398e+05 4.719024e+05 7.782208e+05 2298.301 1.0003686
+## rhat[7]   8.203252e+05 9.580455e+05 1.296886e+06 3739.424 1.0005990
+## rhat[8]   1.301005e+06 1.506169e+06 1.991472e+06 3832.730 1.0006478
+## rhat[9]   8.116127e+05 9.482468e+05 1.287068e+06 3701.428 1.0005956
+## rhat[10]  6.392977e+05 7.593903e+05 1.077647e+06 3033.620 1.0005104
+## rhat[11]  1.033913e+05 1.348004e+05 3.000998e+05 1690.233 1.0003505
+## rhat[12]  8.797979e+04 1.150027e+05 2.620690e+05 1655.486 1.0003632
+## rhat[13]  1.578682e+05 2.036789e+05 4.197118e+05 1808.435 1.0003235
+## rhat[14]  5.868862e+05 7.032020e+05 1.020632e+06 2861.222 1.0004810</code></pre>
 <p>The plot command is a great way to get a first glance at your fits</p>
 <pre class="r"><code>plot(bh_fit)</code></pre>
 <p><img src="/blog/2018-02-16-a-practical-introduction-to-stan_files/figure-html/unnamed-chunk-24-1.svg" width="960" /></p>
@@ -702,12 +702,12 @@ bh_summary %&gt;% head()</code></pre>
 <pre><code>## # A tibble: 6 × 11
 ##   variable    mean se_mean      sd  `2.5%`   `25%`   `50%`   `75%` `97.5%` n_eff
 ##   &lt;chr&gt;      &lt;dbl&gt;   &lt;dbl&gt;   &lt;dbl&gt;   &lt;dbl&gt;   &lt;dbl&gt;   &lt;dbl&gt;   &lt;dbl&gt;   &lt;dbl&gt; &lt;dbl&gt;
-## 1 h        7.17e-1 2.98e-3 1.43e-1 3.99e-1 6.28e-1 7.31e-1 8.26e-1 9.40e-1 2291.
-## 2 log_alp… 1.53e+1 2.87e-2 9.83e-1 1.39e+1 1.46e+1 1.51e+1 1.58e+1 1.77e+1 1171.
-## 3 log_beta 1.64e+1 3.86e-2 1.39e+0 1.39e+1 1.55e+1 1.63e+1 1.73e+1 1.94e+1 1291.
-## 4 sigma    1.25e+0 3.42e-3 1.61e-1 9.87e-1 1.14e+0 1.24e+0 1.35e+0 1.61e+0 2203.
-## 5 beta     4.06e+7 3.52e+6 1.32e+8 1.06e+6 5.19e+6 1.25e+7 3.16e+7 2.59e+8 1408.
-## 6 alpha    9.50e+6 8.05e+5 3.31e+7 1.12e+6 2.18e+6 3.69e+6 7.21e+6 5.07e+7 1691.
+## 1 h        7.08e-1 3.17e-3 1.44e-1 3.94e-1 6.10e-1 7.27e-1 8.18e-1 9.33e-1 2071.
+## 2 log_alp… 1.53e+1 2.87e-2 9.83e-1 1.39e+1 1.46e+1 1.51e+1 1.58e+1 1.78e+1 1171.
+## 3 log_beta 1.64e+1 3.69e-2 1.38e+0 1.38e+1 1.54e+1 1.63e+1 1.72e+1 1.92e+1 1386.
+## 4 sigma    1.25e+0 3.21e-3 1.54e-1 9.87e-1 1.14e+0 1.24e+0 1.35e+0 1.59e+0 2306.
+## 5 beta     3.53e+7 2.16e+6 8.76e+7 9.38e+5 5.04e+6 1.20e+7 3.01e+7 2.18e+8 1644.
+## 6 alpha    8.90e+6 5.58e+5 2.00e+7 1.14e+6 2.23e+6 3.66e+6 7.40e+6 5.45e+7 1285.
 ## # … with 1 more variable: Rhat &lt;dbl&gt;</code></pre>
 <p>There are two really important diagnostic statistics hidden in this summary:</p>
 <ul>
@@ -1141,14 +1141,14 @@ bh_loo &lt;- loo::loo(log_lik_bh)
 
 compare(bh_loo, ricker_loo)</code></pre>
 <pre><code>## elpd_diff        se 
-##       0.1       0.7</code></pre>
+##       0.1       0.8</code></pre>
 <p>The output of compare is a big confusing, but basically, if <code>elpd_diff</code> is positive, that means that according to <code>loo</code>, the second model is preferred. If it’s negative, the first model is preferred. So, in this case, per the <code>loo</code> criteria, there is a bit more support for the Beverton-Holt model, at least as we parameterized it here. But we can also see that <code>elpd_diff</code> is on about the same scale as the standard error <code>se</code>, giving some indication that there isn’t a big difference between the models (if for example <code>elpd_diff</code> had been <code>-2000</code>, much bigger than the <code>se</code> of <code>0.5</code>, this would indicate more support for the difference). Biologically, we have reasons to think that the Ricker model might still be the better option.</p>
 <p>If you want to compare more than two models, you just pass more <code>loo</code> objects to compare! Compare conveniently orders the matrix in descending order of model performance.</p>
 <pre class="r"><code>compare(bh_loo, ricker_loo, ricker_loo)</code></pre>
 <pre><code>##            elpd_diff se_diff elpd_loo p_loo looic
-## ricker_loo   0.0       0.0   -58.1      2.4 116.1
-## ricker_loo   0.0       0.0   -58.1      2.4 116.1
-## bh_loo      -0.1       0.7   -58.1      2.2 116.3</code></pre>
+## ricker_loo   0.0       0.0   -58.1      2.4 116.2
+## ricker_loo   0.0       0.0   -58.1      2.4 116.2
+## bh_loo      -0.1       0.8   -58.2      2.2 116.4</code></pre>
 <p>And just like that, we have a solid sketch of going from raw data, to model fits, to model comparison, using Stan and R. There is clearly a lot more work that would have to go into doing this analysis properly (e.g. we haven’t done any testing of the effects of our choices for our prior distributions), but the tools we’ve gone over here should serve as a useful template to build off of for more complete analysis.</p>
 <p>Hopefully this helps you to start using Stan in your analyses, I’ll post some more complicated examples as time allows. Good luck!</p>
 </div>
@@ -1168,7 +1168,7 @@ plot(example_model)</code></pre>
 </div>
 <div id="a-note-on-brms" class="section level1">
 <h1>A note on <code>brms</code></h1>
-<p>It seems like a lot more people are using the <a href="https://paul-buerkner.github.io/brms/"><code>brms</code></a> of Stan for their Bayesian analyses. <code>brms</code> is sort of an in-between <code>rstanarm</code> and “raw” Stan, allowing you to write funkier models than you might be able to represent with versions of linear models, but without some of the complexity of writing raw Stan code. I chose not to cover <code>brms</code> here since a) I don’t use it or really know how and b) I think there’s a lot of value in learning how to code in Stan itself if you’re really going to be internalizing it into your research. Not to take anything away from <code>brms</code>, seems great, but this resource is here to help you learn the Stan language itself.</p>
+<p>It seems like a lot more people are using the <a href="https://paul-buerkner.github.io/brms/"><code>brms</code></a> implementation of Stan for their Bayesian analyses. <code>brms</code> is sort of an in-between <code>rstanarm</code> and “raw” Stan, allowing you to write funkier models than you might be able to represent with versions of linear models, but without some of the complexity of writing raw Stan code. I chose not to cover <code>brms</code> here since a) I don’t use it or really know how and b) I think there’s a lot of value in learning how to code in Stan itself if you’re really going to be internalizing it into your research. Not to take anything away from <code>brms</code>, seems great, but this resource is here to help you learn the Stan language itself.</p>
 </div>
 <div id="references" class="section level1 unnumbered">
 <h1>References</h1>

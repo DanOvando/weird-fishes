@@ -1498,7 +1498,7 @@ plot(example_model)
 
 # A note on `brms`
 
-It seems like a lot more people are using the [`brms`](https://paul-buerkner.github.io/brms/) of Stan for their Bayesian analyses. `brms` is sort of an in-between `rstanarm` and "raw" Stan, allowing you to write funkier models than you might be able to represent with versions of linear models, but without some of the complexity of writing raw Stan code. I chose not to cover `brms` here since a) I don't use it or really know how and b) I think there's a lot of value in learning how to code in Stan itself if you're really going to be internalizing it into your research. Not to take anything away from `brms`, seems great, but this resource is here to help you learn the Stan language itself. 
+It seems like a lot more people are using the [`brms`](https://paul-buerkner.github.io/brms/) implementation of Stan for their Bayesian analyses. `brms` is sort of an in-between `rstanarm` and "raw" Stan, allowing you to write funkier models than you might be able to represent with versions of linear models, but without some of the complexity of writing raw Stan code. I chose not to cover `brms` here since a) I don't use it or really know how and b) I think there's a lot of value in learning how to code in Stan itself if you're really going to be internalizing it into your research. Not to take anything away from `brms`, seems great, but this resource is here to help you learn the Stan language itself. 
 
 
 
