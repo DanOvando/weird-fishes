@@ -34,7 +34,7 @@ theme_set(plot_theme)
 
 # What's Stan and Why Use It?
 
-Stan is a programming language designed to make statistical modeling easier and faster, especially for Bayesian estimation problems. Stan can help you estimate complex models with large numbers of parameters, and can generally do it faster than alternative like JAGS/BUGS 
+Stan is a programming language designed to make statistical modeling easier and faster, especially for Bayesian estimation problems. Stan can help you estimate complex models with large numbers of parameters, and can generally do it faster than alternatives like JAGS/BUGS 
 
 That all sounds good, but why is that useful for me? Suppose you have a hierarchical ecological modeling problem with data clustered by space, time, and species, such as estimating the effect of ocean temperatures on coral growth. You can use Stan to fit that model (and it will likely be faster than BUGS/JAGS if you're already used to working in those platforms). Suppose just want to use informative priors to help fit a growth model. You can use Stan for that. Suppose you just prefer Bayesian analysis and want to run a simple multiple regression. Stan can do that. 
 
@@ -692,7 +692,7 @@ max_treedepth <-  10
 
 n_chains <-  4
 
-n_cores <- 1
+n_cores <- 4
 
 adapt_delta <- 0.95
 
@@ -713,22 +713,22 @@ bh_fit <- stan(
   init = list(
     list(
       h = 0.4,
-      alpha = (1 * data$max_r),
+      log_alpha = log(1 * data$max_r),
       log_beta = log(2* max(sal_data$ssb))
     ),
     list(
       h = 0.21,
-      alpha = (3 * data$max_r),
+      log_alpha = log(3 * data$max_r),
       log_beta = log(.5 *max(sal_data$ssb))
     ),
     list(
       h = 0.8,
-      alpha = (1 * data$max_r),
+      log_alpha = log(1 * data$max_r),
       log_beta = log(1.1*max(sal_data$ssb))
     ),
     list(
       h = 0.3,
-      alpha = (.8 * data$max_r),
+      log_alpha = log(.8 * data$max_r),
       log_beta = log(5*max(sal_data$ssb))
     )
   ),
@@ -769,7 +769,7 @@ class(bh_fit)
 
 ```{r}
 
-summary(bh_fit)$summary %>% head()
+summary(bh_fit)$summary %>% head(20)
 
 ```
 
@@ -1266,8 +1266,8 @@ data <- list(
   bh = 0,
   n_sr_params = 2,
   max_h = 3,
-  rec_par_mean = c(1 * max(sal_data$r),  0.5 * max(sal_data$ssb)),
-  rec_par_cv = c(10, 10)
+  rec_par_mean = c(1 * max(sal_data$r),  0.25 * max(sal_data$ssb)),
+  rec_par_cv = c(5, 5)
   )
 
 
@@ -1311,7 +1311,7 @@ data <- list(
   n_sr_params = 1,
   max_h = 1,
   rec_par_mean = array(2 * max(sal_data$r), dim = 1),
-  rec_par_cv = array(0.5, dim = 1)
+  rec_par_cv = array(2, dim = 1)
   )
 
 inits <-

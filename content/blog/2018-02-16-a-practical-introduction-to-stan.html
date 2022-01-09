@@ -48,7 +48,7 @@ description: "An introduction to fitting Bayesian models using Stan and R"
 
 <div id="whats-stan-and-why-use-it" class="section level1">
 <h1>What’s Stan and Why Use It?</h1>
-<p>Stan is a programming language designed to make statistical modeling easier and faster, especially for Bayesian estimation problems. Stan can help you estimate complex models with large numbers of parameters, and can generally do it faster than alternative like JAGS/BUGS</p>
+<p>Stan is a programming language designed to make statistical modeling easier and faster, especially for Bayesian estimation problems. Stan can help you estimate complex models with large numbers of parameters, and can generally do it faster than alternatives like JAGS/BUGS</p>
 <p>That all sounds good, but why is that useful for me? Suppose you have a hierarchical ecological modeling problem with data clustered by space, time, and species, such as estimating the effect of ocean temperatures on coral growth. You can use Stan to fit that model (and it will likely be faster than BUGS/JAGS if you’re already used to working in those platforms). Suppose just want to use informative priors to help fit a growth model. You can use Stan for that. Suppose you just prefer Bayesian analysis and want to run a simple multiple regression. Stan can do that.</p>
 <p>The purpose of this document is not to perfectly describe or debate Bayesian analysis, but to provide a path to get you started using Stan in your research. This is not a deep dive into the inner workings of Stan and model fitting - explanations and examples are designed to try and help people get the hang of using Stan. There are many <a href="http://mc-stan.org/users/documentation/index.html">great resources</a> to understand the inner workings of Stan and provide higher-level examples, but I’ve found that they are often either too basic, or jump straight to the finished product without explaining the steps to get there. This tutorial is intended as a bridge to help get people from zero to working in Stan. Comments and suggestions are welcome!</p>
 <p>Bayesian analysis on its own has a number of appealing traits</p>
@@ -529,7 +529,7 @@ max_treedepth &lt;-  10
 
 n_chains &lt;-  4
 
-n_cores &lt;- 1
+n_cores &lt;- 4
 
 adapt_delta &lt;- 0.95
 
@@ -550,22 +550,22 @@ bh_fit &lt;- stan(
   init = list(
     list(
       h = 0.4,
-      alpha = (1 * data$max_r),
+      log_alpha = log(1 * data$max_r),
       log_beta = log(2* max(sal_data$ssb))
     ),
     list(
       h = 0.21,
-      alpha = (3 * data$max_r),
+      log_alpha = log(3 * data$max_r),
       log_beta = log(.5 *max(sal_data$ssb))
     ),
     list(
       h = 0.8,
-      alpha = (1 * data$max_r),
+      log_alpha = log(1 * data$max_r),
       log_beta = log(1.1*max(sal_data$ssb))
     ),
     list(
       h = 0.3,
-      alpha = (.8 * data$max_r),
+      log_alpha = log(.8 * data$max_r),
       log_beta = log(5*max(sal_data$ssb))
     )
   ),
@@ -587,21 +587,49 @@ bh_fit &lt;- stan(
 ## attr(,&quot;package&quot;)
 ## [1] &quot;rstan&quot;</code></pre>
 <p><code>stanfit</code> options are designed to interface with a few base R commands that you’re use to, like <code>summary</code> and <code>plot</code> (though if you have lots of parameters simply calling these can be pretty messy)</p>
-<pre class="r"><code>summary(bh_fit)$summary %&gt;% head()</code></pre>
-<pre><code>##                  mean      se_mean           sd          2.5%          25%
-## h        6.685759e-01 5.067263e-03 2.068465e-01  2.730828e-01 5.062846e-01
-## alpha    8.723886e+05 6.412593e+03 2.993728e+05  3.140341e+05 6.798074e+05
-## log_beta 1.013517e+00 1.836911e-02 9.968119e-01 -9.345200e-01 3.335604e-01
-## sigma    1.471980e+00 3.592025e-03 1.869521e-01  1.154740e+00 1.336889e+00
-## beta     4.513370e+00 1.288796e-01 5.748798e+00  3.927744e-01 1.395929e+00
-## rhat[1]  1.055458e+06 4.479597e+03 2.783988e+05  6.186680e+05 8.628785e+05
-##                   50%          75%        97.5%    n_eff      Rhat
-## h        6.823599e-01 8.465374e-01 9.835190e-01 1666.285 1.0010149
-## alpha    8.563591e+05 1.048110e+06 1.511807e+06 2179.503 1.0003879
-## log_beta 1.020026e+00 1.688228e+00 2.958424e+00 2944.761 0.9996424
-## sigma    1.457440e+00 1.586252e+00 1.897388e+00 2708.830 1.0002389
-## beta     2.773271e+00 5.409887e+00 1.926760e+01 1989.692 0.9997997
-## rhat[1]  1.011230e+06 1.200750e+06 1.720715e+06 3862.396 0.9996406</code></pre>
+<pre class="r"><code>summary(bh_fit)$summary %&gt;% head(20)</code></pre>
+<pre><code>##                   mean      se_mean           sd         2.5%          25%
+## h         7.064861e-01 3.153086e-03 1.416436e-01 3.964367e-01 6.137481e-01
+## log_alpha 1.527308e+01 2.665031e-02 9.463911e-01 1.396245e+01 1.462147e+01
+## log_beta  1.631249e+01 3.581297e-02 1.356402e+00 1.376574e+01 1.541728e+01
+## sigma     1.252286e+00 3.382199e-03 1.530536e-01 9.922575e-01 1.141942e+00
+## beta      3.971586e+07 8.168660e+06 2.782632e+08 9.514461e+05 4.961783e+06
+## alpha     1.015919e+07 2.257832e+06 7.375623e+07 1.158284e+06 2.238837e+06
+## rhat[1]   1.614451e+06 6.650070e+03 3.858280e+05 9.628790e+05 1.351052e+06
+## rhat[2]   1.102383e+06 3.661784e+03 2.385298e+05 7.069993e+05 9.354189e+05
+## rhat[3]   1.274674e+06 4.228150e+03 2.760757e+05 8.127793e+05 1.085837e+06
+## rhat[4]   7.334353e+05 3.314103e+03 1.858002e+05 4.391046e+05 6.074139e+05
+## rhat[5]   3.299263e+05 2.528881e+03 1.252515e+05 1.706864e+05 2.477797e+05
+## rhat[6]   4.074547e+05 2.794187e+03 1.405168e+05 2.175931e+05 3.132677e+05
+## rhat[7]   8.404471e+05 3.383029e+03 1.988175e+05 5.172256e+05 7.037901e+05
+## rhat[8]   1.329165e+06 4.504943e+03 2.903704e+05 8.423041e+05 1.130903e+06
+## rhat[9]   8.320013e+05 3.377739e+03 1.977584e+05 5.112255e+05 6.965814e+05
+## rhat[10]  6.613458e+05 3.255606e+03 1.771341e+05 3.880110e+05 5.409597e+05
+## rhat[11]  1.190568e+05 1.321854e+03 6.397148e+04 5.573397e+04 8.205993e+04
+## rhat[12]  1.020308e+05 1.180537e+03 5.708396e+04 4.727077e+04 6.966659e+04
+## rhat[13]  1.779590e+05 1.748698e+03 8.500337e+04 8.595645e+04 1.261857e+05
+## rhat[14]  6.103074e+05 3.205541e+03 1.707847e+05 3.523943e+05 4.939062e+05
+##                    50%          75%        97.5%    n_eff      Rhat
+## h         7.249347e-01 8.137031e-01 9.348433e-01 2018.006 1.0032106
+## log_alpha 1.508839e+01 1.573008e+01 1.757684e+01 1261.063 1.0033688
+## log_beta  1.623656e+01 1.718381e+01 1.904178e+01 1434.486 1.0022315
+## sigma     1.235817e+00 1.346964e+00 1.594952e+00 2047.807 1.0009080
+## beta      1.125764e+07 2.902913e+07 1.860965e+08 1160.406 1.0022447
+## alpha     3.571113e+06 6.784012e+06 4.300570e+07 1067.122 1.0025238
+## rhat[1]   1.572413e+06 1.833292e+06 2.479804e+06 3366.162 1.0002231
+## rhat[2]   1.082013e+06 1.238336e+06 1.638829e+06 4243.263 0.9997577
+## rhat[3]   1.249251e+06 1.430568e+06 1.898903e+06 4263.395 0.9997009
+## rhat[4]   7.103779e+05 8.330625e+05 1.178739e+06 3143.117 1.0007480
+## rhat[5]   3.005536e+05 3.803215e+05 6.557661e+05 2453.065 1.0022076
+## rhat[6]   3.773947e+05 4.700899e+05 7.652917e+05 2528.983 1.0019358
+## rhat[7]   8.188195e+05 9.463399e+05 1.306034e+06 3453.805 1.0003756
+## rhat[8]   1.300951e+06 1.496658e+06 1.987963e+06 4154.569 0.9997396
+## rhat[9]   8.108245e+05 9.371908e+05 1.296154e+06 3427.818 1.0004035
+## rhat[10]  6.360892e+05 7.538843e+05 1.092027e+06 2960.332 1.0010127
+## rhat[11]  1.021549e+05 1.351152e+05 2.826385e+05 2342.103 1.0028859
+## rhat[12]  8.699177e+04 1.155481e+05 2.465203e+05 2338.133 1.0029123
+## rhat[13]  1.555346e+05 2.033442e+05 4.020776e+05 2362.886 1.0027260
+## rhat[14]  5.828790e+05 6.986785e+05 1.034354e+06 2838.541 1.0012016</code></pre>
 <p>The plot command is a great way to get a first glance at your fits</p>
 <pre class="r"><code>plot(bh_fit)</code></pre>
 <p><img src="/blog/2018-02-16-a-practical-introduction-to-stan_files/figure-html/unnamed-chunk-24-1.svg" width="960" /></p>
@@ -671,15 +699,15 @@ mack_diagnostics %&gt;%
 
 bh_summary %&gt;% head()</code></pre>
 <pre><code>## # A tibble: 6 × 11
-##   variable        mean  se_mean      sd   `2.5%`   `25%`   `50%`   `75%` `97.5%`
-##   &lt;chr&gt;          &lt;dbl&gt;    &lt;dbl&gt;   &lt;dbl&gt;    &lt;dbl&gt;   &lt;dbl&gt;   &lt;dbl&gt;   &lt;dbl&gt;   &lt;dbl&gt;
-## 1 h              0.669  5.07e-3 2.07e-1  2.73e-1 5.06e-1 6.82e-1 8.47e-1 9.84e-1
-## 2 alpha     872389.     6.41e+3 2.99e+5  3.14e+5 6.80e+5 8.56e+5 1.05e+6 1.51e+6
-## 3 log_beta       1.01   1.84e-2 9.97e-1 -9.35e-1 3.34e-1 1.02e+0 1.69e+0 2.96e+0
-## 4 sigma          1.47   3.59e-3 1.87e-1  1.15e+0 1.34e+0 1.46e+0 1.59e+0 1.90e+0
-## 5 beta           4.51   1.29e-1 5.75e+0  3.93e-1 1.40e+0 2.77e+0 5.41e+0 1.93e+1
-## 6 rhat[1]  1055458.     4.48e+3 2.78e+5  6.19e+5 8.63e+5 1.01e+6 1.20e+6 1.72e+6
-## # … with 2 more variables: n_eff &lt;dbl&gt;, Rhat &lt;dbl&gt;</code></pre>
+##   variable    mean se_mean      sd  `2.5%`   `25%`   `50%`   `75%` `97.5%` n_eff
+##   &lt;chr&gt;      &lt;dbl&gt;   &lt;dbl&gt;   &lt;dbl&gt;   &lt;dbl&gt;   &lt;dbl&gt;   &lt;dbl&gt;   &lt;dbl&gt;   &lt;dbl&gt; &lt;dbl&gt;
+## 1 h        7.06e-1 3.15e-3 1.42e-1 3.96e-1 6.14e-1 7.25e-1 8.14e-1 9.35e-1 2018.
+## 2 log_alp… 1.53e+1 2.67e-2 9.46e-1 1.40e+1 1.46e+1 1.51e+1 1.57e+1 1.76e+1 1261.
+## 3 log_beta 1.63e+1 3.58e-2 1.36e+0 1.38e+1 1.54e+1 1.62e+1 1.72e+1 1.90e+1 1434.
+## 4 sigma    1.25e+0 3.38e-3 1.53e-1 9.92e-1 1.14e+0 1.24e+0 1.35e+0 1.59e+0 2048.
+## 5 beta     3.97e+7 8.17e+6 2.78e+8 9.51e+5 4.96e+6 1.13e+7 2.90e+7 1.86e+8 1160.
+## 6 alpha    1.02e+7 2.26e+6 7.38e+7 1.16e+6 2.24e+6 3.57e+6 6.78e+6 4.30e+7 1067.
+## # … with 1 more variable: Rhat &lt;dbl&gt;</code></pre>
 <p>There are two really important diagnostic statistics hidden in this summary:</p>
 <ul>
 <li><p><code>n_eff</code>: the effective sample size</p></li>
@@ -971,8 +999,8 @@ data &lt;- list(
   bh = 0,
   n_sr_params = 2,
   max_h = 3,
-  rec_par_mean = c(1 * max(sal_data$r),  0.5 * max(sal_data$ssb)),
-  rec_par_cv = c(10, 10)
+  rec_par_mean = c(1 * max(sal_data$r),  0.25 * max(sal_data$ssb)),
+  rec_par_cv = c(5, 5)
   )
 
 
@@ -1007,7 +1035,7 @@ adapt_delta = adapt_delta)
   n_sr_params = 1,
   max_h = 1,
   rec_par_mean = array(2 * max(sal_data$r), dim = 1),
-  rec_par_cv = array(0.5, dim = 1)
+  rec_par_cv = array(2, dim = 1)
   )
 
 inits &lt;-
@@ -1112,14 +1140,14 @@ bh_loo &lt;- loo::loo(log_lik_bh)
 
 compare(bh_loo, ricker_loo)</code></pre>
 <pre><code>## elpd_diff        se 
-##       0.0       0.1</code></pre>
+##       0.0       0.8</code></pre>
 <p>The output of compare is a big confusing, but basically, if <code>elpd_diff</code> is positive, that means that according to <code>loo</code>, the second model is preferred. If it’s negative, the first model is preferred. So, in this case, per the <code>loo</code> criteria, there is a bit more support for the Beverton-Holt model, at least as we parameterized it here. But we can also see that <code>elpd_diff</code> is on about the same scale as the standard error <code>se</code>, giving some indication that there isn’t a big difference between the models (if for example <code>elpd_diff</code> had been <code>-2000</code>, much bigger than the <code>se</code> of <code>0.5</code>, this would indicate more support for the difference). Biologically, we have reasons to think that the Ricker model might still be the better option.</p>
 <p>If you want to compare more than two models, you just pass more <code>loo</code> objects to compare! Compare conveniently orders the matrix in descending order of model performance.</p>
 <pre class="r"><code>compare(bh_loo, ricker_loo, ricker_loo)</code></pre>
 <pre><code>##            elpd_diff se_diff elpd_loo p_loo looic
-## ricker_loo   0.0       0.0   -58.0      2.2 116.1
-## ricker_loo   0.0       0.0   -58.0      2.2 116.1
-## bh_loo       0.0       0.1   -58.1      2.2 116.2</code></pre>
+## bh_loo       0.0       0.0   -58.1      2.2 116.2
+## ricker_loo   0.0       0.8   -58.2      2.5 116.3
+## ricker_loo   0.0       0.8   -58.2      2.5 116.3</code></pre>
 <p>And just like that, we have a solid sketch of going from raw data, to model fits, to model comparison, using Stan and R. There is clearly a lot more work that would have to go into doing this analysis properly (e.g. we haven’t done any testing of the effects of our choices for our prior distributions), but the tools we’ve gone over here should serve as a useful template to build off of for more complete analysis.</p>
 <p>Hopefully this helps you to start using Stan in your analyses, I’ll post some more complicated examples as time allows. Good luck!</p>
 </div>
