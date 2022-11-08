@@ -1,9 +1,9 @@
 ---
 title: "About Me"
 date: "`r Sys.Date()`"
-bibliography: my-pubs.bib
+bibliography: "my-pubs.bib"
 biblio-style: apalike
-toc: false
+toc: no
 linkcolor: blue
 ---
 
